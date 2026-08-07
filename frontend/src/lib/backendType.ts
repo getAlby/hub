@@ -37,4 +37,11 @@ export const backendTypeConfigs: Record<BackendType, BackendTypeConfig> = {
     hasChannelManagement: false,
     hasNodeBackup: false,
   },
+  GREENLIGHT: {
+    // 12-word BIP-39 is both GL node seed and Settings backup phrase
+    hasMnemonic: true,
+    // Real CLN channels on Blockstream cloud — not Bark stubs
+    hasChannelManagement: true,
+    hasNodeBackup: false,
+  },
 };

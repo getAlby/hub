@@ -1,0 +1,42 @@
+# Greenlight signer service (VLS validating signer for the hub's node)
+#
+# Install:
+#   1. Build/install gl-cli:  cargo install gl-cli   (or a release binary)
+#   2. Register/recover the node once (creates ~/.local/share/greenlight
+#      with credentials.gfs + hsm_secret)
+#   3. Encrypt the seed:      python3 lnclient/greenlight/signer/encrypt-seed.py \
+#                                /home/greenlight/.local/share/greenlight
+#   4. Copy this unit to /etc/systemd/system/greenlight-signer.service,
+#      fix User=/ExecStart paths, then:
+#        systemctl daemon-reload
+#        systemctl enable --now greenlight-signer
+#
+# Security: the seed exists in plaintext only while the process runs; the
+# service user should NOT be the hub user (a compromised hub cannot read
+# the signer's decrypted seed or its passphrase file).
+
+[Unit]
+Description=Greenlight VLS signer for Alby Hub
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=greenlight
+Group=greenlight
+# The signer's own user, separate from the hub process user.
+# GL_DATA_DIR defaults to ~/.local/share/greenlight for this user.
+Environment=GL_DATA_DIR=/home/greenlight/.local/share/greenlight
+Environment=GL_PASS_FILE=/home/greenlight/.local/share/greenlight-signer.pass
+# Extra args for `gl-cli signer` (role etc.) — check `gl-cli signer --help`.
+Environment=GL_SIGNER_ARGS=
+ExecStart=/usr/local/bin/greenlight-signer-run.sh
+Restart=on-failure
+RestartSec=5
+# NoNewPrivileges=yes
+# PrivateTmp=yes
+# ProtectSystem=strict
+# ProtectHome=read-only
+
+[Install]
+WantedBy=multi-user.target

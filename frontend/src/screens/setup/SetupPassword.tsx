@@ -9,6 +9,7 @@ import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
 import { Label } from "src/components/ui/label";
 import { useInfo } from "src/hooks/useInfo";
+import { BackendType } from "src/types";
 
 export function SetupPassword() {
   const navigate = useNavigate();
@@ -37,10 +38,22 @@ export function SetupPassword() {
     }
 
     if (wallet === "import") {
+      // Prefer explicit node from query (e.g. greenlight recover path).
+      // Fall back to LDK only when user picks "choose node" from advanced.
+      let importBackend: BackendType = "LDK";
+      if (node === "greenlight") {
+        importBackend = "GREENLIGHT";
+      } else if (node === "bark") {
+        importBackend = "BARK";
+      } else if (node === "cashu") {
+        importBackend = "CASHU";
+      } else if (node === "ldk") {
+        importBackend = "LDK";
+      }
       useSetupStore.getState().updateNodeInfo({
-        backendType: "LDK",
+        backendType: importBackend,
       });
-      navigate(`/setup/import-mnemonic`);
+      navigate(`/setup/import-mnemonic${node ? `?node=${node}` : ""}`);
     } else if (node) {
       navigate(`/setup/node/${node}`);
     } else {

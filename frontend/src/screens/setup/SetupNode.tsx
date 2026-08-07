@@ -47,6 +47,11 @@ const backendTypeDisplayConfigs: Partial<
     title: "Bark",
     icon: <img src={bark} />,
   },
+  GREENLIGHT: {
+    title: "Greenlight",
+    // GL is hosted Core Lightning; reuse CLN mark until a dedicated asset lands
+    icon: <img src={cln} />,
+  },
 };
 
 const backendTypeDisplayConfigList = Object.entries(

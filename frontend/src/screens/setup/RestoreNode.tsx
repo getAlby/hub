@@ -113,10 +113,9 @@ export function RestoreNode() {
       className="flex flex-col gap-5 mx-auto max-w-2xl text-sm"
     >
       <TwoColumnLayoutHeader
-        // TODO: Show different message in wails mode
-        title="Import Wallet from Migration File"
-        pageTitle="Import Wallet from Migration File"
-        description="Upload your encrypted wallet migration file."
+        title="Restore Hub backup"
+        pageTitle="Restore Hub backup"
+        description="Upload your encrypted .bkp file. Restores apps, settings, and keys."
       />
       <div className="grid gap-2">
         <Label htmlFor="password">Unlock Password</Label>

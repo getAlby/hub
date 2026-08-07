@@ -59,22 +59,19 @@ func (api *api) CreateBackup(unlockPassword string, w io.Writer) error {
 	}
 	logger.Logger.WithField("path", lnStorageDir).Info("Found node storage dir")
 
-	// Reset the routing data to decrease the LDK DB size
+	// Reset the routing data to decrease the LDK DB size.
+	// Greenlight/CLN-style backends may stub ResetRouter — do not block Hub backup.
 	err = lnClient.ResetRouter("ALL")
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to reset router")
-		return fmt.Errorf("failed to reset router: %w", err)
+		logger.Logger.WithError(err).Warn("ResetRouter failed during backup; continuing")
 	}
 	// Stop the app to ensure no new requests are processed.
 	api.svc.StopApp()
 
 	// Remove the OAuth access token from the DB to ensure the user
-	// has to re-auth with the correct OAuth client when they restore the backup
-	err = api.albyOAuthSvc.RemoveOAuthAccessToken()
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to remove oauth access token")
-		return errors.New("failed to remove oauth access token")
-	}
+	// has to re-auth with the correct OAuth client when they restore the backup.
+	// If Alby Account was never connected, tolerate no-op.
+	_ = api.albyOAuthSvc.RemoveOAuthAccessToken()
 
 	// Closing the database leaves the service in an inconsistent state,
 	// but that should not be a problem since the app is not expected
@@ -88,18 +85,33 @@ func (api *api) CreateBackup(unlockPassword string, w io.Writer) error {
 	var filesToArchive []string
 
 	if lnStorageDir != "" {
-		lnFiles, err := filepath.Glob(filepath.Join(workDir, lnStorageDir, "*"))
-		if err != nil {
-			return fmt.Errorf("failed to list files in the LNClient storage directory: %w", err)
+		// GetStorageDir may return a path relative to workDir (LDK) or an
+		// absolute path (Greenlight SignerDataDir / workdir). Resolve both.
+		storageRoot := lnStorageDir
+		if !filepath.IsAbs(storageRoot) {
+			storageRoot = filepath.Join(workDir, storageRoot)
 		}
-		logger.Logger.WithField("lnFiles", lnFiles).Info("Listed node storage dir")
+		storageRoot, err = filepath.Abs(storageRoot)
+		if err != nil {
+			return fmt.Errorf("failed to resolve LNClient storage directory: %w", err)
+		}
+		if st, statErr := os.Stat(storageRoot); statErr != nil || !st.IsDir() {
+			logger.Logger.WithField("storageRoot", storageRoot).WithError(statErr).Warn("LN storage dir missing during backup; backing up nwc.db only")
+		} else {
+			lnFiles, err := filepath.Glob(filepath.Join(storageRoot, "*"))
+			if err != nil {
+				return fmt.Errorf("failed to list files in the LNClient storage directory: %w", err)
+			}
+			logger.Logger.WithField("lnFiles", lnFiles).WithField("storageRoot", storageRoot).Info("Listed node storage dir")
 
-		// Avoid backing up log files.
-		lnFiles = utils.Filter(lnFiles, func(s string) bool {
-			return filepath.Ext(s) != ".log"
-		})
+			// Avoid backing up log files and stale process locks.
+			lnFiles = utils.Filter(lnFiles, func(s string) bool {
+				base := filepath.Base(s)
+				return filepath.Ext(s) != ".log" && base != "LOCK" && base != "signer.pid"
+			})
 
-		filesToArchive = append(filesToArchive, lnFiles...)
+			filesToArchive = append(filesToArchive, lnFiles...)
+		}
 	}
 
 	cw, err := encryptingWriter(w, unlockPassword)
@@ -139,9 +151,9 @@ func (api *api) CreateBackup(unlockPassword string, w io.Writer) error {
 	for _, fileToArchive := range filesToArchive {
 		logger.Logger.WithField("fileToArchive", fileToArchive).Info("adding file to zip")
 		relPath, err := filepath.Rel(workDir, fileToArchive)
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to get relative path of input file")
-			return fmt.Errorf("failed to get relative path of input file: %w", err)
+		if err != nil || strings.HasPrefix(relPath, "..") {
+			// Absolute paths outside workDir (or failed Rel): keep a stable zip path.
+			relPath = filepath.Join("ln-storage", filepath.Base(filepath.Dir(fileToArchive)), filepath.Base(fileToArchive))
 		}
 
 		// Ensure forward slashes for zip format compatibility.

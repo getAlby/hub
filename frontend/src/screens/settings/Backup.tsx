@@ -83,23 +83,40 @@ export default function Backup() {
         pageTitle="Backup"
         title="Backup"
         description={
-          <>
-            <span className="text-muted-foreground">
-              Backup your recovery phrase
-              {hasChannelManagement && " and channel states"}. These backups are
-              for disaster recovery only.
-              {hasNodeBackup &&
-                " To migrate your node, please use the migration tool."}{" "}
-            </span>
-            <a
-              href="https://guides.getalby.com/user-guide/alby-hub/backups-and-recover"
-              target="_blank"
-              rel="noreferrer noopener"
-              className="text-foreground underline"
-            >
-              Learn more about backups
-            </a>
-          </>
+          info?.backendType === "GREENLIGHT" ? (
+            <>
+              <span className="text-muted-foreground">
+                Three things: your recovery phrase (always), a Hub backup when
+                you move devices, and leave Greenlight only if you self-host.
+              </span>{" "}
+              <a
+                href="https://guides.getalby.com/user-guide/alby-hub/backups-and-recover"
+                target="_blank"
+                rel="noreferrer noopener"
+                className="text-foreground underline"
+              >
+                Learn more
+              </a>
+            </>
+          ) : (
+            <>
+              <span className="text-muted-foreground">
+                Backup your recovery phrase
+                {hasChannelManagement && " and channel states"}. These backups
+                are for disaster recovery only.
+                {hasNodeBackup &&
+                  " To migrate your node, please use the migration tool."}{" "}
+              </span>
+              <a
+                href="https://guides.getalby.com/user-guide/alby-hub/backups-and-recover"
+                target="_blank"
+                rel="noreferrer noopener"
+                className="text-foreground underline"
+              >
+                Learn more about backups
+              </a>
+            </>
+          )
         }
       />
 
@@ -108,13 +125,26 @@ export default function Backup() {
           <>
             <div className="flex flex-col gap-6">
               <div>
-                <h3 className="text-lg font-medium">Recovery Phrase</h3>
+                <h3 className="text-lg font-medium">1. Recovery Phrase</h3>
                 <p className="text-sm text-muted-foreground">
-                  Your recovery phrase is a group of 12 random words that back
-                  up your wallet{" "}
-                  {info?.backendType === "LDK" ? "on-chain balance" : "balance"}
-                  . Using them is the only way to recover access to your wallet
-                  on another machine or when you lose your unlock password.
+                  {info?.backendType === "GREENLIGHT" ? (
+                    <>
+                      Your 12-word phrase is the only thing you must never lose.
+                      It restores access to your Greenlight node while
+                      Greenlight is online.
+                    </>
+                  ) : (
+                    <>
+                      Your recovery phrase is a group of 12 random words that
+                      back up your wallet{" "}
+                      {info?.backendType === "LDK"
+                        ? "on-chain balance"
+                        : "balance"}
+                      . Using them is the only way to recover access to your
+                      wallet on another machine or when you lose your unlock
+                      password.
+                    </>
+                  )}
                 </p>
               </div>
               <Alert variant="destructive">
@@ -184,7 +214,66 @@ export default function Backup() {
           </>
         )}
 
-        {hasChannelManagement && (
+        {(info?.backendType === "GREENLIGHT" || hasNodeBackup) && (
+          <>
+            <div className="flex flex-col gap-4">
+              <div>
+                <h3 className="text-lg font-medium">2. Hub backup</h3>
+                <p className="text-sm text-muted-foreground">
+                  {info?.backendType === "GREENLIGHT" ? (
+                    <>
+                      Download before you move or reinstall. Restores this app
+                      and your connections. Your Lightning balance stays on
+                      Greenlight.
+                    </>
+                  ) : (
+                    <>
+                      Create a migration file to move Alby Hub to another device
+                      or server.
+                    </>
+                  )}
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => navigate("/settings/migrate")}
+                >
+                  Download Hub backup
+                </Button>
+              </div>
+            </div>
+            <Separator />
+          </>
+        )}
+
+        {info?.backendType === "GREENLIGHT" && (
+          <>
+            <div className="flex flex-col gap-4">
+              <div>
+                <h3 className="text-lg font-medium">3. Leave Greenlight</h3>
+                <p className="text-sm text-muted-foreground">
+                  Advanced. Export your node to run Core Lightning yourself.
+                  One-way: the node will no longer start on Greenlight. Not
+                  required for normal use or moving Hub.
+                </p>
+              </div>
+              <Alert>
+                <AlertTriangleIcon />
+                <AlertTitle>Coming to Hub UI</AlertTitle>
+                <AlertDescription>
+                  Use Greenlight&apos;s export tools when you are ready to
+                  self-host. Keep your recovery phrase. Prefer Hub backup for
+                  everyday moves.
+                </AlertDescription>
+              </Alert>
+            </div>
+            <Separator />
+          </>
+        )}
+
+        {hasChannelManagement && info?.backendType !== "GREENLIGHT" && (
           <div className="flex flex-col gap-8">
             <div>
               <h3 className="text-lg font-medium">Channels Backup</h3>
@@ -294,7 +383,10 @@ export default function Backup() {
           </div>
         )}
 
-        {!hasMnemonic && !hasChannelManagement && !info?.vssSupported && (
+        {!hasMnemonic &&
+          !hasChannelManagement &&
+          !info?.vssSupported &&
+          info?.backendType !== "GREENLIGHT" && (
           <p className="text-sm text-muted-foreground">
             No recovery phrase or channel state backup present.
           </p>

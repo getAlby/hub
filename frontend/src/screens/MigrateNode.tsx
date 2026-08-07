@@ -74,9 +74,9 @@ export function MigrateNode() {
   return (
     <>
       <SettingsHeader
-        title="Migrate Alby Hub"
-        pageTitle="Migrate"
-        description="Create migration file in order to move your Alby Hub to another device or server."
+        title="Download Hub backup"
+        pageTitle="Hub backup"
+        description="Move Alby Hub to another device. Your Lightning funds stay on the node backend (e.g. Greenlight) until you leave that backend."
       />
 
       <div className="flex flex-col gap-6">
@@ -86,31 +86,28 @@ export function MigrateNode() {
             <h3>Do not run your Alby Hub on multiple devices</h3>
           </div>
           <p className="text-sm ml-7">
-            After creating this migration file, do not restart Alby Hub on this
-            device, as this will cause problems and may cause force channel
-            closures.
+            After creating this file, stop using Alby Hub on this device before
+            unlocking on the new one.
           </p>
         </div>
         <div className="flex flex-col gap-1">
           <div className="flex gap-3 items-center">
             <TriangleAlertIcon className="size-4" />
-            <h3>Migrate this file only to fresh Alby Hub</h3>
+            <h3>Restore only on a fresh Alby Hub</h3>
           </div>
           <p className="text-sm ml-7">
-            To import the migration file, you must have a brand new Alby Hub on
-            another device and use the “Advanced” option during the onboarding.
+            On the new device choose &quot;I already have a Hub&quot; then
+            &quot;Restore Hub backup&quot;.
           </p>
         </div>
         <div className="flex flex-col gap-1">
           <div className="flex gap-3 items-center">
             <InfoIcon className="size-4" />
-            <h3>What happens next?</h3>
+            <h3>What is included?</h3>
           </div>
           <p className="text-sm ml-7">
-            After typing your unlock password, you'll be able to download a
-            migration file which contains a backup of your Alby Hub data. Then
-            you'll see instructions on how to import this migration file into
-            another device or server.
+            Encrypted Hub data: apps, settings, and keys. On Greenlight, channels
+            stay in the cloud; this file reconnects you to the same node.
           </p>
         </div>
       </div>
@@ -119,7 +116,7 @@ export function MigrateNode() {
         <div>
           <h1 className="font-medium mb-1">Enter unlock password</h1>
           <p className="text-muted-foreground mb-4">
-            Your unlock password will be used to encrypt your migration file
+            Your unlock password encrypts the backup file
           </p>
           <form
             onSubmit={onSubmitPassword}
@@ -146,11 +143,11 @@ export function MigrateNode() {
             disabled={loading}
             onClick={() => setShowPasswordScreen(true)}
           >
-            Create Alby Hub Migration File
+            Download Hub backup
           </Button>
 
           <LinkButton to="/settings/backup" variant={"secondary"}>
-            Backup Without Migrating Alby Hub
+            Back to Backup
           </LinkButton>
         </div>
       )}

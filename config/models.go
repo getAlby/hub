@@ -5,8 +5,9 @@ const (
 	LDKBackendType     = "LDK"
 	PhoenixBackendType = "PHOENIX"
 	CashuBackendType   = "CASHU"
-	CLNBackendType     = "CLN"
-	BarkBackendType    = "BARK"
+	CLNBackendType        = "CLN"
+	BarkBackendType       = "BARK"
+	GreenlightBackendType = "GREENLIGHT"
 )
 
 const (
@@ -69,6 +70,14 @@ type AppConfig struct {
 	BarkEsploraServer                  string `envconfig:"BARK_ESPLORA_SERVER" default:"https://mempool.second.tech/api"`
 	BarkServerAccessToken              string `envconfig:"BARK_SERVER_ACCESS_TOKEN"`
 	BarkLogLevel                       string `envconfig:"BARK_LOG_LEVEL" default:"3"`
+	// Greenlight: operator/dev cert for register; paths optional for connect-only mode
+	GreenlightCredsPath     string `envconfig:"GREENLIGHT_CREDS_PATH"`
+	GreenlightNodeURI       string `envconfig:"GREENLIGHT_NODE_URI"`
+	GreenlightServerName    string `envconfig:"GREENLIGHT_SERVER_NAME"`
+	GreenlightSignerDataDir string `envconfig:"GREENLIGHT_SIGNER_DATA_DIR"`
+	GreenlightNobodyCrt     string `envconfig:"GL_NOBODY_CRT"`
+	GreenlightNobodyKey     string `envconfig:"GL_NOBODY_KEY"`
+	GreenlightGlcliPath     string `envconfig:"GREENLIGHT_GLCLI_PATH"`
 }
 
 func (c *AppConfig) IsDefaultClientId() bool {

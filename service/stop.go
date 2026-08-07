@@ -8,6 +8,11 @@ import (
 )
 
 func (svc *service) StopApp() {
+	// Stop Greenlight signer before cancelling app context so keys are
+	// only live while the hub is unlocked.
+	if svc.glSigner != nil {
+		svc.glSigner.Stop()
+	}
 	if svc.appCancelFn != nil {
 		logger.Logger.Info("Stopping app...")
 		svc.appCancelFn()

@@ -62,10 +62,12 @@ import { SetupAdvanced } from "src/screens/setup/SetupAdvanced";
 import { SetupFinish } from "src/screens/setup/SetupFinish";
 import { SetupNode } from "src/screens/setup/SetupNode";
 import { SetupPassword } from "src/screens/setup/SetupPassword";
+import { SetupRecover } from "src/screens/setup/SetupRecover";
 import { SetupSecurity } from "src/screens/setup/SetupSecurity";
 import { BarkForm } from "src/screens/setup/node/BarkForm";
 import { CLNForm } from "src/screens/setup/node/CLNForm";
 import { CashuForm } from "src/screens/setup/node/CashuForm";
+import { GreenlightForm } from "src/screens/setup/node/GreenlightForm";
 import { LDKForm } from "src/screens/setup/node/LDKForm";
 import { LNDForm } from "src/screens/setup/node/LNDForm";
 import { PhoenixdForm } from "src/screens/setup/node/PhoenixdForm";
@@ -567,6 +569,10 @@ const routes: RouteObject[] = [
                 element: <BarkForm />,
               },
               {
+                path: "greenlight",
+                element: <GreenlightForm />,
+              },
+              {
                 path: "preset",
                 element: <PresetNodeForm />,
               },
@@ -575,6 +581,10 @@ const routes: RouteObject[] = [
           {
             path: "advanced",
             element: <SetupAdvanced />,
+          },
+          {
+            path: "recover",
+            element: <SetupRecover />,
           },
           {
             path: "import-mnemonic",

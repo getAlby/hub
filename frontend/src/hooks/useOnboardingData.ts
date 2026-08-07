@@ -66,11 +66,20 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
     !(info.jitChannelsEnabled && info.jitChannelsLiquiditySource)
       ? [
           {
-            title: "Open your first channel",
+            title:
+              info.backendType === "GREENLIGHT"
+                ? "Open a Lightning channel"
+                : "Open your first channel",
             description:
-              "Establish a new Lightning channel to enable fast and low-fee Bitcoin transactions.",
+              info.backendType === "GREENLIGHT"
+                ? "Fund your Greenlight node and open a channel so you can send and receive."
+                : "Establish a new Lightning channel to enable fast and low-fee Bitcoin transactions.",
             checked: hasChannel,
-            to: "/channels/first",
+            // Alby LSP wizard is for linked accounts; GL uses Node channel flows.
+            to:
+              info.backendType === "GREENLIGHT" || !info.albyAccountConnected
+                ? "/channels"
+                : "/channels/first",
           },
         ]
       : []),

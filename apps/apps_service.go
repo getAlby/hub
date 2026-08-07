@@ -60,9 +60,10 @@ func (svc *appsService) CreateApp(name string, pubkey string, maxAmountSat uint6
 			backendType != config.LNDBackendType &&
 			backendType != config.PhoenixBackendType &&
 			backendType != config.BarkBackendType &&
-			backendType != config.CLNBackendType {
+			backendType != config.CLNBackendType &&
+			backendType != config.GreenlightBackendType {
 			return nil, "", fmt.Errorf(
-				"sub-wallets are currently not supported on your node backend. Try LDK, LND, PHOENIX, BARK, or CLN")
+				"sub-wallets are currently not supported on your node backend. Try LDK, LND, PHOENIX, BARK, CLN, or GREENLIGHT")
 		}
 	}
 

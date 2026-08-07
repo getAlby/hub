@@ -48,6 +48,7 @@ type service struct {
 	keys                 keys.Keys
 	relayStatuses        []RelayStatus
 	startupState         string
+	glSigner             *GreenlightSignerService
 }
 
 func NewService(ctx context.Context) (*service, error) {

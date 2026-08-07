@@ -132,6 +132,28 @@ func (cfg *config) init(env *AppConfig) error {
 		}
 	}
 
+	// Greenlight: optional connect-only env (plaintext paths/URIs)
+	if cfg.Env.GreenlightCredsPath != "" {
+		if err := cfg.SetIgnore("GreenlightCredsPath", cfg.Env.GreenlightCredsPath, ""); err != nil {
+			return err
+		}
+	}
+	if cfg.Env.GreenlightNodeURI != "" {
+		if err := cfg.SetIgnore("GreenlightNodeURI", cfg.Env.GreenlightNodeURI, ""); err != nil {
+			return err
+		}
+	}
+	if cfg.Env.GreenlightServerName != "" {
+		if err := cfg.SetIgnore("GreenlightServerName", cfg.Env.GreenlightServerName, ""); err != nil {
+			return err
+		}
+	}
+	if cfg.Env.GreenlightSignerDataDir != "" {
+		if err := cfg.SetIgnore("GreenlightSignerDataDir", cfg.Env.GreenlightSignerDataDir, ""); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 

@@ -7,7 +7,7 @@ import {
   ShieldCheckIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 
 import { toast } from "sonner";
 import MnemonicInputs from "src/components/mnemonic/MnemonicInputs";
@@ -21,6 +21,11 @@ import useSetupStore from "src/state/SetupStore";
 export function ImportMnemonic() {
   const navigate = useNavigate();
   const setupStore = useSetupStore();
+  const [searchParams] = useSearchParams();
+  const nodeParam = (searchParams.get("node") || "").toLowerCase();
+  const isGreenlight =
+    nodeParam === "greenlight" ||
+    setupStore.nodeInfo.backendType === "GREENLIGHT";
   const [backedUp, setIsBackedUp] = useState<boolean>(false);
 
   useEffect(() => {
@@ -52,6 +57,12 @@ export function ImportMnemonic() {
     });
     setupStore.setHasImportedMnemonic(true);
 
+    if (isGreenlight) {
+      setupStore.updateNodeInfo({ backendType: "GREENLIGHT" });
+      navigate("/setup/node/greenlight");
+      return;
+    }
+
     navigate(`/setup/node`);
   }
 
@@ -63,17 +74,33 @@ export function ImportMnemonic() {
       <TwoColumnLayoutHeader
         title="Import Recovery Phrase"
         pageTitle="Import Recovery Phrase"
-        description="Enter your recovery phrase to import your Alby Hub."
+        description={
+          isGreenlight
+            ? "Enter your 12-word phrase to restore access to your Greenlight node."
+            : "Enter your recovery phrase to import your Alby Hub."
+        }
       />
 
-      <Alert variant="warning">
-        <AlertTriangleIcon />
-        <AlertTitle>Do not re-use the same key on multiple devices</AlertTitle>
-        <AlertDescription className="inline">
-          If you want to transfer your existing Hub to another machine please
-          use the <b>migrate feature</b> from the Alby Hub settings.
-        </AlertDescription>
-      </Alert>
+      {isGreenlight ? (
+        <Alert>
+          <LifeBuoyIcon />
+          <AlertTitle>Greenlight recovery</AlertTitle>
+          <AlertDescription className="inline">
+            Your phrase restores Lightning access while Greenlight is online.
+            App connections (NWC) are not in the phrase — restore a Hub backup
+            if you have one, or create connections again after unlock.
+          </AlertDescription>
+        </Alert>
+      ) : (
+        <Alert variant="warning">
+          <AlertTriangleIcon />
+          <AlertTitle>Do not re-use the same key on multiple devices</AlertTitle>
+          <AlertDescription className="inline">
+            If you want to transfer your existing Hub to another machine please
+            use the <b>Hub backup</b> option from restore.
+          </AlertDescription>
+        </Alert>
+      )}
       <Alert className="grid-cols-none">
         <div className="flex flex-col gap-4">
           <div className="flex gap-2 items-center">
@@ -81,8 +108,9 @@ export function ImportMnemonic() {
               <LifeBuoyIcon className="size-6" />
             </div>
             <span className="text-muted-foreground">
-              Your recovery phrase is a set of 12 words used to restore your
-              on-chain balance from a backup.
+              {isGreenlight
+                ? "Your recovery phrase is 12 words. It is the same phrase Greenlight uses for your node seed."
+                : "Your recovery phrase is a set of 12 words used to restore your on-chain balance from a backup."}
             </span>
           </div>
           <div className="flex gap-2 items-center">
@@ -98,9 +126,9 @@ export function ImportMnemonic() {
               <ShieldAlertIcon className="size-6" />
             </div>
             <span className="text-muted-foreground">
-              Your recovery phrase cannot restore funds from lightning channels.
-              If you had active channels on a different device, contact Alby
-              support before proceeding.
+              {isGreenlight
+                ? "Channels stay on Greenlight. The phrase recovers access to that node, not a Hub backup file."
+                : "Your recovery phrase cannot restore funds from lightning channels. If you had active channels on a different device, contact Alby support before proceeding."}
             </span>
           </div>
         </div>
@@ -108,17 +136,32 @@ export function ImportMnemonic() {
 
       <MnemonicInputs mnemonic={mnemonic} setMnemonic={setMnemonic} />
 
-      <div className="flex items-center mt-5">
-        <Checkbox
-          id="confirmedNoChannels"
-          required
-          onCheckedChange={() => setIsBackedUp(!backedUp)}
-        />
-        <Label htmlFor="confirmedNoChannels" className="ml-2 cursor-pointer">
-          I don't have another Alby Hub to migrate or open channels (funds from
-          channels will be lost!).
-        </Label>
-      </div>
+      {!isGreenlight && (
+        <div className="flex items-center mt-5">
+          <Checkbox
+            id="confirmedNoChannels"
+            required
+            onCheckedChange={() => setIsBackedUp(!backedUp)}
+          />
+          <Label htmlFor="confirmedNoChannels" className="ml-2 cursor-pointer">
+            I don't have another Alby Hub to migrate or open channels (funds from
+            channels will be lost!).
+          </Label>
+        </div>
+      )}
+      {isGreenlight && (
+        <div className="flex items-center mt-5">
+          <Checkbox
+            id="confirmedGlRecover"
+            required
+            onCheckedChange={() => setIsBackedUp(!backedUp)}
+          />
+          <Label htmlFor="confirmedGlRecover" className="ml-2 cursor-pointer">
+            I understand app connections will need to be set up again unless I
+            restore a Hub backup instead.
+          </Label>
+        </div>
+      )}
       <Button>Next</Button>
     </form>
   );
