@@ -1,6 +1,7 @@
 package greenlight
 
 import (
+	_ "embed"
 	"fmt"
 	"os"
 	"os/exec"
@@ -11,6 +12,9 @@ import (
 	"github.com/getAlby/hub/logger"
 	"github.com/tyler-smith/go-bip39"
 )
+
+//go:embed extract_creds.py
+var embeddedExtractCreds string
 
 const (
 	seedFileName        = "hsm_secret"
@@ -138,11 +142,19 @@ func EnsureProvisioned(dataDir, network, glcliPath, nobodyCrt, nobodyKey, mnemon
 	}
 
 	credsDir = filepath.Join(dataDir, deviceCredsDirName)
+	if extractScript != "" {
+		if _, err := os.Stat(extractScript); err != nil {
+			// caller-supplied path missing: fall back to the embedded copy
+			logger.Logger.WithField("path", extractScript).Warn("extract_creds.py path not found, using embedded copy")
+			extractScript = ""
+		}
+	}
 	if extractScript == "" {
-		// default next to this package when running from source tree
-		extractScript = filepath.Join("lnclient", "greenlight", "extract_creds.py")
-		if _, e := os.Stat(extractScript); e != nil {
-			extractScript = "/root/hub/lnclient/greenlight/extract_creds.py"
+		// deployment-independent: write the embedded script next to the node
+		// data (no CWD or machine-specific path assumptions).
+		extractScript = filepath.Join(dataDir, "extract_creds.py")
+		if err := os.WriteFile(extractScript, []byte(embeddedExtractCreds), 0o600); err != nil {
+			return "", "", fmt.Errorf("write embedded extract_creds: %w", err)
 		}
 	}
 	cmd := exec.Command("python3", extractScript, credsBlob, credsDir)

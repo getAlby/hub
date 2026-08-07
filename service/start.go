@@ -564,10 +564,12 @@ func (svc *service) launchGreenlight(ctx context.Context, encryptionKey string) 
 		if nobodyKey == "" {
 			nobodyKey = os.Getenv("GL_NOBODY_KEY")
 		}
-		extractScript := path.Join("lnclient", "greenlight", "extract_creds.py")
-		if _, err := os.Stat(extractScript); err != nil {
-			extractScript = "/root/hub/lnclient/greenlight/extract_creds.py"
+		extractScript := ""
+		if _, err := os.Stat(path.Join("lnclient", "greenlight", "extract_creds.py")); err == nil {
+			extractScript = path.Join("lnclient", "greenlight", "extract_creds.py")
 		}
+		// else: pass "" — provision.go writes and uses the embedded copy, so the
+		// hub binary is deployable from any directory.
 		dir, uri, err := greenlight.EnsureProvisioned(
 			signerDir, glNet, env.GreenlightGlcliPath, nobodyCrt, nobodyKey, mnemonic, extractScript,
 		)
