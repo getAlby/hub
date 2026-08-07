@@ -49,11 +49,13 @@ Why GL differs: the hosted GL node leaves all six `cln.Node Subscribe*` streams 
 
 | Backend | Issue | Status |
 |---|---|---|
-| GL | NIP-47 pay_keysend preimage rejection | ✅ **fixed in fork** (9e421612) |
+| GL | NIP-47 pay_keysend preimage rejection | ✅ **fixed in fork** (9e421612) + **live-verified end-to-end** (2 keysends settled on fresh harness, l1 confirmed, hub recorded outgoing/settled) |
 | GL | sign_message freezes node (hsmd wedge) | ✅ **stubbed** (9e421612); Blockstream issue drafted |
 | GL | extract_creds.py CWD/hardcoded path | ✅ **fixed** (aa71d61f, go:embed) |
 | GL | keysend TLV metadata lost (stream guard never fires) | ⚠️ documented; design debt |
 | GL | ConnectPeer address+port=0 concat footgun | ⚠️ minor (UI sends split fields) |
+| GL | **mutual close** | ✅ **works** — l1 state history shows CLOSINGD_COMPLETE (2250 sats fee); earlier "stall" was the LDK hub, not GL |
+| GL | keysend preimage in tx record is synthetic (hub-generated; CLN derives the real one internally, backend doesn't return it) | ⚠️ accounting nuance — payment settles + real preimage exists on peer side, but hub's recorded preimage ≠ real one |
 | CLN | SendKeysend preimage rejection (same bug GL had) | ❌ **still live upstream** — PR candidate |
 | CLN | hold methods never advertised even with plugin | ⚠️ minor |
 | LDK | `testnet` maps to `ldk_node.NetworkSignet` | ❌ live upstream quirk |
