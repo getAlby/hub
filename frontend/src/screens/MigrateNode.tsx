@@ -12,9 +12,11 @@ import { Label } from "src/components/ui/label";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { isHttpMode } from "src/utils/isHttpMode";
 import { request } from "src/utils/request";
+import { useInfo } from "src/hooks/useInfo";
 
 export function MigrateNode() {
   const navigate = useNavigate();
+  const { data: info } = useInfo();
 
   const [unlockPassword, setUnlockPassword] = React.useState("");
   const [showPasswordScreen, setShowPasswordScreen] = useState<boolean>(false);
@@ -110,6 +112,19 @@ export function MigrateNode() {
             stay in the cloud; this file reconnects you to the same node.
           </p>
         </div>
+        {info?.autoUnlockPasswordEnabled && (
+          <div className="flex flex-col gap-1">
+            <div className="flex gap-3 items-center">
+              <TriangleAlertIcon className="size-4 text-destructive" />
+              <h3>Disable Auto Unlock first</h3>
+            </div>
+            <p className="text-sm ml-7">
+              Hub backup is disabled while Auto Unlock is on. Disable it in
+              Settings → Auto Unlock, then come back here to download your
+              backup.
+            </p>
+          </div>
+        )}
       </div>
 
       {showPasswordScreen ? (
