@@ -38,6 +38,13 @@ glalby
 __pycache__/
 *.pyc
 
+# greenlight secret material (operator + device credentials)
+hsm_secret
+credentials.gfs
+*.gfs
+signer-backup.json
+device-creds/
+
 *.db-shm
 *.db-wal
 *.db-journal
