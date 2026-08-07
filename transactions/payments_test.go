@@ -208,24 +208,36 @@ func TestMarkSettled_Twice(t *testing.T) {
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 	var wg sync.WaitGroup
 	n := 10
+	markErrors := make([]error, n)
 	wg.Add(n)
-	for range n {
+	for i := range n {
 		go func() {
 			defer wg.Done()
-			_, err := transactionsService.markTransactionSettled(&dbTransaction, "test", 0, false)
-			require.NoError(t, err)
+			// load an independent copy so goroutines don't share the struct
+			var transactionCopy db.Transaction
+			if err := svc.DB.First(&transactionCopy, dbTransaction.ID).Error; err != nil {
+				markErrors[i] = err
+				return
+			}
+			_, markErrors[i] = transactionsService.markTransactionSettled(&transactionCopy, "test", 0, false)
 		}()
 	}
 	wg.Wait()
 
+	for _, markError := range markErrors {
+		assert.NoError(t, markError)
+	}
+
 	// ensure we only mark transaction settled once and only fire
 	// settled notifications once
-	assert.NoError(t, err)
-	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, dbTransaction.State)
+	var reloadedTransaction db.Transaction
+	require.NoError(t, svc.DB.First(&reloadedTransaction, dbTransaction.ID).Error)
+	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, reloadedTransaction.State)
 	assert.Equal(t, 1, len(mockEventConsumer.GetConsumedEvents()))
 	assert.Equal(t, "nwc_payment_sent", mockEventConsumer.GetConsumedEvents()[0].Event)
 	settledTransaction := mockEventConsumer.GetConsumedEvents()[0].Properties.(*db.Transaction)
-	assert.Equal(t, &dbTransaction, settledTransaction)
+	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, settledTransaction.State)
+	assert.Equal(t, dbTransaction.PaymentHash, settledTransaction.PaymentHash)
 }
 
 func TestMarkSettled_Received(t *testing.T) {
@@ -294,9 +306,10 @@ func TestMarkFailed(t *testing.T) {
 	mockEventConsumer := tests.NewMockEventConsumer()
 	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	err = transactionsService.markPaymentFailed(&dbTransaction, "some routing error")
+	markedFailed, err := transactionsService.markPaymentFailed(&dbTransaction, "some routing error")
 
 	assert.NoError(t, err)
+	assert.True(t, markedFailed)
 	assert.Equal(t, constants.TRANSACTION_STATE_FAILED, dbTransaction.State)
 	assert.Equal(t, 1, len(mockEventConsumer.GetConsumedEvents()))
 	assert.Equal(t, "nwc_payment_failed", mockEventConsumer.GetConsumedEvents()[0].Event)
@@ -323,9 +336,10 @@ func TestDoNotMarkFailedTwice(t *testing.T) {
 	mockEventConsumer := tests.NewMockEventConsumer()
 	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	err = transactionsService.markPaymentFailed(&dbTransaction, "some routing error")
+	markedFailed, err := transactionsService.markPaymentFailed(&dbTransaction, "some routing error")
 
 	assert.NoError(t, err)
+	assert.False(t, markedFailed)
 	assert.Equal(t, updatedAt, dbTransaction.UpdatedAt)
 	assert.Zero(t, len(mockEventConsumer.GetConsumedEvents()))
 }
@@ -348,9 +362,10 @@ func TestDoNotMarkSettledPaymentFailed(t *testing.T) {
 	mockEventConsumer := tests.NewMockEventConsumer()
 	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	err = transactionsService.markPaymentFailed(&dbTransaction, "some routing error")
+	markedFailed, err := transactionsService.markPaymentFailed(&dbTransaction, "some routing error")
 
 	assert.Error(t, err)
+	assert.False(t, markedFailed)
 
 	var reloadedTransaction db.Transaction
 	require.NoError(t, svc.DB.First(&reloadedTransaction, dbTransaction.ID).Error)

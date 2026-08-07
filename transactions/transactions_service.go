@@ -422,7 +422,7 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 			"bolt11": payReq,
 		}).WithError(err).Error("Failed to send payment")
 
-		if markFailedErr := svc.markPaymentFailed(&dbTransaction, err.Error()); markFailedErr != nil {
+		if _, markFailedErr := svc.markPaymentFailed(&dbTransaction, err.Error()); markFailedErr != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"bolt11": payReq,
 			}).WithError(markFailedErr).Error("Failed to mark payment as failed")
@@ -932,7 +932,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 			return
 		}
 
-		if err := svc.markPaymentFailed(&dbTransaction, paymentFailedAsyncProperties.Reason); err != nil {
+		if _, err := svc.markPaymentFailed(&dbTransaction, paymentFailedAsyncProperties.Reason); err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"payment_hash": lnClientTransaction.PaymentHash,
 			}).WithError(err).Error("Failed to mark payment as failed")
@@ -1326,12 +1326,21 @@ func (svc *transactionsService) CancelHoldInvoice(ctx context.Context, paymentHa
 		}
 	}
 
-	err := svc.markPaymentFailed(&dbTransaction, "Hold invoice was cancelled")
+	markedFailed, err := svc.markPaymentFailed(&dbTransaction, "Hold invoice was cancelled")
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"payment_hash": paymentHash,
 		}).WithError(err).Error("Failed to mark hold invoice as failed due to cancellation")
 		return err
+	}
+
+	if !markedFailed {
+		// a concurrent cancellation already marked the invoice as failed and
+		// published the canceled event
+		logger.Logger.WithFields(logrus.Fields{
+			"payment_hash": paymentHash,
+		}).Info("Hold invoice was already marked as failed")
+		return nil
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
@@ -1416,14 +1425,18 @@ func (svc *transactionsService) markTransactionSettled(dbTransaction *db.Transac
 	var settledTransaction *db.Transaction
 	var eventsToPublish []*events.Event
 	err := svc.db.Transaction(func(tx *gorm.DB) error {
-		if existingSettledTransaction := svc.findSettledTransaction(tx, dbTransaction); existingSettledTransaction != nil {
+		existingSettledTransaction, err := svc.findSettledTransaction(tx, dbTransaction)
+		if err != nil {
+			return err
+		}
+		if existingSettledTransaction != nil {
 			logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Debug("payment already marked as sent")
 			settledTransaction = existingSettledTransaction
 			return nil
 		}
 
 		settledAt := time.Now()
-		err := tx.Model(dbTransaction).Updates(map[string]interface{}{
+		err = tx.Model(dbTransaction).Updates(map[string]interface{}{
 			"State":          constants.TRANSACTION_STATE_SETTLED,
 			"Preimage":       &preimage,
 			"FeeMsat":        feeMsat,
@@ -1470,7 +1483,11 @@ func (svc *transactionsService) createSettledTransactionFromNotification(dbTrans
 	var settledTransaction *db.Transaction
 	var eventsToPublish []*events.Event
 	err := svc.db.Transaction(func(tx *gorm.DB) error {
-		if existingSettledTransaction := svc.findSettledTransaction(tx, dbTransaction); existingSettledTransaction != nil {
+		existingSettledTransaction, err := svc.findSettledTransaction(tx, dbTransaction)
+		if err != nil {
+			return err
+		}
+		if existingSettledTransaction != nil {
 			logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Debug("payment already marked as settled")
 			settledTransaction = existingSettledTransaction
 			return nil
@@ -1507,28 +1524,46 @@ func (svc *transactionsService) createSettledTransactionFromNotification(dbTrans
 	return settledTransaction, nil
 }
 
+// lockTransactionsByPaymentHash takes a row lock on all transactions with the
+// given payment hash on postgres, so that concurrent state changes for the
+// same payment serialize (in sqlite transactions are serializable by default).
+func (svc *transactionsService) lockTransactionsByPaymentHash(tx *gorm.DB, paymentHash string) error {
+	if tx.Dialector.Name() != "postgres" {
+		return nil
+	}
+	transactionsWithPaymentHash := []db.Transaction{}
+	err := tx.Where(&db.Transaction{
+		PaymentHash: paymentHash,
+	}).Clauses(clause.Locking{Strength: "UPDATE"}).Find(&transactionsWithPaymentHash).Error
+	if err != nil {
+		logger.Logger.WithField("payment_hash", paymentHash).WithError(err).Error("Failed to lock transactions by payment hash")
+	}
+	return err
+}
+
 // findSettledTransaction returns the already-settled transaction matching
-// dbTransaction if one exists. On postgres it locks all transactions with the
-// same payment hash to ensure only one transaction is settled per payment
-// (in sqlite transactions are serializable by default).
-func (svc *transactionsService) findSettledTransaction(tx *gorm.DB, dbTransaction *db.Transaction) *db.Transaction {
-	if tx.Dialector.Name() == "postgres" {
-		transactionsWithPaymentHash := []db.Transaction{}
-		tx.Where(&db.Transaction{
-			PaymentHash: dbTransaction.PaymentHash,
-		}).Clauses(clause.Locking{Strength: "UPDATE"}).Find(&transactionsWithPaymentHash)
+// dbTransaction if one exists, locking all transactions with the same payment
+// hash to ensure only one transaction is settled per payment.
+func (svc *transactionsService) findSettledTransaction(tx *gorm.DB, dbTransaction *db.Transaction) (*db.Transaction, error) {
+	if err := svc.lockTransactionsByPaymentHash(tx, dbTransaction.PaymentHash); err != nil {
+		return nil, err
 	}
 
 	var existingSettledTransaction db.Transaction
-	if tx.Limit(1).Find(&existingSettledTransaction, &db.Transaction{
+	result := tx.Limit(1).Find(&existingSettledTransaction, &db.Transaction{
 		Type:           dbTransaction.Type,
 		PaymentRequest: dbTransaction.PaymentRequest,
 		PaymentHash:    dbTransaction.PaymentHash,
 		State:          constants.TRANSACTION_STATE_SETTLED,
-	}).RowsAffected > 0 {
-		return &existingSettledTransaction
+	})
+	if result.Error != nil {
+		logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).WithError(result.Error).Error("Failed to check for existing settled transaction")
+		return nil, result.Error
 	}
-	return nil
+	if result.RowsAffected > 0 {
+		return &existingSettledTransaction, nil
+	}
+	return nil, nil
 }
 
 // afterTransactionSettled runs the post-settlement side effects within the
@@ -1618,10 +1653,19 @@ func (svc *transactionsService) checkBudgetUsage(app *db.App, dbTransaction *db.
 
 // markPaymentFailed marks the transaction as failed in its own database
 // transaction and publishes the failed event after it commits, so subscribers
-// never observe uncommitted state.
-func (svc *transactionsService) markPaymentFailed(dbTransaction *db.Transaction, reason string) error {
+// never observe uncommitted state. It returns whether this call transitioned
+// the transaction to failed (false if it was already failed), and refuses to
+// mark a settled transaction as failed.
+func (svc *transactionsService) markPaymentFailed(dbTransaction *db.Transaction, reason string) (bool, error) {
+	markedFailed := false
 	var eventsToPublish []*events.Event
 	err := svc.db.Transaction(func(tx *gorm.DB) error {
+		// lock all transactions with the same payment hash so a concurrent
+		// settlement cannot slip in between the state check and the update
+		if err := svc.lockTransactionsByPaymentHash(tx, dbTransaction.PaymentHash); err != nil {
+			return err
+		}
+
 		var existingTransaction db.Transaction
 		result := tx.Limit(1).Find(&existingTransaction, &db.Transaction{
 			ID: dbTransaction.ID,
@@ -1630,6 +1674,11 @@ func (svc *transactionsService) markPaymentFailed(dbTransaction *db.Transaction,
 		if result.Error != nil {
 			logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).WithError(result.Error).Error("could not find transaction to mark as failed")
 			return result.Error
+		}
+
+		if result.RowsAffected == 0 {
+			logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Error("could not find transaction to mark as failed")
+			return NewNotFoundError()
 		}
 
 		if existingTransaction.State == constants.TRANSACTION_STATE_FAILED {
@@ -1655,6 +1704,7 @@ func (svc *transactionsService) markPaymentFailed(dbTransaction *db.Transaction,
 		}
 		logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Info("Marked transaction as failed")
 
+		markedFailed = true
 		eventsToPublish = append(eventsToPublish, &events.Event{
 			Event:      "nwc_payment_failed",
 			Properties: dbTransaction,
@@ -1662,8 +1712,8 @@ func (svc *transactionsService) markPaymentFailed(dbTransaction *db.Transaction,
 		return nil
 	})
 	if err != nil {
-		return err
+		return false, err
 	}
 	svc.publishEvents(eventsToPublish)
-	return nil
+	return markedFailed, nil
 }
