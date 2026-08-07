@@ -9,7 +9,6 @@ import { Link } from "react-router";
 import FirstChannelJitAlert from "src/components/FirstChannelJitAlert";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
-import UserAvatar from "src/components/UserAvatar";
 import {
   Accordion,
   AccordionContent,
@@ -39,7 +38,6 @@ export function ReceiveToLightning() {
             value={me.lightning_address}
             className="h-auto w-full"
             frameType="lightning"
-            centerContent={<UserAvatar className="size-12 rounded-full" />}
           />
           <div className="flex max-w-full items-center justify-center gap-1">
             <p className="min-w-0 text-center font-medium text-lg break-all">
