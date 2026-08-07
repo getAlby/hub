@@ -555,15 +555,11 @@ func (svc *transactionsService) SendKeysend(amountMsat uint64, destination strin
 			"amount_msat": amountMsat,
 		}).WithError(err).Error("Failed to send payment")
 
-		dbErr := svc.db.Model(&dbTransaction).Updates(&db.Transaction{
-			PaymentHash: paymentHash,
-			State:       constants.TRANSACTION_STATE_FAILED,
-		}).Error
-		if dbErr != nil {
+		if _, markFailedErr := svc.markPaymentFailed(&dbTransaction, err.Error()); markFailedErr != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"destination": destination,
 				"amount_msat": amountMsat,
-			}).WithError(dbErr).Error("Failed to update DB transaction")
+			}).WithError(markFailedErr).Error("Failed to mark payment as failed")
 		}
 
 		return nil, err
