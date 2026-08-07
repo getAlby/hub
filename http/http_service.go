@@ -148,7 +148,6 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	readOnlyApiGroup.GET("/swaps/:swapId", httpSvc.lookupSwapHandler)
 	readOnlyApiGroup.GET("/swaps/out/info", httpSvc.getSwapOutInfoHandler)
 	readOnlyApiGroup.GET("/swaps/in/info", httpSvc.getSwapInInfoHandler)
-	readOnlyApiGroup.GET("/swaps/mnemonic", httpSvc.swapMnemonicHandler)
 	readOnlyApiGroup.GET("/autoswap", httpSvc.getAutoSwapConfigHandler)
 	readOnlyApiGroup.GET("/forwards", httpSvc.forwardsHandler)
 
@@ -191,6 +190,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	fullAccessApiGroup.POST("/swaps/out", httpSvc.initiateSwapOutHandler)
 	fullAccessApiGroup.POST("/swaps/in", httpSvc.initiateSwapInHandler)
 	fullAccessApiGroup.POST("/swaps/refund", httpSvc.refundSwapHandler)
+	fullAccessApiGroup.GET("/swaps/mnemonic", httpSvc.swapMnemonicHandler)
 	fullAccessApiGroup.POST("/autoswap", httpSvc.enableAutoSwapOutHandler)
 	fullAccessApiGroup.DELETE("/autoswap", httpSvc.disableAutoSwapOutHandler)
 	fullAccessApiGroup.POST("/node/alias", httpSvc.setNodeAliasHandler)
@@ -687,7 +687,7 @@ func (httpSvc *HttpService) makeInvoiceHandler(c echo.Context) error {
 		amountMsat = *resolvedAmountMsat
 	}
 
-	invoice, err := httpSvc.api.CreateInvoice(c.Request().Context(), amountMsat, makeInvoiceRequest.Description)
+	invoice, err := httpSvc.api.CreateInvoice(c.Request().Context(), amountMsat, makeInvoiceRequest.Description, makeInvoiceRequest.ToAppID)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -765,7 +765,14 @@ func (httpSvc *HttpService) listTransactionsHandler(c echo.Context) error {
 		}
 	}
 
-	transactions, err := httpSvc.api.ListTransactions(ctx, appId, limit, offset)
+	filters, err := api.ParseListTransactionsFilters(c.QueryParams())
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	transactions, err := httpSvc.api.ListTransactions(ctx, appId, limit, offset, filters)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{

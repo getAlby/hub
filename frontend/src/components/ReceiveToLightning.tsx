@@ -34,7 +34,11 @@ export function ReceiveToLightning() {
       <FirstChannelJitAlert />
       <Card>
         <CardContent className="flex flex-col items-center gap-6">
-          <QRCode value={me.lightning_address} className="w-full h-auto" />
+          <QRCode
+            value={me.lightning_address}
+            className="h-auto w-full"
+            frameType="lightning"
+          />
           <div className="flex max-w-full items-center justify-center gap-1">
             <p className="min-w-0 text-center font-medium text-lg break-all">
               {me.lightning_address}

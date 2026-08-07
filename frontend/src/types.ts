@@ -385,6 +385,7 @@ export type CreateInvoiceRequest = {
   amountSat?: number;
   amountMsat?: number;
   description: string;
+  toAppId?: number;
 };
 
 export type PayInvoiceRequest = {

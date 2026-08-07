@@ -327,28 +327,37 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		offset := uint64(0)
 		var appId *uint
 
-		// Extract limit and offset parameters
-		paramRegex := regexp.MustCompile(`[?&](limit|offset|appId)=([^&]+)`)
-		paramMatches := paramRegex.FindAllStringSubmatch(route, -1)
-		for _, match := range paramMatches {
-			switch match[1] {
-			case "limit":
-				if parsedLimit, err := strconv.ParseUint(match[2], 10, 64); err == nil {
-					limit = parsedLimit
-				}
-			case "offset":
-				if parsedOffset, err := strconv.ParseUint(match[2], 10, 64); err == nil {
-					offset = parsedOffset
-				}
-			case "appId":
-				if parsedAppId, err := strconv.ParseUint(match[2], 10, 64); err == nil {
-					var unsignedAppId = uint(parsedAppId)
-					appId = &unsignedAppId
-				}
+		parsedUrl, err := url.Parse(route)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: "invalid route"}
+		}
+		query := parsedUrl.Query()
+
+		if limitParam := query.Get("limit"); limitParam != "" {
+			if parsedLimit, err := strconv.ParseUint(limitParam, 10, 64); err == nil {
+				limit = parsedLimit
 			}
 		}
 
-		transactions, err := app.api.ListTransactions(ctx, appId, limit, offset)
+		if offsetParam := query.Get("offset"); offsetParam != "" {
+			if parsedOffset, err := strconv.ParseUint(offsetParam, 10, 64); err == nil {
+				offset = parsedOffset
+			}
+		}
+
+		if appIdParam := query.Get("appId"); appIdParam != "" {
+			if parsedAppId, err := strconv.ParseUint(appIdParam, 10, 64); err == nil {
+				var unsignedAppId = uint(parsedAppId)
+				appId = &unsignedAppId
+			}
+		}
+
+		filters, err := api.ParseListTransactionsFilters(query)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+
+		transactions, err := app.api.ListTransactions(ctx, appId, limit, offset, filters)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
@@ -600,7 +609,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		if resolvedAmountMsat != nil {
 			amountMsat = *resolvedAmountMsat
 		}
-		invoice, err := app.api.CreateInvoice(ctx, amountMsat, makeInvoiceRequest.Description)
+		invoice, err := app.api.CreateInvoice(ctx, amountMsat, makeInvoiceRequest.Description, makeInvoiceRequest.ToAppID)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}

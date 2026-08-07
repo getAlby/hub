@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -38,7 +39,7 @@ type TransactionsService interface {
 	events.EventSubscriber
 	MakeInvoice(ctx context.Context, amountMsat uint64, description string, descriptionHash string, expiry uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint, throughNodePubkey *string) (*Transaction, error)
 	LookupTransaction(ctx context.Context, paymentHash string, transactionType *string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error)
-	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool) (transactions []Transaction, totalCount uint64, err error)
+	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool, filters *ListTransactionsFilters) (transactions []Transaction, totalCount uint64, err error)
 	SendPaymentSync(payReq string, amountMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	SendKeysend(amountMsat uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	MakeHoldInvoice(ctx context.Context, amountMsat uint64, description string, descriptionHash string, expiry uint64, paymentHash string, minCltvExpiryDelta *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
@@ -59,6 +60,27 @@ const (
 var balanceValidationLock = &sync.Mutex{}
 
 type Transaction = db.Transaction
+
+type ListTransactionsFilters struct {
+	Type          *string
+	MinAmountMsat *uint64
+	HideFailed    bool
+	SearchTerm    string
+}
+
+var paymentHashRegex = regexp.MustCompile("^[0-9a-f]{64}$")
+
+// escapeLikePattern makes a string match literally in a LIKE ... ESCAPE '\'
+// clause by escaping the wildcard characters % and _. This is not an SQL
+// injection concern (search terms are always passed as bound parameters);
+// without it a term like "50%" would behave as a wildcard pattern.
+// The backslash must be escaped first.
+func escapeLikePattern(s string) string {
+	s = strings.ReplaceAll(s, `\`, `\\`)
+	s = strings.ReplaceAll(s, "%", `\%`)
+	s = strings.ReplaceAll(s, "_", `\_`)
+	return s
+}
 
 type Boostagram struct {
 	AppName        string         `json:"app_name"`
@@ -314,7 +336,11 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 	selfPayment := false
 	var incomingTransaction db.Transaction
 	result := svc.db.Limit(1).Find(&incomingTransaction, &db.Transaction{
-		Type:           constants.TRANSACTION_TYPE_INCOMING,
+		Type: constants.TRANSACTION_TYPE_INCOMING,
+		// NOTE: filter by payment hash so the payment hash index is used,
+		// but also match the payment request as wrapped invoices share
+		// the same hash but have different payment requests
+		PaymentHash:    paymentRequest.PaymentHash,
 		PaymentRequest: payReq,
 	})
 	if result.Error == nil && result.RowsAffected > 0 {
@@ -335,18 +361,26 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 			var existingSettledTransaction db.Transaction
 			if tx.Limit(1).Find(&existingSettledTransaction, &db.Transaction{
 				Type:           constants.TRANSACTION_TYPE_OUTGOING,
+				PaymentHash:    paymentRequest.PaymentHash,
 				PaymentRequest: payReq,
 				State:          constants.TRANSACTION_STATE_SETTLED,
 			}).RowsAffected > 0 {
-				logger.Logger.WithField("payment_request", dbTransaction.PaymentRequest).Debug("this invoice has already been paid")
+				logger.Logger.WithFields(logrus.Fields{
+					"payment_request": payReq,
+					"payment_hash":    paymentRequest.PaymentHash,
+				}).Debug("this invoice has already been paid")
 				return errors.New("this invoice has already been paid")
 			}
 			if tx.Limit(1).Find(&existingSettledTransaction, &db.Transaction{
 				Type:           constants.TRANSACTION_TYPE_OUTGOING,
+				PaymentHash:    paymentRequest.PaymentHash,
 				PaymentRequest: payReq,
 				State:          constants.TRANSACTION_STATE_PENDING,
 			}).RowsAffected > 0 {
-				logger.Logger.WithField("payment_request", dbTransaction.PaymentRequest).Debug("this invoice is already being paid")
+				logger.Logger.WithFields(logrus.Fields{
+					"payment_request": payReq,
+					"payment_hash":    paymentRequest.PaymentHash,
+				}).Debug("this invoice is already being paid")
 				return errors.New("there is already a payment pending for this invoice")
 			}
 
@@ -628,7 +662,7 @@ func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHa
 	return &transaction, nil
 }
 
-func (svc *transactionsService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool) (transactions []Transaction, totalCount uint64, err error) {
+func (svc *transactionsService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool, filters *ListTransactionsFilters) (transactions []Transaction, totalCount uint64, err error) {
 	svc.checkUnsettledTransactions(ctx, lnClient)
 
 	var isIsolatedApp bool
@@ -660,8 +694,40 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 		tx = tx.Where("state = ? OR type = ?", constants.TRANSACTION_STATE_SETTLED, constants.TRANSACTION_TYPE_INCOMING)
 	}
 
-	if transactionType != nil {
-		tx = tx.Where("type = ?", *transactionType)
+	if filters != nil {
+		if filters.Type != nil {
+			tx = tx.Where("type = ?", *filters.Type)
+		}
+		if filters.MinAmountMsat != nil {
+			tx = tx.Where("amount_msat >= ?", *filters.MinAmountMsat)
+		}
+		if filters.HideFailed {
+			tx = tx.Where("state != ?", constants.TRANSACTION_STATE_FAILED)
+		}
+		if searchTerm := strings.ToLower(strings.TrimSpace(filters.SearchTerm)); searchTerm != "" {
+			likePattern := "%" + escapeLikePattern(searchTerm) + "%"
+			labelsCondition := `EXISTS (SELECT 1 FROM json_each(transactions.metadata, '$.user_labels') AS user_labels WHERE LOWER(user_labels.key) LIKE ? ESCAPE '\' OR LOWER(user_labels.value) LIKE ? ESCAPE '\')`
+			if svc.db.Dialector.Name() == "postgres" {
+				labelsCondition = `EXISTS (SELECT 1 FROM jsonb_each_text((transactions.metadata->'user_labels')::jsonb) AS user_labels WHERE LOWER(user_labels.key) LIKE ? ESCAPE '\' OR LOWER(user_labels.value) LIKE ? ESCAPE '\')`
+			}
+			conditions := `LOWER(description) LIKE ? ESCAPE '\' OR ` + labelsCondition
+			args := []interface{}{likePattern, likePattern, likePattern}
+
+			paymentHash := ""
+			if paymentHashRegex.MatchString(searchTerm) {
+				paymentHash = searchTerm
+			} else if strings.HasPrefix(searchTerm, "ln") {
+				if paymentRequest, err := decodepay.Decodepay(searchTerm); err == nil {
+					paymentHash = strings.ToLower(paymentRequest.PaymentHash)
+				}
+			}
+			if paymentHash != "" {
+				conditions += " OR payment_hash = ?"
+				args = append(args, paymentHash)
+			}
+
+			tx = tx.Where(conditions, args...)
+		}
 	}
 
 	if from > 0 {
@@ -827,7 +893,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 			logger.Logger.WithField("event", event).Error("Transaction has no settle deadline")
 			return
 		}
-		svc.markHoldInvoiceAccepted(lnClientTransaction.Invoice, *lnClientTransaction.SettleDeadline, false)
+		svc.markHoldInvoiceAccepted(lnClientTransaction.Invoice, lnClientTransaction.PaymentHash, *lnClientTransaction.SettleDeadline, false)
 
 	case "nwc_lnclient_payment_sent":
 		lnClientTransaction, ok := event.Properties.(*lnclient.Transaction)
@@ -937,23 +1003,28 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 	}
 }
 
-func (svc *transactionsService) markHoldInvoiceAccepted(paymentRequest string, settleDeadline uint32, selfPayment bool) {
+func (svc *transactionsService) markHoldInvoiceAccepted(paymentRequest string, paymentHash string, settleDeadline uint32, selfPayment bool) {
 	logger.Logger.WithFields(logrus.Fields{
 		"payment_request": paymentRequest,
+		"payment_hash":    paymentHash,
 		"self_payment":    selfPayment,
 	}).Info("Processing hold invoice accepted event")
 
 	var dbTransaction db.Transaction
 	err := svc.db.Transaction(func(tx *gorm.DB) error {
-		result := tx.Where("payment_request = ? AND type = ? AND state = ?", paymentRequest, constants.TRANSACTION_TYPE_INCOMING, constants.TRANSACTION_STATE_PENDING).First(&dbTransaction)
+		// NOTE: filter by payment hash so the payment hash index is used,
+		// but also match the payment request as wrapped invoices share the same hash
+		result := tx.Where("payment_hash = ? AND payment_request = ? AND type = ? AND state = ?", paymentHash, paymentRequest, constants.TRANSACTION_TYPE_INCOMING, constants.TRANSACTION_STATE_PENDING).First(&dbTransaction)
 		if result.Error != nil {
 			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 				logger.Logger.WithFields(logrus.Fields{
 					"payment_request": paymentRequest,
+					"payment_hash":    paymentHash,
 				}).Warn("No corresponding pending incoming transaction found in DB for accepted hold invoice")
 			}
 			logger.Logger.WithFields(logrus.Fields{
 				"payment_request": paymentRequest,
+				"payment_hash":    paymentHash,
 			}).WithError(result.Error).Error("Failed to query DB for accepted hold invoice")
 			return result.Error
 		}
@@ -966,6 +1037,7 @@ func (svc *transactionsService) markHoldInvoiceAccepted(paymentRequest string, s
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"payment_request": paymentRequest,
+				"payment_hash":    paymentHash,
 				"id":              dbTransaction.ID,
 			}).WithError(err).Error("Failed to update hold invoice state to accepted in DB")
 			return err
@@ -973,6 +1045,7 @@ func (svc *transactionsService) markHoldInvoiceAccepted(paymentRequest string, s
 
 		logger.Logger.WithFields(logrus.Fields{
 			"payment_request": paymentRequest,
+			"payment_hash":    paymentHash,
 			"id":              dbTransaction.ID,
 		}).Info("Updated hold invoice state to accepted in DB")
 
@@ -981,6 +1054,7 @@ func (svc *transactionsService) markHoldInvoiceAccepted(paymentRequest string, s
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"payment_request": paymentRequest,
+			"payment_hash":    paymentHash,
 			"id":              dbTransaction.ID,
 		}).WithError(err).Error("Failed DB transaction for hold invoice accepted event")
 	} else {
@@ -1013,7 +1087,7 @@ func (svc *transactionsService) interceptSelfPayment(paymentRequest string, paym
 	}
 
 	if incomingTransaction.Hold {
-		return svc.interceptSelfHoldPayment(paymentRequest, lnClient)
+		return svc.interceptSelfHoldPayment(paymentRequest, paymentHash, lnClient)
 	}
 
 	if incomingTransaction.Preimage == nil {
@@ -1035,7 +1109,7 @@ func (svc *transactionsService) interceptSelfPayment(paymentRequest string, paym
 	}, nil
 }
 
-func (svc *transactionsService) interceptSelfHoldPayment(paymentRequest string, lnClient lnclient.LNClient) (*lnclient.PayInvoiceResponse, error) {
+func (svc *transactionsService) interceptSelfHoldPayment(paymentRequest string, paymentHash string, lnClient lnclient.LNClient) (*lnclient.PayInvoiceResponse, error) {
 	settledChannel := make(chan *db.Transaction)
 	canceledChannel := make(chan *db.Transaction)
 
@@ -1054,7 +1128,7 @@ func (svc *transactionsService) interceptSelfHoldPayment(paymentRequest string, 
 
 	fakeSettleDeadline := clientInfo.BlockHeight + 24
 
-	svc.markHoldInvoiceAccepted(paymentRequest, fakeSettleDeadline, true)
+	svc.markHoldInvoiceAccepted(paymentRequest, paymentHash, fakeSettleDeadline, true)
 
 	select {
 	case settledTransaction := <-settledChannel:
