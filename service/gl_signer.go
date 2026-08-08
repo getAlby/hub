@@ -27,6 +27,7 @@ type GreenlightSignerService struct {
 	glcli    string
 	pidPath  string
 	lastErr  string
+	cmd      *exec.Cmd // the live signer process, when spawned
 }
 
 func NewGreenlightSignerService() *GreenlightSignerService {
@@ -180,9 +181,20 @@ func (s *GreenlightSignerService) spawn() error {
 	// parent keeps logF open via cmd; reaper closes process, leave file to OS
 	pid := cmd.Process.Pid
 	_ = os.WriteFile(s.pidPath, []byte(strconv.Itoa(pid)), 0o600)
+	s.mu.Lock()
+	s.cmd = cmd
+	s.mu.Unlock()
 	go func() {
 		_ = cmd.Wait()
 		_ = logF.Close()
+		// the process is gone: clear the tracked cmd so processAlive
+		// stops reporting it as alive (a stale pid file alone could be
+		// reused by an unrelated process)
+		s.mu.Lock()
+		if s.cmd == cmd {
+			s.cmd = nil
+		}
+		s.mu.Unlock()
 	}()
 	logger.Logger.WithFields(logrus.Fields{"pid": pid, "data_dir": s.dataDir, "log": logPath}).Info("glcli signer spawned")
 	// brief settle
@@ -195,6 +207,14 @@ func (s *GreenlightSignerService) spawn() error {
 }
 
 func (s *GreenlightSignerService) processAlive() bool {
+	s.mu.Lock()
+	cmd := s.cmd
+	s.mu.Unlock()
+	if cmd != nil && cmd.Process != nil {
+		// signal 0 probes liveness of the exact process we spawned —
+		// immune to pid-file staleness/pid reuse
+		return cmd.Process.Signal(syscall.Signal(0)) == nil
+	}
 	data, err := os.ReadFile(s.pidPath)
 	if err != nil {
 		return false

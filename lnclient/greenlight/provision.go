@@ -63,6 +63,21 @@ func resolveGlcli(glcliPath string) (string, error) {
 	return "", fmt.Errorf("glcli not found (set GREENLIGHT_GLCLI_PATH)")
 }
 
+// ensureSeedFile writes the seed derived from the mnemonic ONLY when no
+// hsm_secret exists yet. The existing file is authoritative: the node's
+// identity derives from it, and overwriting it with a different mnemonic
+// would silently desync the signer from the node (every signing request
+// would be rejected). Recovery works because a fresh data dir has no file.
+func ensureSeedFile(dataDir string, seed []byte) error {
+	seedPath := filepath.Join(dataDir, seedFileName)
+	if _, err := os.Stat(seedPath); err == nil {
+		return nil
+	} else if !os.IsNotExist(err) {
+		return fmt.Errorf("stat hsm_secret: %w", err)
+	}
+	return WriteSeedFile(dataDir, seed)
+}
+
 // EnsureProvisioned writes seed from mnemonic, registers/recovers via glcli if needed,
 // extracts device PEMs, and returns (deviceCredsDir, nodeURI).
 func EnsureProvisioned(dataDir, network, glcliPath, nobodyCrt, nobodyKey, mnemonic, extractScript string) (credsDir, nodeURI string, err error) {
@@ -74,7 +89,7 @@ func EnsureProvisioned(dataDir, network, glcliPath, nobodyCrt, nobodyKey, mnemon
 	if err != nil {
 		return "", "", err
 	}
-	if err := WriteSeedFile(dataDir, seed); err != nil {
+	if err := ensureSeedFile(dataDir, seed); err != nil {
 		return "", "", fmt.Errorf("write hsm_secret: %w", err)
 	}
 
