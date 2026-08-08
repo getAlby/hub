@@ -188,11 +188,12 @@ func (s *GreenlightSignerService) spawn() error {
 	if err != nil {
 		return err
 	}
-	// gl-cli 0.1.x: `glcli -d DIR -n NET signer run` only (no backup flags).
+	backupPath := filepath.Join(s.dataDir, "backup.json")
 	args := []string{
 		"-d", s.dataDir,
 		"-n", s.network,
 		"signer", "run",
+		"--backup-path", backupPath,
 	}
 	logPath := filepath.Join(s.dataDir, "signer.log")
 	logF, err := os.OpenFile(logPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o600)

@@ -40,6 +40,30 @@ without a verified backup — the signer's write-once seed rule prevents
 accidental overwrites, but a deliberate deletion needs a known-good
 recovery path.
 
+### Signer backup (escape hatch)
+
+While the signer is running, it writes periodic snapshots to `backup.json`
+in the signer data directory (the `--backup-path` flag the hub supervisor
+passes). This file is **included automatically in every `.bkp`** (because
+the `.bkp` already covers `SignerDataDir` — no additional wiring needed).
+
+**What it gives you:** if Greenlight is permanently lost, you can convert
+the signer backup to CLN `recoverchannel` input:
+
+```sh
+glcli signer convert-backup --path backup.json --format cln --output recover.json
+```
+
+The resulting `recover.json` is a `{"scb": [...]}` array that CLN's
+`recoverchannel` RPC accepts — an escape hatch that recovers your channels
+on a non-Greenlight CLN node. This backup is opt-in by virtue of the
+`--backup-path` flag; it writes snapshots when new recoverable channels
+appear (the `new-channels-only` strategy) or periodically if configured.
+
+**Important:** CLN recovery is a last resort. Running it in parallel with
+an active Greenlight node risks loss of funds. Use it ONLY when the
+Greenlight node is confirmed lost and cannot be re-scheduled.
+
 ### 1. Node frozen (hsmd queue wedge) — the critical one
 
 **Cause**: a signing request the VLS signer cannot answer (historically
