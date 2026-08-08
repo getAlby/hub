@@ -197,6 +197,13 @@ type PayOfferResponse = struct {
 
 type PayKeysendResponse struct {
 	FeeMsat uint64
+	// The preimage and payment hash the backend actually used for the
+	// payment. Backends that derive their own preimage server-side
+	// (CLN/Greenlight keysend) must report the real values here so the
+	// recorded transaction matches the network reality; backends that
+	// honor the caller-provided preimage (LDK) report the same value.
+	Preimage    string
+	PaymentHash string
 }
 
 type BalancesResponse struct {

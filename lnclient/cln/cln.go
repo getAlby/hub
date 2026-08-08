@@ -2257,10 +2257,6 @@ func (c *CLNService) SendKeysend(amount uint64, destination string, customRecord
 		"preimage":      preimage,
 	}).Debug("Send Keysend")
 
-	if preimage != "" {
-		return nil, errors.New("preimage not supported for keysends")
-	}
-
 	Destination, err := hex.DecodeString(destination)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to decode payee pubkey")
@@ -2305,7 +2301,15 @@ func (c *CLNService) SendKeysend(amount uint64, destination string, customRecord
 	if resp.AmountSentMsat != nil && resp.AmountMsat != nil {
 		feeMsat = resp.AmountSentMsat.Msat - resp.AmountMsat.Msat
 	}
-	return &lnclient.PayKeysendResponse{FeeMsat: feeMsat}, nil
+	// CLN derives its own preimage server-side (the keysend plugin) —
+	// the caller-supplied preimage cannot be honored via cln-grpc, so
+	// report the actual preimage and payment hash from the response.
+	// Recording anything else would fake the proof-of-payment.
+	return &lnclient.PayKeysendResponse{
+		FeeMsat:     feeMsat,
+		Preimage:    hex.EncodeToString(resp.PaymentPreimage),
+		PaymentHash: hex.EncodeToString(resp.PaymentHash),
+	}, nil
 }
 
 func (c *CLNService) SendPaymentProbes(ctx context.Context, invoice string) error {

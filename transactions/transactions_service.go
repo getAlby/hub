@@ -587,6 +587,37 @@ func (svc *transactionsService) SendKeysend(amountMsat uint64, destination strin
 		return nil, err
 	}
 
+	// Some backends (CLN/Greenlight keysend) derive their own preimage
+	// server-side and cannot honor the caller-provided one — they report
+	// the actual preimage and payment hash in the response. Record the
+	// truth: a transaction whose payment hash never settled on the
+	// network (or whose preimage can't prove the payment) is a lie.
+	if payKeysendResponse != nil && payKeysendResponse.Preimage != "" && payKeysendResponse.Preimage != preimage {
+		logger.Logger.WithFields(logrus.Fields{
+			"synthesized_preimage": preimage,
+			"actual_preimage":      payKeysendResponse.Preimage,
+		}).Debug("backend derived its own keysend preimage — recording the actual values")
+
+		preimage = payKeysendResponse.Preimage
+		paymentHash = payKeysendResponse.PaymentHash
+		if paymentHash == "" {
+			// keysend construction: payment hash is sha256(preimage)
+			preImageBytes, err := hex.DecodeString(preimage)
+			if err == nil {
+				paymentHash256 := sha256.New()
+				paymentHash256.Write(preImageBytes)
+				paymentHash = hex.EncodeToString(paymentHash256.Sum(nil))
+			}
+		}
+		err = svc.db.Model(&dbTransaction).Updates(&db.Transaction{
+			PaymentHash: paymentHash,
+			Preimage:    &preimage,
+		}).Error
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to update DB transaction with actual preimage")
+		}
+	}
+
 	// the payment definitely succeeded
 	settledTransaction, err := svc.markTransactionSettled(&dbTransaction, preimage, payKeysendResponse.FeeMsat, selfPayment)
 	if err != nil {

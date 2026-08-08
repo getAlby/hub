@@ -735,7 +735,9 @@ func (ls *LDKService) SendKeysend(amountMsat uint64, destination string, custom_
 					"fee":      feeMsat,
 				}).Info("Successful keysend payment")
 				return &lnclient.PayKeysendResponse{
-					FeeMsat: feeMsat,
+					FeeMsat:     feeMsat,
+					Preimage:    preimage,
+					PaymentHash: paymentHash,
 				}, nil
 			}
 			if isEventPaymentFailedEvent && eventPaymentFailed.PaymentHash != nil && *eventPaymentFailed.PaymentHash == paymentHash {

@@ -2,6 +2,7 @@ package transactions
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -98,6 +99,38 @@ func TestSendKeysend_CustomPreimage(t *testing.T) {
 	assert.Zero(t, transaction.FeeReserveMsat)
 	assert.NotNil(t, transaction.Preimage)
 	assert.Equal(t, customPreimage, *transaction.Preimage)
+}
+
+func TestSendKeysend_BackendDerivedPreimage(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	// a backend that cannot honor the caller's preimage (CLN/Greenlight
+	// keysend) reports the actual preimage it used
+	realPreimage := "1111111111111111111111111111111111111111111111111111111111111111"
+	svc.LNClient.(*tests.MockLn).SendKeysendPreimage = realPreimage
+
+	callerPreimage := "018465013e2337234a7e5530a21c4a8cf70d84231f4a8ff0b1e2cce3cb2bd03b"
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+	transaction, err := transactionsService.SendKeysend(uint64(1000), "fake destination", nil, callerPreimage, svc.LNClient, nil, nil)
+	assert.NoError(t, err)
+
+	// the recorded preimage must be the one actually used on the network
+	require.NotNil(t, transaction.Preimage)
+	assert.Equal(t, realPreimage, *transaction.Preimage)
+
+	// keysend construction: the payment hash is sha256(preimage)
+	preImageBytes, err := hex.DecodeString(realPreimage)
+	require.NoError(t, err)
+	expectedHash := sha256.Sum256(preImageBytes)
+	assert.Equal(t, hex.EncodeToString(expectedHash[:]), transaction.PaymentHash)
+
+	// and sha256(recorded preimage) must equal the recorded payment hash
+	recordedPreimageBytes, err := hex.DecodeString(*transaction.Preimage)
+	require.NoError(t, err)
+	recordedHash := sha256.Sum256(recordedPreimageBytes)
+	assert.Equal(t, transaction.PaymentHash, hex.EncodeToString(recordedHash[:]))
 }
 
 func TestSendKeysend_App_NoPermission(t *testing.T) {
