@@ -126,12 +126,15 @@ func (mln *MockLn) SendKeysend(amountMsat uint64, destination string, custom_rec
 		return response, err
 	}
 
-	preimage = mln.SendKeysendPreimage
+	// when SendKeysendPreimage is set the mock simulates a backend that
+	// derives its own preimage (CLN/Greenlight); otherwise it honors the
+	// caller-provided preimage like LDK/LND
+	if mln.SendKeysendPreimage != "" {
+		preimage = mln.SendKeysendPreimage
+	}
 	if preimage == "" {
 		return &lnclient.PayKeysendResponse{
-			FeeMsat:     1,
-			Preimage:    preimage,
-			PaymentHash: "",
+			FeeMsat: 1,
 		}, nil
 	}
 	// keysend construction: payment hash is sha256(preimage)

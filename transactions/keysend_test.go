@@ -120,17 +120,20 @@ func TestSendKeysend_BackendDerivedPreimage(t *testing.T) {
 	require.NotNil(t, transaction.Preimage)
 	assert.Equal(t, realPreimage, *transaction.Preimage)
 
+	// assert against the PERSISTED row, not just the in-memory model GORM
+	// updated in place — this is the regression test for the DB write
+	var persisted db.Transaction
+	require.NoError(t, svc.DB.First(&persisted, transaction.ID).Error)
+	require.NotNil(t, persisted.Preimage)
+	assert.Equal(t, realPreimage, *persisted.Preimage)
+	assert.Equal(t, transaction.PaymentHash, persisted.PaymentHash)
+	assert.Equal(t, "SETTLED", persisted.State)
+
 	// keysend construction: the payment hash is sha256(preimage)
 	preImageBytes, err := hex.DecodeString(realPreimage)
 	require.NoError(t, err)
 	expectedHash := sha256.Sum256(preImageBytes)
 	assert.Equal(t, hex.EncodeToString(expectedHash[:]), transaction.PaymentHash)
-
-	// and sha256(recorded preimage) must equal the recorded payment hash
-	recordedPreimageBytes, err := hex.DecodeString(*transaction.Preimage)
-	require.NoError(t, err)
-	recordedHash := sha256.Sum256(recordedPreimageBytes)
-	assert.Equal(t, transaction.PaymentHash, hex.EncodeToString(recordedHash[:]))
 }
 
 func TestSendKeysend_App_NoPermission(t *testing.T) {
