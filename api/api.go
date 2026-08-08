@@ -1730,10 +1730,12 @@ func (api *api) Setup(ctx context.Context, setupRequest *SetupRequest) error {
 		return errors.New("no unlock password provided")
 	}
 
-	// Bark and Cashu both store wallet state on local disk and have no
-	// remote-backup mechanism, so they cannot run in environments without
-	// persistent volumes (e.g. Alby Cloud). The default OAuth client ID
-	// identifies a local / self-hosted deployment.
+	// Bark and Cashu both store wallet state on local disk, so they cannot
+	// run in environments without persistent volumes (e.g. Alby Cloud). Bark
+	// can recover spendable VTXOs from the mnemonic alone, but in-flight
+	// payment checkpoints and wallet metadata are local-only, so persistent
+	// storage is still required. The default OAuth client ID identifies a
+	// local / self-hosted deployment.
 	if !api.cfg.GetEnv().IsDefaultClientId() {
 		switch setupRequest.LNBackendType {
 		case config.BarkBackendType, config.CashuBackendType:

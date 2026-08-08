@@ -1,7 +1,6 @@
 import {
   ClockIcon,
   HandCoinsIcon,
-  HardDriveIcon,
   LandmarkIcon,
   ShieldAlertIcon,
   UnlockIcon,
@@ -76,14 +75,6 @@ export function SetupSecurity() {
                   small fee.
                 </span>
               </div>
-              <div className="flex gap-3 items-center">
-                <HardDriveIcon className="size-6 shrink-0" />
-                <span className="text-sm text-muted-foreground">
-                  During beta, your funds{" "}
-                  <span className="underline">cannot</span> be recovered from
-                  your recovery phrase alone.
-                </span>
-              </div>
             </>
           )}
           <div className="flex gap-3 items-center">
@@ -109,7 +100,7 @@ export function SetupSecurity() {
                 choose the LDK node type.
               </span>
             </div>
-          ) : store.nodeInfo.backendType === "BARK" ? null : (
+          ) : (
             <div className="flex gap-3 items-center">
               <div className="shrink-0">
                 <ShieldAlertIcon className="size-6" />

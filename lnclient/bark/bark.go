@@ -745,6 +745,7 @@ const (
 	nodeCommandDebug                  = "debug"
 	nodeCommandClaimLightningReceives = "claimlightningreceives"
 	nodeCommandRunMaintenance         = "runmaintenance"
+	nodeCommandRecoveryReport         = "recoveryreport"
 )
 
 func (bs *BarkService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCommandDef {
@@ -764,6 +765,11 @@ func (bs *BarkService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCo
 			Description: "Run wallet maintenance, which progresses pending rounds and refreshes VTXOs. Use this to nudge funds that are stuck 'pending in round'.",
 			Args:        nil,
 		},
+		{
+			Name:        nodeCommandRecoveryReport,
+			Description: "Show the result of the seed-recovery scan that runs when a wallet is created from an existing recovery phrase. Use this to verify your funds were restored after migrating to a new device.",
+			Args:        nil,
+		},
 	}
 }
 
@@ -775,6 +781,8 @@ func (bs *BarkService) ExecuteCustomNodeCommand(ctx context.Context, command *ln
 		return bs.executeCommandClaimLightningReceives()
 	case nodeCommandRunMaintenance:
 		return bs.executeCommandRunMaintenance()
+	case nodeCommandRecoveryReport:
+		return bs.executeCommandRecoveryReport()
 	}
 
 	return nil, lnclient.ErrUnknownCustomNodeCommand
@@ -890,6 +898,32 @@ func (bs *BarkService) executeCommandClaimLightningReceives() (*lnclient.CustomN
 		Response: map[string]interface{}{
 			"claimedCount": len(claimed),
 			"claimed":      claimed,
+		},
+	}, nil
+}
+
+func (bs *BarkService) executeCommandRecoveryReport() (*lnclient.CustomNodeCommandResponse, error) {
+	// The report is produced by the seed-recovery scan bark runs during the
+	// wallet open that creates the wallet locally (e.g. when restoring from a
+	// recovery phrase on a new device). It is only available in the session
+	// that created the wallet; on subsequent starts no scan runs.
+	report := bs.wallet.RecoveryReport()
+	if report == nil {
+		return &lnclient.CustomNodeCommandResponse{
+			Response: map[string]interface{}{
+				"message": "No recovery scan ran on this wallet start. A scan only runs when the wallet is first created, e.g. after restoring from a recovery phrase.",
+			},
+		}, nil
+	}
+
+	return &lnclient.CustomNodeCommandResponse{
+		Response: map[string]interface{}{
+			"isComplete": report.IsComplete,
+			"recovered":  report.Recovered,
+			"skipped":    report.Skipped,
+			"foreign":    report.Foreign,
+			"failed":     report.Failed,
+			"exited":     report.Exited,
 		},
 	}, nil
 }
