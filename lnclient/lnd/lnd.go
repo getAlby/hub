@@ -583,8 +583,14 @@ func (svc *LNDService) SendKeysend(amountMsat uint64, destination string, custom
 		"preimage":     preimage,
 	}).Info("Keysend payment successful")
 
+	// LND honors the caller-provided preimage (the request carries it), so
+	// these equal the caller's values — report them anyway so the response
+	// contract is uniform across backends: the fields are the values that
+	// actually settled on the network.
 	return &lnclient.PayKeysendResponse{
-		FeeMsat: uint64(resp.FeeMsat),
+		FeeMsat:     uint64(resp.FeeMsat),
+		Preimage:    resp.PaymentPreimage,
+		PaymentHash: resp.PaymentHash,
 	}, nil
 }
 
