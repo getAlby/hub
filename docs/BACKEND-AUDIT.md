@@ -1,5 +1,10 @@
 # Backend audit: Greenlight vs the other Alby Hub backends
 
+> **Note (2026-08-08):** The method-level audit below remains accurate, but for
+> the current feature set (signer backup, health events, watchdog surfacing)
+> see **[ARCHITECTURE.md](../lnclient/greenlight/ARCHITECTURE.md)** and
+> **[COMPARISON-MATRIX.md](COMPARISON-MATRIX.md)**.
+
 Audit date: 2026-08-07. Base: upstream getAlby/hub @ 6175489 (LDK/CLN/LND/Phoenixd/Cashu/Bark), fork feat/greenlight-backend (GREENLIGHT). Method-level conformance verified by source read + live tests.
 
 ## Interface conformance (35-method LNClient)

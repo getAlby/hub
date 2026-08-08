@@ -1,5 +1,11 @@
 # Greenlight backend for Alby Hub: what and why
 
+> **Note (2026-08-08):** This is the initial report from the first build.
+> For the current architecture, design rationale, and integration surface,
+> see **[ARCHITECTURE.md](../lnclient/greenlight/ARCHITECTURE.md)**.
+> This document is kept for historical reference; the ARCHITECTURE.md and
+> RUNBOOK.md are the canonical sources.
+
 Status snapshot: 2026-08-07, branch `feat/greenlight-backend`, commits `535e66e` + `19ec7cc` on upstream base `bf9c346`.
 
 ## Goal
