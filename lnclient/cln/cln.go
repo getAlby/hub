@@ -2257,10 +2257,6 @@ func (c *CLNService) SendKeysend(amount uint64, destination string, customRecord
 		"preimage":      preimage,
 	}).Debug("Send Keysend")
 
-	if preimage != "" {
-		return nil, errors.New("preimage not supported for keysends")
-	}
-
 	Destination, err := hex.DecodeString(destination)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to decode payee pubkey")
