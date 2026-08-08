@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Greenlight backend badge (greenlight-dark.svg) — official Blockstream emblem.
+     Square badge following the Bark pattern (bark-dark/light.svg).
+     Assets: design.blockstream.com/styleguide/branding/core-lightning#greenlight -->
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="96" height="96" viewBox="0 0 96 96">
+  <rect width="96" height="96" fill="#070707"/>
+  <svg x="10" y="10" width="76" height="76" viewBox="0 0 2000 2000"
+       preserveAspectRatio="xMidYMid meet">
+    <style type="text/css">
+	.st0{fill:none;}
+	.st1{fill:#FFFFFF;}
+</style>
+<rect x="1000.3" y="36.6" class="st0" width="497.9" height="329.9"/>
+<g>
+	<g>
+		<path class="st1" d="M1078.4,656l216.8-256.7L380,1091.5h102l0,0h370l646.9-742.7L1078.4,656z M434.2,1073.3l741.5-560.9
+			l-159.7,189.2L507,1073.3H434.2z"/>
+		<path class="st1" d="M1620,908.5h-330.7l0,0h-141.6l-646.6,742.7l420.3-306.9l-216.8,256.7L1620,908.5z M1493,926.7h72.9
+			l-741.8,560.9l159.7-189.2L1493,926.7z"/>
+	</g>
+</g>
+  </svg>
+</svg>
