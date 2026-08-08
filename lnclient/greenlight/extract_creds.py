@@ -165,6 +165,7 @@ def main() -> int:
         return 1
 
     os.makedirs(out_dir, exist_ok=True)
+    os.chmod(out_dir, 0o700)
 
     files = {
         "client.pem": cert,

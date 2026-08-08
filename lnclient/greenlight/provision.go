@@ -22,6 +22,10 @@ const (
 	deviceCredsDirName  = "device-creds"
 )
 
+// sanitizeOutput strips the mnemonic from glcli output (e.g. "New seed
+// generated from mnemonic: ...") before logging or returning in errors.
+var reMnemonic = regexp.MustCompile(`mnemonic:\s*\\S.*`) // rest of mnemonic line
+
 // MnemonicToSeed32 matches gl-cli: mnemonic.to_seed("")[0..32], 12 words only.
 func MnemonicToSeed32(mnemonic string) ([]byte, error) {
 	mnemonic = strings.TrimSpace(mnemonic)
@@ -115,6 +119,10 @@ func EnsureProvisioned(dataDir, network, glcliPath, nobodyCrt, nobodyKey, mnemon
 		cmd := exec.Command(bin, args...)
 		env := os.Environ()
 		if nobodyCrt != "" {
+			// guard against env-injection: reject paths with newlines
+			if strings.ContainsAny(nobodyCrt, "\n\r") || strings.ContainsAny(nobodyKey, "\n\r") {
+				return "", fmt.Errorf("GL_NOBODY_CRT/KEY must not contain newlines")
+			}
 			env = append(env, "GL_NOBODY_CRT="+nobodyCrt)
 		}
 		if nobodyKey != "" {
@@ -123,8 +131,10 @@ func EnsureProvisioned(dataDir, network, glcliPath, nobodyCrt, nobodyKey, mnemon
 		cmd.Env = env
 		out, err := cmd.CombinedOutput()
 		s := string(out)
+		// strip seed/mnemonic from output before logging or including in errors
+		sanitized := reMnemonic.ReplaceAllString(s, "mnemonic: [redacted]")
 		if err != nil {
-			return s, fmt.Errorf("%w: %s", err, strings.TrimSpace(s))
+			return s, fmt.Errorf("%w: %s", err, strings.TrimSpace(sanitized))
 		}
 		return s, nil
 	}
@@ -172,7 +182,12 @@ func EnsureProvisioned(dataDir, network, glcliPath, nobodyCrt, nobodyKey, mnemon
 			return "", "", fmt.Errorf("write embedded extract_creds: %w", err)
 		}
 	}
-	cmd := exec.Command("python3", extractScript, credsBlob, credsDir)
+	// resolve python3 via LookPath (not plain "python3" from PATH) for exec
+	python3, err := exec.LookPath("python3")
+	if err != nil {
+		return "", "", fmt.Errorf("python3 not found in PATH: %w", err)
+	}
+	cmd := exec.Command(python3, extractScript, credsBlob, credsDir)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", "", fmt.Errorf("extract_creds failed: %w: %s", err, string(out))

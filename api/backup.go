@@ -229,6 +229,14 @@ func (api *api) RestoreBackup(unlockPassword string, r io.Reader) error {
 	extractZipEntry := func(zipFile *zip.File) error {
 		fsFilePath := filepath.Join(workDir, "restore", filepath.FromSlash(zipFile.Name))
 
+		// Prevent Zip Slip: ensure the resolved path stays within the restore dir.
+		cleaned := filepath.Clean(fsFilePath)
+		restoreRoot := filepath.Join(workDir, "restore")
+		if !strings.HasPrefix(cleaned, restoreRoot+string(filepath.Separator)) && cleaned != restoreRoot {
+			return fmt.Errorf("zip entry escapes restore directory: %s", zipFile.Name)
+		}
+		fsFilePath = cleaned
+
 		if err = os.MkdirAll(filepath.Dir(fsFilePath), 0700); err != nil {
 			return fmt.Errorf("failed to create directory for zip entry: %w", err)
 		}
@@ -264,6 +272,15 @@ func (api *api) RestoreBackup(unlockPassword string, r io.Reader) error {
 	go func() {
 		logger.Logger.Info("Backup restored. Shutting down Alby Hub...")
 		api.svc.Shutdown()
+
+		// Verify restored files exist before destroying current DB
+		restoreDir := filepath.Join(workDir, "restore")
+		nwcPath := filepath.Join(restoreDir, "nwc.db")
+		if _, statErr := os.Stat(nwcPath); statErr != nil {
+			logger.Logger.WithError(statErr).Error("Restored nwc.db not found — refusing to destroy current DB")
+			return
+		}
+
 		// ensure no -shm or -wal files exist as they will stop the restore
 		for _, filename := range []string{"nwc.db", "nwc.db-shm", "nwc.db-wal"} {
 			err = os.Remove(filepath.Join(workDir, filename))

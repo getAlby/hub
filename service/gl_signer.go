@@ -48,7 +48,8 @@ func (s *GreenlightSignerService) Start(ctx context.Context, dataDir, network, g
 	s.dataDir = dataDir
 	s.network = network
 	if s.network == "" {
-		s.network = "bitcoin"
+		s.mu.Unlock()
+		return fmt.Errorf("network required (set GREENLIGHT_NETWORK)")
 	}
 	s.glcli = glcliPath
 	s.pidPath = filepath.Join(dataDir, "signer.pid")
