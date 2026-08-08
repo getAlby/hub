@@ -594,8 +594,8 @@ func (svc *transactionsService) SendKeysend(amountMsat uint64, destination strin
 	// network (or whose preimage can't prove the payment) is a lie.
 	if payKeysendResponse != nil && payKeysendResponse.Preimage != "" && payKeysendResponse.Preimage != preimage {
 		logger.Logger.WithFields(logrus.Fields{
-			"synthesized_preimage": preimage,
-			"actual_preimage":      payKeysendResponse.Preimage,
+			"synthesized_payment_hash": paymentHash,
+			"actual_payment_hash":      payKeysendResponse.PaymentHash,
 		}).Debug("backend derived its own keysend preimage — recording the actual values")
 
 		preimage = payKeysendResponse.Preimage
@@ -603,19 +603,26 @@ func (svc *transactionsService) SendKeysend(amountMsat uint64, destination strin
 		if paymentHash == "" {
 			// keysend construction: payment hash is sha256(preimage)
 			preImageBytes, err := hex.DecodeString(preimage)
-			if err == nil {
-				paymentHash256 := sha256.New()
-				paymentHash256.Write(preImageBytes)
-				paymentHash = hex.EncodeToString(paymentHash256.Sum(nil))
+			if err != nil {
+				return nil, fmt.Errorf("backend returned an undecodable keysend preimage: %w", err)
 			}
+			paymentHash256 := sha256.New()
+			paymentHash256.Write(preImageBytes)
+			paymentHash = hex.EncodeToString(paymentHash256.Sum(nil))
 		}
-		err = svc.db.Model(&dbTransaction).Updates(&db.Transaction{
-			PaymentHash: paymentHash,
-			Preimage:    &preimage,
+		// map-based update: GORM skips zero-value struct fields, and an
+		// empty payment hash must still be persisted if it ever occurs
+		err = svc.db.Model(&dbTransaction).Updates(map[string]interface{}{
+			"payment_hash": paymentHash,
+			"preimage":     preimage,
 		}).Error
 		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to update DB transaction with actual preimage")
+			return nil, fmt.Errorf("failed to update transaction with the actual keysend preimage: %w", err)
 		}
+		// keep the in-memory model consistent: the settlement dedup and
+		// the returned transaction must carry the values that settled
+		dbTransaction.PaymentHash = paymentHash
+		dbTransaction.Preimage = &preimage
 	}
 
 	// the payment definitely succeeded
@@ -1720,7 +1727,12 @@ func (svc *transactionsService) checkBudgetUsage(app *db.App, dbTransaction *db.
 	}
 	budgetUsageSat := budgetUsageMsat / 1000
 	warningUsage := uint64(math.Floor(float64(appPermission.MaxAmountSat) * 0.8))
-	if budgetUsageSat >= warningUsage && budgetUsageSat-dbTransaction.AmountMsat/1000 < warningUsage {
+	transactionSat := dbTransaction.AmountMsat / 1000
+	previousUsageSat := uint64(0)
+	if budgetUsageSat > transactionSat {
+		previousUsageSat = budgetUsageSat - transactionSat
+	}
+	if budgetUsageSat >= warningUsage && previousUsageSat < warningUsage {
 		return &events.Event{
 			Event: "nwc_budget_warning",
 			Properties: map[string]interface{}{
