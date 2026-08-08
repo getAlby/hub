@@ -17,6 +17,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -56,6 +57,19 @@ type GreenlightService struct {
 	config         Config
 	workDir        string
 	pumpRetryDelay time.Duration
+
+	// node health watchdog state (see health.go)
+	healthMtx              sync.RWMutex
+	nodeHealthy            bool
+	lastHealthError        string
+	lastHealthCheck        time.Time
+	lastInfo               *clngrpc.GetinfoResponse
+	lastPumpCallStart      time.Time
+	inPumpCall             bool
+	healthCheckInterval    time.Duration
+	healthCheckTimeout     time.Duration
+	healthFailureThreshold int
+	pumpStallThreshold     time.Duration
 }
 
 func NewGreenlightService(ctx context.Context, eventPublisher events.EventPublisher, workDir string, config Config) (lnclient.LNClient, error) {
@@ -102,20 +116,23 @@ func NewGreenlightService(ctx context.Context, eventPublisher events.EventPublis
 		workDir:        workDir,
 	}
 
-	// Fail fast: verify connectivity like every other backend. Bound the
-	// check with a deadline — grpc.NewClient dials lazily, and an RPC with
-	// an unbounded ctx would hang the hub at boot on an unreachable node.
+	// Fail fast on a truly unreachable node — but never lock the user out
+	// of their hub: a *frozen* node (Blockstream/greenlight#739 — hsmd
+	// queue wedge) responds to nothing, so this probe times out even
+	// though the node exists. Aborting startup on that would leave the
+	// user unable to reach their wallet, backups, or apps exactly when
+	// the node is broken. Instead: start degraded and let the health
+	// watchdog (health.go) report the node state and keep probing.
 	logger.Logger.Info("Testing greenlight gRPC connection")
 	connCtx, connCancel := context.WithTimeout(ctx, 15*time.Second)
 	info, err := svc.GetInfo(connCtx)
 	connCancel()
 	if err != nil {
-		cancel()
-		conn.Close()
-		return nil, fmt.Errorf("failed to connect to greenlight: %w", err)
+		logger.Logger.WithError(err).Warn("greenlight node unreachable at boot — starting degraded; the health watchdog will keep probing (a frozen node may need a Blockstream restart)")
+	} else {
+		svc.pubkey = info.Pubkey
+		logger.Logger.Info("Successfully connected to greenlight via gRPC")
 	}
-	svc.pubkey = info.Pubkey
-	logger.Logger.Info("Successfully connected to greenlight via gRPC")
 
 	// NOTE: no channel-state subscription. The GL node server leaves all six
 	// cln.Node Subscribe* stream RPCs unimplemented (they panic the gl-plugin
@@ -124,6 +141,15 @@ func NewGreenlightService(ctx context.Context, eventPublisher events.EventPublis
 	// and streamIncoming (keysends) below.
 	go svc.waitForInvoices(ctx)
 	go svc.streamIncoming(ctx)
+
+	// node health watchdog (health.go): detects a wedged/frozen node even
+	// when the node itself stops responding — GetNodeStatus then serves the
+	// cached verdict instead of hanging on a live RPC.
+	svc.healthCheckInterval = defaultHealthCheckInterval
+	svc.healthCheckTimeout = defaultHealthCheckTimeout
+	svc.healthFailureThreshold = defaultHealthFailureThreshold
+	svc.pumpStallThreshold = defaultPumpStallThreshold
+	svc.startHealthWatchdog(ctx)
 
 	return svc, nil
 }
@@ -701,21 +727,37 @@ func (g *GreenlightService) GetNodeConnectionInfo(ctx context.Context) (*lnclien
 }
 
 func (g *GreenlightService) GetNodeStatus(ctx context.Context) (*lnclient.NodeStatus, error) {
-	resp, err := g.client.Getinfo(ctx, &clngrpc.GetinfoRequest{})
-	if err != nil {
-		return nil, fmt.Errorf("getinfo failed: %w", err)
+	// Serve the watchdog's cached state: a live Getinfo here would hang
+	// when the node is frozen (the API must keep answering with an
+	// "unhealthy" verdict, not block).
+	g.healthMtx.RLock()
+	cacheWarm := !g.lastHealthCheck.IsZero()
+	g.healthMtx.RUnlock()
+	if !cacheWarm {
+		// cold cache (first seconds after startup): warm it with one
+		// bounded probe — never more than the health timeout
+		g.runHealthCheck(ctx)
 	}
 
-	ready := false
-	if resp != nil {
-		if resp.WarningBitcoindSync == nil && resp.WarningLightningdSync == nil {
-			ready = true
-		}
+	g.healthMtx.RLock()
+	healthy := g.nodeHealthy
+	lastErr := g.lastHealthError
+	lastCheck := g.lastHealthCheck
+	info := g.lastInfo
+	g.healthMtx.RUnlock()
+
+	ready := healthy
+	if info != nil && (info.WarningBitcoindSync != nil || info.WarningLightningdSync != nil) {
+		ready = false
 	}
 
 	return &lnclient.NodeStatus{
-		IsReady:            ready,
-		InternalNodeStatus: 0,
+		IsReady: ready,
+		InternalNodeStatus: nodeHealthStatus{
+			Healthy:     healthy,
+			LastCheckAt: lastCheck.Unix(),
+			LastError:   lastErr,
+		},
 	}, nil
 }
 

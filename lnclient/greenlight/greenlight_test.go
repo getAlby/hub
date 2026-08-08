@@ -44,6 +44,7 @@ type mockNode struct {
 	preimages    map[string][]byte                        // key: payment hash hex
 	nextPayIndex uint64
 	keysendCh    chan []byte // raw IncomingPayment payloads pushed by tests
+	getinfoErr   error       // when set, Getinfo fails (simulates a wedged node)
 }
 
 func newMockNode() *mockNode {
@@ -55,6 +56,11 @@ func newMockNode() *mockNode {
 }
 
 func (m *mockNode) Getinfo(ctx context.Context, req *clngrpc.GetinfoRequest) (*clngrpc.GetinfoResponse, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if m.getinfoErr != nil {
+		return nil, m.getinfoErr
+	}
 	return &clngrpc.GetinfoResponse{
 		Id:          mustHex("02f1d2e5f1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d"),
 		Alias:       "mock-greenlight-node",

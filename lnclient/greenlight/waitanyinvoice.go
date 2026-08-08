@@ -61,7 +61,12 @@ func (g *GreenlightService) waitForInvoices(ctx context.Context) {
 			LastpayIndex: &lastPayIndex,
 			Timeout:      &timeout,
 		}
+		// mark the pump call for the health watchdog (health.go): a call
+		// outstanding well past the server timeout means the node stopped
+		// processing (wedged/frozen).
+		g.markPumpCallStart()
 		resp, err := g.client.WaitAnyInvoice(ctx, req)
+		g.markPumpCallDone()
 		if err != nil {
 			// timeout or transient error: retry
 			if !errors.Is(err, context.Canceled) {
