@@ -317,7 +317,9 @@ type InfoResponse struct {
 	Network                       string              `json:"network"`
 	EnableAdvancedSetup           bool                `json:"enableAdvancedSetup"`
 	LdkVssEnabled                 bool                `json:"ldkVssEnabled"`
+	LdkVssUrl                     string              `json:"ldkVssUrl"`
 	VssSupported                  bool                `json:"vssSupported"`
+	DatabaseType                  string              `json:"databaseType"`
 	StartupState                  string              `json:"startupState"`
 	StartupError                  string              `json:"startupError"`
 	StartupErrorTime              time.Time           `json:"startupErrorTime"`
