@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/logger"
 	"github.com/sirupsen/logrus"
 )
@@ -28,13 +29,16 @@ type GreenlightSignerService struct {
 	pidPath  string
 	lastErr  string
 	cmd      *exec.Cmd // the live signer process, when spawned
+
+	eventPublisher      events.EventPublisher // nil in external-signer mode
+	lastPublishedHealthy bool
 }
 
 func NewGreenlightSignerService() *GreenlightSignerService {
-	return &GreenlightSignerService{}
+	return &GreenlightSignerService{lastPublishedHealthy: false}
 }
 
-func (s *GreenlightSignerService) Start(ctx context.Context, dataDir, network, glcliPath string) error {
+func (s *GreenlightSignerService) Start(ctx context.Context, dataDir, network, glcliPath string, eventPublisher events.EventPublisher) error {
 	s.mu.Lock()
 	if s.running {
 		s.mu.Unlock()
@@ -48,6 +52,8 @@ func (s *GreenlightSignerService) Start(ctx context.Context, dataDir, network, g
 	}
 	s.glcli = glcliPath
 	s.pidPath = filepath.Join(dataDir, "signer.pid")
+	s.eventPublisher = eventPublisher
+	s.lastPublishedHealthy = false
 	child, cancel := context.WithCancel(ctx)
 	s.cancelFn = cancel
 	s.mu.Unlock()
@@ -114,13 +120,37 @@ func (s *GreenlightSignerService) supervise(ctx context.Context) {
 		case <-t.C:
 			if err := s.ensure(ctx); err != nil {
 				s.setErr(err.Error())
+				s.publishHealth(false, err.Error())
 				logger.Logger.WithError(err).Warn("greenlight signer unhealthy, retrying")
 			} else if s.LastError() != "" {
+				// recovered: error was set previously but ensure() now succeeds
 				s.setErr("")
+				s.publishHealth(true, "")
 				logger.Logger.Info("greenlight signer healthy again")
 			}
 		}
 	}
+}
+
+func (s *GreenlightSignerService) publishHealth(healthy bool, lastErr string) {
+	if s.eventPublisher == nil {
+		return
+	}
+	s.mu.Lock()
+	if s.lastPublishedHealthy == healthy {
+		s.mu.Unlock()
+		return // no transition
+	}
+	s.lastPublishedHealthy = healthy
+	s.mu.Unlock()
+	props := map[string]interface{}{"healthy": healthy}
+	if !healthy {
+		props["error"] = lastErr
+	}
+	s.eventPublisher.Publish(&events.Event{
+		Event:      "nwc_gl_signer_health",
+		Properties: props,
+	})
 }
 
 func (s *GreenlightSignerService) ensure(ctx context.Context) error {

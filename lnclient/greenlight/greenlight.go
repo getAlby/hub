@@ -45,6 +45,17 @@ type Config struct {
 	// include it (covers the encrypted seed when signer and hub share a
 	// filesystem). Optional; defaults to the hub workdir.
 	SignerDataDir string
+	// SignerStatusProvider returns the signer service's current state.
+	// Nil in external-signer mode (the harness provides the signer).
+	SignerStatusProvider func() SignerStatus
+}
+
+// SignerStatus carries the signer service's health state for surfacing
+// in the node-status API (so a signer outage doesn't masquerade as a
+// node outage).
+type SignerStatus struct {
+	Running   bool   `json:"running"`
+	LastError string `json:"last_error,omitempty"`
 }
 
 type GreenlightService struct {
@@ -751,13 +762,18 @@ func (g *GreenlightService) GetNodeStatus(ctx context.Context) (*lnclient.NodeSt
 		ready = false
 	}
 
+	hs := nodeHealthStatus{
+		Healthy:     healthy,
+		LastCheckAt: lastCheck.Unix(),
+		LastError:   lastErr,
+	}
+	if g.config.SignerStatusProvider != nil {
+		hs.Signer = g.config.SignerStatusProvider()
+	}
+
 	return &lnclient.NodeStatus{
-		IsReady: ready,
-		InternalNodeStatus: nodeHealthStatus{
-			Healthy:     healthy,
-			LastCheckAt: lastCheck.Unix(),
-			LastError:   lastErr,
-		},
+		IsReady:            ready,
+		InternalNodeStatus: hs,
 	}, nil
 }
 

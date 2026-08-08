@@ -74,4 +74,11 @@ into Greenlight. Export before deleting the hub.
 
 - The watchdog publishes `nwc_gl_node_health` events (`healthy: true/false`)
   — wire these to your alerting (they are the node-health signal).
-- Hub ERROR logs with `greenlight node is unhealthy` are the actionable alert.
+- The signer service publishes `nwc_gl_signer_health` events on state transitions
+  (`healthy: true/false` + `error` on failure) — wire for the signing-key health signal.
+- `/api/node/status` carries both node health and signer state in
+  `internalNodeStatus` (`healthy`, `last_error` for the node, `signer.running` /
+  `signer.last_error` for the signer). A dead signer is surfaced there rather
+  than being reported as a node outage.
+- Hub ERROR logs with `greenlight node is unhealthy` or `greenlight signer unhealthy`
+  are the actionable alerts.

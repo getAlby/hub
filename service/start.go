@@ -597,7 +597,7 @@ func (svc *service) launchGreenlight(ctx context.Context, encryptionKey string) 
 		if svc.glSigner == nil {
 			svc.glSigner = NewGreenlightSignerService()
 		}
-		if err := svc.glSigner.Start(ctx, signerDir, glNet, env.GreenlightGlcliPath); err != nil {
+		if err := svc.glSigner.Start(ctx, signerDir, glNet, env.GreenlightGlcliPath, svc.eventPublisher); err != nil {
 			return nil, fmt.Errorf("start greenlight signer: %w", err)
 		}
 		time.Sleep(2 * time.Second)
@@ -606,12 +606,23 @@ func (svc *service) launchGreenlight(ctx context.Context, encryptionKey string) 
 	}
 
 	svc.startupState = "Connecting to Greenlight"
-	return greenlight.NewGreenlightService(ctx, svc.eventPublisher, workdir, greenlight.Config{
+	cfg := greenlight.Config{
 		CredsPath:     credsPath,
 		NodeURI:       nodeURI,
 		ServerName:    serverName,
 		Network:       glNet,
 		SignerDataDir: signerDir,
-	})
+	}
+	if svc.glSigner != nil {
+		// wire the signer's health state into the node-status surface so
+		// an outage is visible (not misattributed to the node itself)
+		cfg.SignerStatusProvider = func() greenlight.SignerStatus {
+			return greenlight.SignerStatus{
+				Running:   svc.glSigner.IsRunning(),
+				LastError: svc.glSigner.LastError(),
+			}
+		}
+	}
+	return greenlight.NewGreenlightService(ctx, svc.eventPublisher, workdir, cfg)
 }
 

@@ -160,3 +160,51 @@ func TestWatchdog_PublishesUnhealthyEvent(t *testing.T) {
 }
 
 var _ events.EventPublisher = (*capturePublisher)(nil)
+
+func TestGetNodeStatus_SurfaceSignerState(t *testing.T) {
+	node := newMockNode()
+	svc, cleanup := newTestService(t, node)
+	defer cleanup()
+
+	// wire a signer status provider (simulating launchGreenlight's wiring)
+	svc.config.SignerStatusProvider = func() SignerStatus {
+		return SignerStatus{Running: true, LastError: ""}
+	}
+	svc.runHealthCheck(svc.ctx)
+
+	status, err := svc.GetNodeStatus(svc.ctx)
+	if err != nil {
+		t.Fatalf("GetNodeStatus failed: %v", err)
+	}
+	health, ok := status.InternalNodeStatus.(nodeHealthStatus)
+	if !ok {
+		t.Fatalf("expected nodeHealthStatus, got %T", status.InternalNodeStatus)
+	}
+	if !health.Signer.Running {
+		t.Fatal("expected signer.running=true")
+	}
+	if health.Signer.LastError != "" {
+		t.Fatalf("expected empty signer.last_error, got %q", health.Signer.LastError)
+	}
+
+	// when the signer reports an error
+	svc.config.SignerStatusProvider = func() SignerStatus {
+		return SignerStatus{Running: false, LastError: "glcli not found"}
+	}
+	status, _ = svc.GetNodeStatus(svc.ctx)
+	health = status.InternalNodeStatus.(nodeHealthStatus)
+	if health.Signer.Running {
+		t.Fatal("expected signer.running=false")
+	}
+	if health.Signer.LastError != "glcli not found" {
+		t.Fatalf("expected signer error, got %q", health.Signer.LastError)
+	}
+
+	// nil provider (external-signer mode): signer field must be empty/omitted
+	svc.config.SignerStatusProvider = nil
+	status, _ = svc.GetNodeStatus(svc.ctx)
+	health = status.InternalNodeStatus.(nodeHealthStatus)
+	if health.Signer.Running || health.Signer.LastError != "" {
+		t.Fatalf("expected signer zero value in external-signer mode, got %#v", health.Signer)
+	}
+}
