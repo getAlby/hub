@@ -233,16 +233,6 @@ func (g *GreenlightService) SendKeysend(amount uint64, destination string, custo
 		"preimage":      preimage,
 	}).Debug("Send Keysend")
 
-	if preimage != "" {
-		// The hub's transactions service always synthesizes a preimage for
-		// accounting (transactions_service.go SendKeysend). CLN's keysend
-		// derives its own preimage server-side and there is no cln-grpc
-		// field to override it, so accept and ignore rather than reject:
-		// rejecting here made every outgoing NIP-47 pay_keysend fail with
-		// "preimage not supported for keysends".
-		logger.Logger.Debug("keysend: ignoring caller-supplied preimage (CLN derives its own)")
-	}
-
 	Destination, err := hex.DecodeString(destination)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to decode payee pubkey")
@@ -287,7 +277,15 @@ func (g *GreenlightService) SendKeysend(amount uint64, destination string, custo
 	if resp.AmountSentMsat != nil && resp.AmountMsat != nil {
 		feeMsat = resp.AmountSentMsat.Msat - resp.AmountMsat.Msat
 	}
-	return &lnclient.PayKeysendResponse{FeeMsat: feeMsat}, nil
+	// Greenlight (CLN-family) derives its own preimage server-side — the
+	// caller-supplied preimage cannot be honored via the gl-client, so
+	// report the actual preimage and payment hash from the response.
+	// Recording anything else would fake the proof-of-payment.
+	return &lnclient.PayKeysendResponse{
+		FeeMsat:     feeMsat,
+		Preimage:    hex.EncodeToString(resp.PaymentPreimage),
+		PaymentHash: hex.EncodeToString(resp.PaymentHash),
+	}, nil
 }
 
 func (g *GreenlightService) GetPubkey() string {

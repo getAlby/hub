@@ -2,6 +2,8 @@ package tests
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"time"
 
@@ -86,6 +88,10 @@ type MockLn struct {
 	MockTransaction            *lnclient.Transaction
 	LastMinCltvExpiryDelta     *uint64
 	SupportedNotificationTypes *[]string
+	// if set, SendKeysend reports this as the actual preimage used by the
+	// backend (simulating CLN/Greenlight which derive their own); if
+	// empty the mock honors the caller-provided preimage like LDK
+	SendKeysendPreimage string
 }
 
 func NewMockLn() (*MockLn, error) {
@@ -110,8 +116,21 @@ func (mln *MockLn) SendPaymentSync(payReq string, amountMsat *uint64) (*lnclient
 }
 
 func (mln *MockLn) SendKeysend(amountMsat uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
+	preimage = mln.SendKeysendPreimage
+	if preimage == "" {
+		return &lnclient.PayKeysendResponse{
+			FeeMsat:     1,
+			Preimage:    preimage,
+			PaymentHash: "",
+		}, nil
+	}
+	// keysend construction: payment hash is sha256(preimage)
+	preImageBytes, _ := hex.DecodeString(preimage)
+	hash := sha256.Sum256(preImageBytes)
 	return &lnclient.PayKeysendResponse{
-		FeeMsat: 1,
+		FeeMsat:     1,
+		Preimage:    preimage,
+		PaymentHash: hex.EncodeToString(hash[:]),
 	}, nil
 }
 
