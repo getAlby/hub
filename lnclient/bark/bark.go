@@ -34,8 +34,12 @@ const (
 	// Movement status reported once a movement has settled. A movement first
 	// appears as "pending" and is updated to this once complete.
 	movementStatusSuccessful = "successful"
-	// LightningReceive.State values in which we hold the preimage.
+	// LightningReceive.State values at or past preimage reveal.
+	// "delivering" (added in bark 0.6.0) sits between preimage reveal and
+	// settlement: the claim is recorded and delivery resumes automatically,
+	// so the funds are already irrevocably received.
 	receiveStatePreimageRevealed = "preimage-revealed"
+	receiveStateDelivering       = "delivering"
 	receiveStateSettled          = "settled"
 	// Grace period to allow the notification loop to unwind on shutdown.
 	shutdownGracePeriod = 10 * time.Second
@@ -562,15 +566,31 @@ func (bs *BarkService) lightningReceiveToTransaction(receive *bark.LightningRece
 		Description:     paymentRequest.Description,
 		DescriptionHash: paymentRequest.DescriptionHash,
 	}
-	// "preimage-revealed" until the claim is recorded, "settled" after.
-	if receive.State == receiveStatePreimageRevealed || receive.State == receiveStateSettled {
-		now := time.Now().Unix()
-		tx.SettledAt = &now
-		if receive.PaymentPreimage != nil {
-			tx.Preimage = *receive.PaymentPreimage
+	// Only report the receive as settled when we can include the preimage —
+	// a settled transaction without one is rejected by the transactions
+	// service.
+	if receive.PaymentPreimage != nil && receiveIsPaid(receive.State) {
+		tx.Preimage = *receive.PaymentPreimage
+		settledAt := time.Now().Unix()
+		if receive.SettledAt != nil {
+			settledAt = *receive.SettledAt
 		}
+		tx.SettledAt = &settledAt
 	}
 	return tx, nil
+}
+
+// receiveIsPaid reports whether a receive's state is at or past preimage
+// reveal, meaning the payer holds the preimage and the payment is final.
+// The state is the only reliable signal: bark generates and stores the
+// preimage at invoice creation, so LightningReceive.PaymentPreimage can be
+// set long before anything is paid.
+func receiveIsPaid(state string) bool {
+	switch state {
+	case receiveStatePreimageRevealed, receiveStateDelivering, receiveStateSettled:
+		return true
+	}
+	return false
 }
 
 func (bs *BarkService) GetBalances(ctx context.Context, includeInactiveChannels bool) (*lnclient.BalancesResponse, error) {
