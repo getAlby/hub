@@ -88,6 +88,17 @@ func (g *GreenlightService) waitForInvoices(ctx context.Context) {
 			continue
 		}
 
+		// any path that does not advance lastPayIndex must back off, or
+		// the next WaitAnyinvoice returns the same record immediately
+		backoff := func() bool {
+			select {
+			case <-ctx.Done():
+				return false
+			case <-time.After(retryDelay):
+				return true
+			}
+		}
+
 		if resp.Status == clngrpc.WaitanyinvoiceResponse_EXPIRED {
 			// fast-forward past expired invoices so they never block the pump
 			if resp.PayIndex != nil {
@@ -95,16 +106,24 @@ func (g *GreenlightService) waitForInvoices(ctx context.Context) {
 				if err := g.savePumpState(lastPayIndex); err != nil {
 					logger.Logger.WithError(err).Error("Failed to persist pump state")
 				}
+			} else if !backoff() {
+				return
 			}
 			continue
 		}
 
 		if resp.Status != clngrpc.WaitanyinvoiceResponse_PAID {
 			logger.Logger.WithField("status", resp.Status).Warn("Unexpected waitanyinvoice status")
+			if !backoff() {
+				return
+			}
 			continue
 		}
 		if resp.PayIndex == nil {
 			logger.Logger.WithField("payment_hash", hex.EncodeToString(resp.PaymentHash)).Warn("paid invoice without pay_index, skipping")
+			if !backoff() {
+				return
+			}
 			continue
 		}
 

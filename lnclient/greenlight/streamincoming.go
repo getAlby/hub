@@ -92,13 +92,18 @@ func (g *GreenlightService) streamIncoming(ctx context.Context) {
 				})
 			}
 
+			var amountMsat uint64
+			if offchain.Amount != nil {
+				amountMsat = offchain.Amount.Msat
+			}
+
 			transaction := &lnclient.Transaction{
 				Type:         "incoming",
 				Invoice:      offchain.Bolt11,
 				Description:  "",
 				Preimage:     preimage,
 				PaymentHash:  paymentHash,
-				AmountMsat:   int64(offchain.Amount.Msat),
+				AmountMsat:   int64(amountMsat),
 				FeesPaidMsat: 0,
 				CreatedAt:    now,
 				SettledAt:    &now,
@@ -109,7 +114,7 @@ func (g *GreenlightService) streamIncoming(ctx context.Context) {
 
 			logger.Logger.WithFields(logrus.Fields{
 				"payment_hash": paymentHash,
-				"amount_msat":  offchain.Amount.Msat,
+				"amount_msat":  amountMsat,
 			}).Info("Incoming keysend payment")
 
 			g.eventPublisher.Publish(&events.Event{

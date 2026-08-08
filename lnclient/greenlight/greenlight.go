@@ -1227,7 +1227,7 @@ func (g *GreenlightService) ListPeers(ctx context.Context) ([]lnclient.PeerDetai
 
 		peers = append(peers, lnclient.PeerDetails{
 			NodeId:      hex.EncodeToString(peer.Id),
-			Address:     *selected.Address,
+			Address:     selected.GetAddress(),
 			IsPersisted: peer.GetNumChannels() > 0,
 			IsConnected: peer.Connected,
 		})
