@@ -1519,7 +1519,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.LdkVssEnabled = ldkVssEnabled == "true"
 	info.JitChannelsEnabled = jitChannelsEnabled != "false"
 	info.VssSupported = backendType == config.LDKBackendType && api.cfg.GetEnv().LDKVssUrl != ""
-	info.SupportsBolt12 = backendType == config.LDKBackendType || backendType == config.CLNBackendType
+	info.SupportsBolt12 = backendType == config.LDKBackendType || backendType == config.CLNBackendType || backendType == config.GreenlightBackendType
 	info.AutoUnlockPasswordEnabled = autoUnlockPassword != ""
 	info.AutoUnlockPasswordSupported = api.cfg.GetEnv().IsDefaultClientId()
 	info.Relays = []InfoResponseRelay{}
