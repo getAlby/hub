@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"strconv"
 	"testing"
 
@@ -48,6 +49,34 @@ func TestSendKeysend(t *testing.T) {
 	settledTransaction := mockEventConsumer.GetConsumedEvents()[0].Properties.(*db.Transaction)
 	assert.Equal(t, transaction, settledTransaction)
 }
+func TestSendKeysend_FailedRemovesFeeReserve(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	svc.LNClient.(*tests.MockLn).PayKeysendErrors = append(svc.LNClient.(*tests.MockLn).PayKeysendErrors, errors.New("Some error"))
+	svc.LNClient.(*tests.MockLn).PayKeysendResponses = append(svc.LNClient.(*tests.MockLn).PayKeysendResponses, nil)
+
+	mockEventConsumer := tests.NewMockEventConsumer()
+	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+	transaction, err := transactionsService.SendKeysend(uint64(1000), "fake destination", nil, "", svc.LNClient, nil, nil)
+
+	assert.Error(t, err)
+	assert.Nil(t, transaction)
+
+	failedTransaction := db.Transaction{}
+	require.NoError(t, svc.DB.Where("type = ? AND state = ?", constants.TRANSACTION_TYPE_OUTGOING, constants.TRANSACTION_STATE_FAILED).First(&failedTransaction).Error)
+
+	assert.Equal(t, uint64(1000), failedTransaction.AmountMsat)
+	assert.Zero(t, failedTransaction.FeeReserveMsat)
+	assert.Equal(t, "Some error", failedTransaction.FailureReason)
+
+	assert.Equal(t, 1, len(mockEventConsumer.GetConsumedEvents()))
+	assert.Equal(t, "nwc_payment_failed", mockEventConsumer.GetConsumedEvents()[0].Event)
+}
+
 func TestSendKeysend_CustomPreimage(t *testing.T) {
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
