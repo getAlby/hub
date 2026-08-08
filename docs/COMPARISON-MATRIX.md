@@ -11,7 +11,7 @@ Scope: default flows on regtest/testnet with recorded evidence.
 | Node getinfo / identity | scheduler-issued node domain | LDK pubkey 02febb… | GL node pubkey via gRPC (02ce79da testnet / 026f61d7 regtest) | ✅ |
 | Receive invoice (bolt11) | invoice via cln RPC | LDK event → settled | pump (WaitAnyInvoice, persisted index) → settled; 250k msat preimage captured | ✅ pump is restart-safe (proven kill→resume) |
 | Send payment | pay via Xpay | LDK pathfinder (needs outbound channel) | Xpay → settled, preimage returned, peer confirms | ✅ |
-| Keysend | keysend RPC | LDK custom-preimage keysend works | **incoming** via pump (TLVs dropped); **outgoing NIP-47 fixed** (records actual preimage/hash from the KeySend response) | ✅ after fix; ⚠️ TLV loss documented |
+| Keysend | keysend RPC | LDK custom-preimage keysend works | **incoming** via streamIncoming (TLVs captured in transaction Metadata, surfaced to NIP-47); **outgoing NIP-47 fixed** (records actual preimage/hash from the KeySend response) | ✅ after fix; verified live |
 | Balance / on-chain addr | listfunds | onchain+channel | GetBalances + NewAddr via cln-grpc; withdraw proven (0.9996 BTC swept) | ✅ |
 | Channel open/close | fundchannel/close | open both directions, force-close proven | open (fundchannel), close (mutual stalled vs CLN peer, force works), 2 channels live | ✅ with noted close quirk |
 | Signer lifecycle | `glcli signer run` (VLS) | n/a | supervised (15s ticker, respawn proven, SIGTERM→KILL) — mirrors Routstrd | ✅ production-grade |

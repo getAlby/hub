@@ -70,3 +70,23 @@ Why GL differs: the hosted GL node leaves all six `cln.Node Subscribe*` streams 
 2. **Unique strengths:** restart-safe incoming pump (only backend with persisted index + payment_received notifications), signer supervision, GL-aware backup/UI.
 3. **Cleanest of the CLN family:** GL fixed the keysend bug upstream CLN still has, and the deployment bug is now embed-based.
 4. **Actionable gaps:** holds (blocked upstream), sign_message (blocked upstream), keysend TLV capture (fork-side design work), and two upstream PR candidates: CLN keysend preimage bug + LDK testnet→signet mapping.
+
+## Update 2026-08-08 (Phase A hardening)
+
+- **Node health watchdog** (health.go): every 30s the GL backend probes the node (Getinfo, 10s
+  deadline) and watches the invoice pump's outstanding WaitAnyInvoice call (>90s = hsmd-wedge
+  symptom). After 3 consecutive failures it logs ERROR + publishes `nwc_gl_node_health`; the
+  verdict is cached and served by GetNodeStatus, so /api/node/status keeps answering (21ms,
+  measured live) even when the node is frozen. Verified live: a genuine #739 freeze reproduced on
+  the regtest harness (signmessage → every RPC hung) was detected; the hub booted degraded instead
+  of aborting (user never locked out of their wallet UI).
+- **Boot behavior change**: a frozen/unreachable node no longer aborts hub startup — the backend
+  starts degraded and the watchdog reports the state. (Previously the 15s connectivity probe
+  failing = LNClient never started = no UI, no backups, no apps — the worst time to be locked out.)
+- **Keysend TLVs (correction)**: incoming keysend custom records ARE captured — streamIncoming
+  maps `offchain.ExtraTLVs` into the transaction Metadata (`tlv_records`) and they surface to
+  NIP-47 clients via the freeform metadata blob. Earlier "TLV loss" note was stale.
+- **Hold invoices**: confirmed unsupported at the stack level (no hold hooks in gl-client); hosted
+  GL nodes run no plugins. Upstream-blocked; do not ship a fake hold path.
+- **ResetRouter**: stub retained (graph lives on the hosted node, no reset RPC); the backup path
+  tolerates it (warns and continues, backup.go:63).
