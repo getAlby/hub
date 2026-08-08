@@ -30,7 +30,7 @@ type GreenlightSignerService struct {
 	lastErr  string
 	cmd      *exec.Cmd // the live signer process, when spawned
 
-	eventPublisher      events.EventPublisher // nil in external-signer mode
+	eventPublisher       events.EventPublisher // nil in external-signer mode
 	lastPublishedHealthy bool
 }
 

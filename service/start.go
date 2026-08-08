@@ -625,4 +625,3 @@ func (svc *service) launchGreenlight(ctx context.Context, encryptionKey string) 
 	}
 	return greenlight.NewGreenlightService(ctx, svc.eventPublisher, workdir, cfg)
 }
-

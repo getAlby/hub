@@ -70,3 +70,7 @@ device deployment the 0700/0600 file perms match the rest of the wallet.
 Audit-verified clean: dataDir 0700, hsm_secret/signer.log/signer.pid 0600,
 device PEMs 0600, seed write-once (a different mnemonic can never desync
 the signer from the node), signer liveness tracks the live process.
+
+See [ARCHITECTURE.md](../lnclient/greenlight/ARCHITECTURE.md) for the
+full design rationale (why we integrate through `glcli`, how GL primitives
+map to the Go layer, and what operational additions we provide).

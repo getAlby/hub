@@ -8,15 +8,13 @@ separate VLS (Validating Lightning Signer) process.
 ## What you get
 
 - Full NIP-47 surface: payments (pay_invoice, pay_keysend), invoices,
-  lookup, balances (channel + onchain), channels (open/close/update),
-  onchain (withdraw, new address), offers (BOLT12), peers, network graph.
+  lookup, balances (channel + onchain), channels (open/close), onchain
+  (withdraw, new address), offers (BOLT12), peers, network graph.
   (`sign_message` is NOT supported — see below.)
 - Incoming payments: `WaitAnyInvoice` pump with a persisted pay index
-  (restart-safe catch-up, no missed payments) + `StreamIncoming` (raw
-  codec). Note: on the current GL stack keysend pseudo-invoices carry a
-  bolt11, so `StreamIncoming`'s `bolt11 == ""` guard never fires and ALL
-  incoming payments (invoice + keysend) are handled by the pump — keysend
-  TLV records are therefore not captured (the pump maps via LookupInvoice).
+  (restart-safe catch-up, no missed payments) + `StreamIncoming` for
+  keysend TLV capture. Keysend custom records are surfaced in the
+  transaction Metadata under `tlv_records` and reach NIP-47 clients.
 - Custody: the hub never holds the seed. All signing happens in the
   signer process (VLS), which validates channel state and fees before
   signing — a compromised hub cannot move funds.
@@ -39,7 +37,18 @@ separate VLS (Validating Lightning Signer) process.
 
 ## Setup
 
-1. **Get a node** — with `gl-cli` (Blockstream's CLI):
+The GL backend supports two deployment paths:
+
+### Product path (hub wizard)
+
+During setup, the hub calls `EnsureProvisioned` to register or recover a GL
+node from the 12-word mnemonic, extract device credentials, and start the
+signer under supervision. The signer runs as a subprocess supervised by the
+hub (15s respawn, SIGTERM→KILL) and writes periodic backup snapshots to
+`backup.json` (the GL-native signer backup — see [ARCHITECTURE.md](ARCHITECTURE.md)
+for the full design).
+
+### Manual path (glcli)
 
    ```sh
    cargo install gl-cli

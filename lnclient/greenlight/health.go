@@ -32,11 +32,11 @@ import (
 // itself is frozen — a live Getinfo there would hang the API.
 
 const (
-	defaultHealthCheckInterval     = 30 * time.Second
-	defaultHealthCheckTimeout      = 10 * time.Second
-	defaultHealthFailureThreshold  = 3
-	defaultPumpStallThreshold      = 90 * time.Second
-	nodeHealthEvent                = "nwc_gl_node_health"
+	defaultHealthCheckInterval    = 30 * time.Second
+	defaultHealthCheckTimeout     = 10 * time.Second
+	defaultHealthFailureThreshold = 3
+	defaultPumpStallThreshold     = 90 * time.Second
+	nodeHealthEvent               = "nwc_gl_node_health"
 )
 
 // nodeHealthStatus is what GetNodeStatus exposes in InternalNodeStatus
