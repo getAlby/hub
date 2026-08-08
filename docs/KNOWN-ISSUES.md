@@ -57,3 +57,16 @@ The GL node server leaves all six `cln.Node Subscribe*` stream RPCs
 unimplemented (they panic the gl-plugin process). `nwc_channel_ready/closed`
 notifications are not emitted; incoming payments are covered by the
 restart-safe pump instead.
+
+## 8. Signer seed at rest — PLAINTEXT (posture note, mainnet audit 2026-08-08)
+
+The hub supervisor spawns `glcli signer run` directly, so the seed
+(`hsm_secret`) sits plaintext in the 0700 data dir while the hub is
+unlocked — the same posture as the hub's own LDK seed. An at-rest
+encryption wrapper exists (`lnclient/greenlight/signer/encrypt-seed.py` +
+`greenlight-signer-run.sh`, AES-256-GCM, for systemd deployments) but is
+not wired into the supervisor. Wiring it is a follow-up; for a single-user
+device deployment the 0700/0600 file perms match the rest of the wallet.
+Audit-verified clean: dataDir 0700, hsm_secret/signer.log/signer.pid 0600,
+device PEMs 0600, seed write-once (a different mnemonic can never desync
+the signer from the node), signer liveness tracks the live process.
