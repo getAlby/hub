@@ -9,7 +9,7 @@ Real implementations (stubs/errors excluded; verified by source read, conditiona
 | Backend | Real | Stubs | Notable stubs |
 |---|---|---|---|
 | **LND** | 31 | 4 | MakeOffer (BOLT12 unsupported) |
-| **CLN** | 30 | 5 | holds ×3 (gated on external hold plugin), ResetRouter, **SendKeysend (broken via preimage bug)** |
+| **CLN** | 30 | 5 | holds ×3 (gated on external hold plugin), ResetRouter, **SendKeysend** (preimage bug fixed via PR #2521, pending merge) |
 | **GREENLIGHT** | 30 | 5 | holds ×3, ResetRouter, **SignMessage (stubbed: VLS freeze)** |
 | **LDK** | 33+ | ~2 | GetNetworkGraph stub (LDK has no graph query API) |
 | **Phoenixd** | ~13 | ~22 | channel ops, keysend, onchain — mostly unavailable (managed node) |
@@ -24,7 +24,7 @@ Greenlight is the **second-most complete node-model backend** (behind LDK/LND), 
 |---|---|---|---|---|---|---|---|
 | Hold invoices | ✅ | ⚠️ plugin-gated | ✅ | ❌ | ❌ | ❌ | ❌ |
 | BOLT12 offers | ✅ | ✅ | ❌ stub | ❌ | ❌ | ❌ | ✅ |
-| Keysend out | ✅ | ❌ bug | ✅ | ❌ | ❌ | ❌ | ✅ (fixed) |
+| Keysend out | ✅ | ✅ (fix PR #2521) | ✅ | ❌ | ❌ | ❌ | ✅ (fixed) |
 | SignMessage | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ (VLS freeze) |
 | Channels open/close | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ (VTXO) | ✅ |
 | Onchain (addr/withdraw) | ✅ | ✅ | ✅ | ❌ | ❌ | ⚠️ | ✅ |
