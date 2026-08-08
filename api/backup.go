@@ -149,6 +149,16 @@ func (api *api) CreateBackup(unlockPassword string, w io.Writer) error {
 	}
 
 	for _, fileToArchive := range filesToArchive {
+		info, statErr := os.Stat(fileToArchive)
+		if statErr != nil {
+			logger.Logger.WithError(statErr).WithField("fileToArchive", fileToArchive).Error("Failed to stat file")
+			return fmt.Errorf("failed to stat file %s: %w", fileToArchive, statErr)
+		}
+		if info.IsDir() {
+			logger.Logger.WithField("fileToArchive", fileToArchive).Info("skipping directory")
+			continue
+		}
+
 		logger.Logger.WithField("fileToArchive", fileToArchive).Info("adding file to zip")
 		relPath, err := filepath.Rel(workDir, fileToArchive)
 		if err != nil || strings.HasPrefix(relPath, "..") {
