@@ -15,7 +15,7 @@ If you do a fresh server setup make sure to do the basic setup like for example 
 
 Run the installation script on your server:
 
-    $ /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/getAlby/hub/master/scripts/linux-aarch64/install.sh)"
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/getAlby/hub/master/scripts/linux-aarch64/install.sh)"
 
 The install script will prompt you for an installation folder and will install Alby Hub.
 Optionally it can also create a systemd service for you.
