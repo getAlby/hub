@@ -44,12 +44,11 @@ Signer::new(seed, net, creds)  ───►    GreenlightSignerService
   signer event loop                   supervisor (15s respawn,
       │                               SIGTERM→KILL, health events)
       ▼
-  [signer writes backup.json]         [backup.json included in .bkp
-      │                                via SignerDataDir — no extra
-      ▼                                code; export/restore already
-  SignerBackupSnapshot::to_cln_backup  covers the data dir]
-                                       runbook: convert-backup → CLN
-                                       recoverchannel (escape hatch)
+  [writes backup.json on first
+   recoverable channel — absent
+   on a fresh node until B1;
+   the .bkp includes it when
+   it exists]
       │
       ▼
 Node (cln-grpc)               ───►    GreenlightService
