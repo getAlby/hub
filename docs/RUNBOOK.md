@@ -6,6 +6,40 @@ process supervises the signer and connects to the node over gRPC.
 
 ## Failure modes
 
+### 0. Signer outage (local, automatic recovery)
+
+The signer is supervised by the hub (15s respawn loop). When it goes down:
+
+**What you see:** `/api/node/status` → `signer.running: false` with
+`signer.last_error`. A `nwc_gl_signer_health{healthy: false}` event fires.
+Payments stall or fail with `INTERNAL` errors; the node itself may still
+report `healthy` (the signer is local; the node is hosted — two different
+halfs of the wallet).
+
+**Recovery (automatic):** the supervisor respawns the signer within 15s.
+The signer re-syncs with the node on start and heals itself. Watch for
+`nwc_gl_signer_health{healthy: true}` or the API flipping `signer.running`
+back to `true`.
+
+**VLS re-syncs:** the signer's local state (channel tracking) re-syncs
+from the node on start — the node is the source of truth. The signer
+is never in a corrupted state after recovery.
+
+**If the signer cannot spawn** (persistent failures):
+1. Check that `glcli` is present and executable at the configured path.
+2. Verify the signer data dir permissions (`0700` dir, `0600` files) —
+   the signer reads `hsm_secret` and `credentials.gfs` from there.
+3. The seed (`hsm_secret`) must match the node's identity recorded during
+   registration. If the seed was overwritten, recover from the backup
+   phrase (see §3 below — the `.bkp` restores the signer state too).
+
+**If the signer data was lost/overwritten:** recover from the 12-word
+mnemonic or the `.bkp` (both re-derive the same node identity — the
+signer re-attaches to the same channels). Do NOT delete `hsm_secret`
+without a verified backup — the signer's write-once seed rule prevents
+accidental overwrites, but a deliberate deletion needs a known-good
+recovery path.
+
 ### 1. Node frozen (hsmd queue wedge) — the critical one
 
 **Cause**: a signing request the VLS signer cannot answer (historically
