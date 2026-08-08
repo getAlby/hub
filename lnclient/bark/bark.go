@@ -34,8 +34,12 @@ const (
 	// Movement status reported once a movement has settled. A movement first
 	// appears as "pending" and is updated to this once complete.
 	movementStatusSuccessful = "successful"
-	// LightningReceive.State values in which we hold the preimage.
+	// LightningReceive.State values at or past preimage reveal.
+	// "delivering" (added in bark 0.6.0) sits between preimage reveal and
+	// settlement: the claim is recorded and delivery resumes automatically,
+	// so the funds are already irrevocably received.
 	receiveStatePreimageRevealed = "preimage-revealed"
+	receiveStateDelivering       = "delivering"
 	receiveStateSettled          = "settled"
 	// Grace period to allow the notification loop to unwind on shutdown.
 	shutdownGracePeriod = 10 * time.Second
@@ -562,15 +566,31 @@ func (bs *BarkService) lightningReceiveToTransaction(receive *bark.LightningRece
 		Description:     paymentRequest.Description,
 		DescriptionHash: paymentRequest.DescriptionHash,
 	}
-	// "preimage-revealed" until the claim is recorded, "settled" after.
-	if receive.State == receiveStatePreimageRevealed || receive.State == receiveStateSettled {
-		now := time.Now().Unix()
-		tx.SettledAt = &now
-		if receive.PaymentPreimage != nil {
-			tx.Preimage = *receive.PaymentPreimage
+	// Only report the receive as settled when we can include the preimage —
+	// a settled transaction without one is rejected by the transactions
+	// service.
+	if receive.PaymentPreimage != nil && receiveIsPaid(receive.State) {
+		tx.Preimage = *receive.PaymentPreimage
+		settledAt := time.Now().Unix()
+		if receive.SettledAt != nil {
+			settledAt = *receive.SettledAt
 		}
+		tx.SettledAt = &settledAt
 	}
 	return tx, nil
+}
+
+// receiveIsPaid reports whether a receive's state is at or past preimage
+// reveal, meaning the payer holds the preimage and the payment is final.
+// The state is the only reliable signal: bark generates and stores the
+// preimage at invoice creation, so LightningReceive.PaymentPreimage can be
+// set long before anything is paid.
+func receiveIsPaid(state string) bool {
+	switch state {
+	case receiveStatePreimageRevealed, receiveStateDelivering, receiveStateSettled:
+		return true
+	}
+	return false
 }
 
 func (bs *BarkService) GetBalances(ctx context.Context, includeInactiveChannels bool) (*lnclient.BalancesResponse, error) {
@@ -745,6 +765,7 @@ const (
 	nodeCommandDebug                  = "debug"
 	nodeCommandClaimLightningReceives = "claimlightningreceives"
 	nodeCommandRunMaintenance         = "runmaintenance"
+	nodeCommandRecoveryReport         = "recoveryreport"
 )
 
 func (bs *BarkService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCommandDef {
@@ -764,6 +785,11 @@ func (bs *BarkService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCo
 			Description: "Run wallet maintenance, which progresses pending rounds and refreshes VTXOs. Use this to nudge funds that are stuck 'pending in round'.",
 			Args:        nil,
 		},
+		{
+			Name:        nodeCommandRecoveryReport,
+			Description: "Show the result of the seed-recovery scan that runs when a wallet is created from an existing recovery phrase. Use this to verify your funds were restored after migrating to a new device.",
+			Args:        nil,
+		},
 	}
 }
 
@@ -775,6 +801,8 @@ func (bs *BarkService) ExecuteCustomNodeCommand(ctx context.Context, command *ln
 		return bs.executeCommandClaimLightningReceives()
 	case nodeCommandRunMaintenance:
 		return bs.executeCommandRunMaintenance()
+	case nodeCommandRecoveryReport:
+		return bs.executeCommandRecoveryReport()
 	}
 
 	return nil, lnclient.ErrUnknownCustomNodeCommand
@@ -890,6 +918,32 @@ func (bs *BarkService) executeCommandClaimLightningReceives() (*lnclient.CustomN
 		Response: map[string]interface{}{
 			"claimedCount": len(claimed),
 			"claimed":      claimed,
+		},
+	}, nil
+}
+
+func (bs *BarkService) executeCommandRecoveryReport() (*lnclient.CustomNodeCommandResponse, error) {
+	// The report is produced by the seed-recovery scan bark runs during the
+	// wallet open that creates the wallet locally (e.g. when restoring from a
+	// recovery phrase on a new device). It is only available in the session
+	// that created the wallet; on subsequent starts no scan runs.
+	report := bs.wallet.RecoveryReport()
+	if report == nil {
+		return &lnclient.CustomNodeCommandResponse{
+			Response: map[string]interface{}{
+				"message": "No recovery scan ran on this wallet start. A scan only runs when the wallet is first created, e.g. after restoring from a recovery phrase.",
+			},
+		}, nil
+	}
+
+	return &lnclient.CustomNodeCommandResponse{
+		Response: map[string]interface{}{
+			"isComplete": report.IsComplete,
+			"recovered":  report.Recovered,
+			"skipped":    report.Skipped,
+			"foreign":    report.Foreign,
+			"failed":     report.Failed,
+			"exited":     report.Exited,
 		},
 	}, nil
 }
