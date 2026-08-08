@@ -1,4 +1,4 @@
-import { InfoIcon, TriangleAlertIcon } from "lucide-react";
+import { DatabaseIcon, InfoIcon, TriangleAlertIcon } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
 import PasswordInput from "src/components/password/PasswordInput";
@@ -8,6 +8,13 @@ import { Button } from "src/components/ui/button";
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "src/components/ui/tooltip";
+import { useInfo } from "src/hooks/useInfo";
 
 import { handleRequestError } from "src/utils/handleRequestError";
 import { isHttpMode } from "src/utils/isHttpMode";
@@ -15,6 +22,7 @@ import { request } from "src/utils/request";
 
 export function MigrateNode() {
   const navigate = useNavigate();
+  const { data: info } = useInfo();
 
   const [unlockPassword, setUnlockPassword] = React.useState("");
   const [showPasswordScreen, setShowPasswordScreen] = useState<boolean>(false);
@@ -113,6 +121,24 @@ export function MigrateNode() {
             another device or server.
           </p>
         </div>
+        {info?.databaseType === "postgres" && (
+          <div className="flex gap-3 items-center">
+            <DatabaseIcon className="size-4" />
+            <h3>Your database will be migrated</h3>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger type="button">
+                  <InfoIcon className="size-4 shrink-0 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  The contents of your PostgreSQL database will be copied into a
+                  local SQLite database while the migration file is being
+                  created. Your new Alby Hub will use this SQLite database.
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        )}
       </div>
 
       {showPasswordScreen ? (
