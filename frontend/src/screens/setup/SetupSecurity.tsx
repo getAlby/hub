@@ -100,6 +100,19 @@ export function SetupSecurity() {
                 choose the LDK node type.
               </span>
             </div>
+          ) : store.hasImportedMnemonic &&
+            store.nodeInfo.backendType === "LDK" ? (
+            <div className="flex gap-3 items-center">
+              <div className="shrink-0">
+                <ShieldAlertIcon className="size-6" />
+              </div>
+              <span className="text-sm text-muted-foreground">
+                Your recovery phrase can only restore funds from lightning
+                channels if you have dynamic channel backups enabled. If you had
+                active channels on a different device, contact Alby support
+                before proceeding.
+              </span>
+            </div>
           ) : (
             <div className="flex gap-3 items-center">
               <div className="shrink-0">
