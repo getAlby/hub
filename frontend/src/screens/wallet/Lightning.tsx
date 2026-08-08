@@ -77,10 +77,14 @@ export default function Lightning() {
           <AlertDescription className="inline">
             {info?.backendType === "GREENLIGHT" ? (
               <>
-                Your Greenlight node is online, but you need a channel to send
-                or receive Lightning payments.{" "}
-                <Link className="underline" to={firstChannelPath}>
-                  Open a channel
+                Your Greenlight node is online. Inbound channels are provisioned
+                automatically by the platform.{" "}
+                <Link className="underline" to="/channels">
+                  View channel status
+                </Link>{" "}
+                or{" "}
+                <Link className="underline" to="/channels?tab=onchain">
+                  open an outbound channel
                 </Link>
                 .
               </>
