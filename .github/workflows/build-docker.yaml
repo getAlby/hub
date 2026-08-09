@@ -1,6 +1,9 @@
 name: Multiplatform Docker build & push
 on:
   push:
+permissions:
+  contents: read
+  packages: write
 jobs:
   build:
     env:
