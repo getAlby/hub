@@ -15,6 +15,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -50,6 +51,9 @@ type api struct {
 	startupError     error
 	startupErrorTime time.Time
 	eventPublisher   events.EventPublisher
+	// set after a migration file is created; the hub is halted at that point
+	// and the frontend should keep showing the migration success page
+	nodeMigrationFileCreated atomic.Bool
 }
 
 func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys keys.Keys, albySvc alby.AlbyService, albyOAuthSvc alby.AlbyOAuthService, eventPublisher events.EventPublisher) *api {
@@ -1491,6 +1495,19 @@ func (api *api) RequestMempoolApi(ctx context.Context, endpoint string) (interfa
 
 func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info := InfoResponse{}
+
+	if api.nodeMigrationFileCreated.Load() {
+		// the hub is halted and the database is closed after a migration file
+		// is created, so return a minimal response without reading any config
+		// or node state; the frontend only needs the flag to keep showing the
+		// migration success page
+		info.NodeMigrationFileCreated = true
+		info.SetupCompleted = true
+		info.Version = version.Tag
+		info.Relays = []InfoResponseRelay{}
+		return &info, nil
+	}
+
 	backendType, _ := api.cfg.Get("LNBackendType", "")
 	ldkVssEnabled, _ := api.cfg.Get("LdkVssEnabled", "")
 	jitChannelsEnabled, _ := api.cfg.Get("JitChannelsEnabled", "")
@@ -1510,6 +1527,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	}
 	lnClient := api.svc.GetLNClient()
 	info.Running = lnClient != nil
+	info.NodeMigrationFileCreated = api.nodeMigrationFileCreated.Load()
 	info.BackendType = backendType
 	info.AlbyAuthUrl = api.albyOAuthSvc.GetAuthUrl()
 	info.OAuthRedirect = !api.cfg.GetEnv().IsDefaultClientId()

@@ -195,7 +195,17 @@ func (api *api) CreateBackup(unlockPassword string, w io.Writer) error {
 		}
 	}
 
+	// Finalize the archive before reporting success; the deferred close
+	// only covers early returns.
+	err = zw.Close()
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to finalize migration archive")
+		return fmt.Errorf("failed to finalize migration archive: %w", err)
+	}
+
 	logger.Logger.Info("Successfully created backup to migrate Alby Hub to another device")
+
+	api.nodeMigrationFileCreated.Store(true)
 
 	return nil
 }

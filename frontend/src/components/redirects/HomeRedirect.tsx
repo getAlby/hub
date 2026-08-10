@@ -14,6 +14,13 @@ export function HomeRedirect() {
       return;
     }
 
+    if (info.nodeMigrationFileCreated) {
+      // the hub is halted after creating a migration file and should not be
+      // used anymore, so keep showing the migration success instructions
+      navigate("/create-node-migration-file-success", { replace: true });
+      return;
+    }
+
     const setupReturnTo = window.localStorage.getItem(
       localStorageKeys.setupReturnTo
     );
