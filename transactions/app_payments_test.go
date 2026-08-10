@@ -95,7 +95,7 @@ func TestMarkSettled_App_BudgetWarning(t *testing.T) {
 	_, err = transactionsService.markTransactionSettled(&dbTransaction, "test", 0, false)
 
 	assert.NoError(t, err)
-	consumedEvents := mockEventConsumer.GetConsumedEvents()
+	consumedEvents := mockEventConsumer.WaitForConsumedEvents(2)
 	assert.Equal(t, 2, len(consumedEvents))
 	eventNames := []string{}
 	for _, consumedEvent := range consumedEvents {
@@ -136,12 +136,13 @@ func TestSendPaymentSync_App_BudgetExceeded(t *testing.T) {
 	assert.ErrorIs(t, err, NewQuotaExceededError())
 	assert.Nil(t, transaction)
 
-	assert.Equal(t, 1, len(mockEventConsumer.GetConsumedEvents()))
-	assert.Equal(t, "nwc_permission_denied", mockEventConsumer.GetConsumedEvents()[0].Event)
-	assert.Equal(t, app.Name, mockEventConsumer.GetConsumedEvents()[0].Properties.(map[string]interface{})["app_name"])
-	assert.Equal(t, constants.ERROR_QUOTA_EXCEEDED, mockEventConsumer.GetConsumedEvents()[0].Properties.(map[string]interface{})["code"])
+	consumedEvents := mockEventConsumer.WaitForConsumedEvents(1)
+	assert.Equal(t, 1, len(consumedEvents))
+	assert.Equal(t, "nwc_permission_denied", consumedEvents[0].Event)
+	assert.Equal(t, app.Name, consumedEvents[0].Properties.(map[string]interface{})["app_name"])
+	assert.Equal(t, constants.ERROR_QUOTA_EXCEEDED, consumedEvents[0].Properties.(map[string]interface{})["code"])
 	expectedMessage := NewQuotaExceededError().Error() + " te" // invoice description is "te" in the mock invoice
-	assert.Equal(t, expectedMessage, mockEventConsumer.GetConsumedEvents()[0].Properties.(map[string]interface{})["message"])
+	assert.Equal(t, expectedMessage, consumedEvents[0].Properties.(map[string]interface{})["message"])
 }
 
 func TestSendPaymentSync_App_BudgetExceeded_SettledPayment(t *testing.T) {

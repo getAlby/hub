@@ -399,11 +399,11 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToIsolatedApp(t *testing.T) {
 	assert.Equal(t, int64(0), balanceMsat)
 
 	// check notifications
-	assert.Equal(t, 2, len(mockEventConsumer.GetConsumedEvents()))
+	consumedEvents := mockEventConsumer.WaitForConsumedEvents(2)
+	assert.Equal(t, 2, len(consumedEvents))
 
 	// we can't guarantee which notification was processed first because events are published async
 	// so swap them if they are back to front
-	consumedEvents := mockEventConsumer.GetConsumedEvents()
 	if consumedEvents[1].Event == "nwc_payment_received" {
 		consumedEvents[0], consumedEvents[1] = consumedEvents[1], consumedEvents[0]
 	}

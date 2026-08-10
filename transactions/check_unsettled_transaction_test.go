@@ -45,9 +45,10 @@ func TestCheckUnsettledTransaction(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, dbTransaction.State)
-	assert.Equal(t, 1, len(mockEventConsumer.GetConsumedEvents()))
-	assert.Equal(t, "nwc_payment_sent", mockEventConsumer.GetConsumedEvents()[0].Event)
-	settledTransaction := mockEventConsumer.GetConsumedEvents()[0].Properties.(*db.Transaction)
+	consumedEvents := mockEventConsumer.WaitForConsumedEvents(1)
+	assert.Equal(t, 1, len(consumedEvents))
+	assert.Equal(t, "nwc_payment_sent", consumedEvents[0].Event)
+	settledTransaction := consumedEvents[0].Properties.(*db.Transaction)
 	assert.Equal(t, &dbTransaction, settledTransaction)
 }
 
@@ -91,8 +92,9 @@ func TestCheckUnsettledTransactions(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, dbTransaction.State)
-	assert.Equal(t, 1, len(mockEventConsumer.GetConsumedEvents()))
-	assert.Equal(t, "nwc_payment_sent", mockEventConsumer.GetConsumedEvents()[0].Event)
-	settledTransaction := mockEventConsumer.GetConsumedEvents()[0].Properties.(*db.Transaction)
+	consumedEvents := mockEventConsumer.WaitForConsumedEvents(1)
+	assert.Equal(t, 1, len(consumedEvents))
+	assert.Equal(t, "nwc_payment_sent", consumedEvents[0].Event)
+	settledTransaction := consumedEvents[0].Properties.(*db.Transaction)
 	assert.Equal(t, dbTransaction.ID, settledTransaction.ID)
 }

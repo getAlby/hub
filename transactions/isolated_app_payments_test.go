@@ -80,12 +80,13 @@ func TestSendPaymentSync_IsolatedApp_BalanceInsufficient(t *testing.T) {
 	assert.ErrorIs(t, err, NewInsufficientBalanceError())
 	assert.Nil(t, transaction)
 
-	assert.Equal(t, 1, len(mockEventConsumer.GetConsumedEvents()))
-	assert.Equal(t, "nwc_permission_denied", mockEventConsumer.GetConsumedEvents()[0].Event)
-	assert.Equal(t, app.Name, mockEventConsumer.GetConsumedEvents()[0].Properties.(map[string]interface{})["app_name"])
-	assert.Equal(t, constants.ERROR_INSUFFICIENT_BALANCE, mockEventConsumer.GetConsumedEvents()[0].Properties.(map[string]interface{})["code"])
+	consumedEvents := mockEventConsumer.WaitForConsumedEvents(1)
+	assert.Equal(t, 1, len(consumedEvents))
+	assert.Equal(t, "nwc_permission_denied", consumedEvents[0].Event)
+	assert.Equal(t, app.Name, consumedEvents[0].Properties.(map[string]interface{})["app_name"])
+	assert.Equal(t, constants.ERROR_INSUFFICIENT_BALANCE, consumedEvents[0].Properties.(map[string]interface{})["code"])
 	expectedMessage := NewInsufficientBalanceError().Error() + " te" // invoice description is "te" in the mock invoice
-	assert.Equal(t, expectedMessage, mockEventConsumer.GetConsumedEvents()[0].Properties.(map[string]interface{})["message"])
+	assert.Equal(t, expectedMessage, consumedEvents[0].Properties.(map[string]interface{})["message"])
 }
 
 func TestSendPaymentSync_IsolatedApp_BalanceSufficient(t *testing.T) {
