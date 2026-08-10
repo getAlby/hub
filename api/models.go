@@ -338,6 +338,7 @@ type InfoResponse struct {
 	JitChannelsEnabled            bool                `json:"jitChannelsEnabled"`
 	HideUpdateBanner              bool                `json:"hideUpdateBanner"`
 	SupportsBolt12                bool                `json:"supportsBolt12"`
+	NodeMigrationFileCreated      bool                `json:"nodeMigrationFileCreated"`
 }
 
 type UpdateSettingsRequest struct {

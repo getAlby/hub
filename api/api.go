@@ -50,6 +50,9 @@ type api struct {
 	startupError     error
 	startupErrorTime time.Time
 	eventPublisher   events.EventPublisher
+	// set after a migration file is created; the hub is halted at that point
+	// and the frontend should keep showing the migration success page
+	nodeMigrationFileCreated bool
 }
 
 func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys keys.Keys, albySvc alby.AlbyService, albyOAuthSvc alby.AlbyOAuthService, eventPublisher events.EventPublisher) *api {
@@ -1510,6 +1513,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	}
 	lnClient := api.svc.GetLNClient()
 	info.Running = lnClient != nil
+	info.NodeMigrationFileCreated = api.nodeMigrationFileCreated
 	info.BackendType = backendType
 	info.AlbyAuthUrl = api.albyOAuthSvc.GetAuthUrl()
 	info.OAuthRedirect = !api.cfg.GetEnv().IsDefaultClientId()

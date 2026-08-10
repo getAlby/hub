@@ -197,6 +197,8 @@ func (api *api) CreateBackup(unlockPassword string, w io.Writer) error {
 
 	logger.Logger.Info("Successfully created backup to migrate Alby Hub to another device")
 
+	api.nodeMigrationFileCreated = true
+
 	return nil
 }
 

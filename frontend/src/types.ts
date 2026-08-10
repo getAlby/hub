@@ -187,6 +187,7 @@ export interface InfoResponse {
   jitChannelsEnabled: boolean;
   hideUpdateBanner: boolean;
   supportsBolt12: boolean;
+  nodeMigrationFileCreated: boolean;
 }
 
 export type BitcoinDisplayFormat = "sats" | "bip177";
