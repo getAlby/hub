@@ -1495,6 +1495,19 @@ func (api *api) RequestMempoolApi(ctx context.Context, endpoint string) (interfa
 
 func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info := InfoResponse{}
+
+	if api.nodeMigrationFileCreated.Load() {
+		// the hub is halted and the database is closed after a migration file
+		// is created, so return a minimal response without reading any config
+		// or node state; the frontend only needs the flag to keep showing the
+		// migration success page
+		info.NodeMigrationFileCreated = true
+		info.SetupCompleted = true
+		info.Version = version.Tag
+		info.Relays = []InfoResponseRelay{}
+		return &info, nil
+	}
+
 	backendType, _ := api.cfg.Get("LNBackendType", "")
 	ldkVssEnabled, _ := api.cfg.Get("LdkVssEnabled", "")
 	jitChannelsEnabled, _ := api.cfg.Get("JitChannelsEnabled", "")
