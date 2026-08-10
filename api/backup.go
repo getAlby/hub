@@ -38,8 +38,9 @@ func (api *api) CreateBackup(unlockPassword string, w io.Writer) error {
 		return errors.New("Please disable auto-unlock before using this feature")
 	}
 
-	if api.db.Dialector.Name() != "sqlite" {
-		return errors.New("Migration with non-sqlite backend is currently not supported")
+	dbBackend := api.db.Dialector.Name()
+	if dbBackend != "sqlite" && dbBackend != "postgres" {
+		return fmt.Errorf("migration with %s backend is currently not supported", dbBackend)
 	}
 
 	workDir, err := filepath.Abs(api.cfg.GetEnv().Workdir)
@@ -74,6 +75,50 @@ func (api *api) CreateBackup(unlockPassword string, w io.Writer) error {
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to remove oauth access token")
 		return errors.New("failed to remove oauth access token")
+	}
+
+	// Locate the main database file.
+	dbFilePath := api.cfg.GetEnv().DatabaseUri
+
+	if dbBackend == "postgres" {
+		// The migration file must contain a sqlite database, so copy the
+		// contents of the postgres database into a temporary sqlite database
+		// and add that to the archive instead.
+		dbFilePath = filepath.Join(workDir, "migration.db")
+
+		removeConvertedDb := func() {
+			for _, path := range []string{dbFilePath, dbFilePath + "-wal", dbFilePath + "-shm"} {
+				if err := os.Remove(path); err != nil && !errors.Is(err, os.ErrNotExist) {
+					logger.Logger.WithError(err).WithField("path", path).Error("Failed to remove converted database file")
+				}
+			}
+		}
+		// Remove stale files from a previously failed migration attempt.
+		removeConvertedDb()
+		defer removeConvertedDb()
+
+		logger.Logger.WithField("path", dbFilePath).Info("Copying postgres database to sqlite")
+		sqliteDb, err := db.NewDB(dbFilePath, api.cfg.GetEnv().LogDBQueries)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to create sqlite database for migration")
+			return fmt.Errorf("failed to create sqlite database for migration: %w", err)
+		}
+
+		err = db.MigrateDB(api.db, sqliteDb)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to copy database contents to sqlite")
+			if stopErr := db.Stop(sqliteDb); stopErr != nil {
+				logger.Logger.WithError(stopErr).Error("Failed to stop sqlite database")
+			}
+			return fmt.Errorf("failed to copy database contents to sqlite: %w", err)
+		}
+
+		// Close the sqlite database to checkpoint the WAL before archiving it.
+		err = db.Stop(sqliteDb)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to stop sqlite database")
+			return fmt.Errorf("failed to close sqlite database: %w", err)
+		}
 	}
 
 	// Closing the database leaves the service in an inconsistent state,
@@ -126,8 +171,6 @@ func (api *api) CreateBackup(unlockPassword string, w io.Writer) error {
 		return err
 	}
 
-	// Locate the main database file.
-	dbFilePath := api.cfg.GetEnv().DatabaseUri
 	// Add the database file to the archive.
 	logger.Logger.WithField("nwc.db", dbFilePath).Info("adding nwc db to zip")
 	err = addFileToZip(dbFilePath, "nwc.db")
@@ -245,7 +288,7 @@ func (api *api) RestoreBackup(unlockPassword string, r io.Reader) error {
 		// ensure no -shm or -wal files exist as they will stop the restore
 		for _, filename := range []string{"nwc.db", "nwc.db-shm", "nwc.db-wal"} {
 			err = os.Remove(filepath.Join(workDir, filename))
-			if err != nil {
+			if err != nil && !errors.Is(err, os.ErrNotExist) {
 				logger.Logger.WithError(err).WithField("filename", filename).Error("failed to remove old nwc db file before restore")
 			}
 		}
