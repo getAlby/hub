@@ -2,8 +2,11 @@ package api
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/hex"
 	"encoding/json"
+	"encoding/pem"
 	"errors"
 	"flag"
 	"fmt"
@@ -11,6 +14,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
@@ -18,6 +22,7 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"gopkg.in/macaroon.v2"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 
@@ -1779,12 +1784,18 @@ func (api *api) Setup(ctx context.Context, setupRequest *SetupRequest) error {
 		}
 	}
 	if setupRequest.LNDCertFile != "" {
-		certBytes, err := os.ReadFile(setupRequest.LNDCertFile)
+		// The file path is provided by the (unauthenticated) setup request, so
+		// only persist the content if it parses as a certificate. Storing the
+		// re-encoded certificate(s) guarantees nothing but the parsed structure
+		// reaches the database - e.g. a private key bundled in the same PEM file
+		// is dropped rather than persisted.
+		certHex, err := readAndCanonicalizeLNDCert(setupRequest.LNDCertFile)
 		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to read lnd cert file")
-			return err
+			// Return a generic error and log the detail server-side so the
+			// response is not a file existence/readability oracle.
+			logger.Logger.WithError(err).Error("Failed to process lnd cert file")
+			return errors.New("invalid LND certificate file")
 		}
-		certHex := hex.EncodeToString(certBytes)
 		err = api.cfg.SetUpdate("LNDCertHex", certHex, setupRequest.UnlockPassword)
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to save lnd cert hex")
@@ -1792,12 +1803,17 @@ func (api *api) Setup(ctx context.Context, setupRequest *SetupRequest) error {
 		}
 	}
 	if setupRequest.LNDMacaroonFile != "" {
-		macaroonBytes, err := os.ReadFile(setupRequest.LNDMacaroonFile)
+		// The file path is provided by the (unauthenticated) setup request, so
+		// only persist the content if it parses as a macaroon. Storing the
+		// re-marshalled macaroon guarantees only the parsed structure reaches
+		// the database.
+		macaroonHex, err := readAndCanonicalizeLNDMacaroon(setupRequest.LNDMacaroonFile)
 		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to read lnd macaroon file")
-			return err
+			// Return a generic error and log the detail server-side so the
+			// response is not a file existence/readability oracle.
+			logger.Logger.WithError(err).Error("Failed to process lnd macaroon file")
+			return errors.New("invalid LND macaroon file")
 		}
-		macaroonHex := hex.EncodeToString(macaroonBytes)
 		err = api.cfg.SetUpdate("LNDMacaroonHex", macaroonHex, setupRequest.UnlockPassword)
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to save lnd macaroon hex")
@@ -1837,6 +1853,15 @@ func (api *api) Setup(ctx context.Context, setupRequest *SetupRequest) error {
 	}
 
 	if setupRequest.CLNLightningDir != "" {
+		// The directory path is provided by the (unauthenticated) setup request.
+		// Validate that it holds the expected CLN TLS credentials before saving,
+		// so the path cannot be used as an existence/readability oracle for
+		// arbitrary directories (the failure otherwise surfaces via startupError
+		// on the anonymous /api/info response).
+		if err := validateCLNLightningDir(setupRequest.CLNLightningDir, setupRequest.CLNAddressHold != ""); err != nil {
+			logger.Logger.WithError(err).Error("Failed to validate CLN lightning directory")
+			return errors.New("invalid CLN lightning directory")
+		}
 		err = api.cfg.SetUpdate("CLNLightningDir", setupRequest.CLNLightningDir, setupRequest.UnlockPassword)
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to save CLN Lightning directory path")
@@ -1849,6 +1874,101 @@ func (api *api) Setup(ctx context.Context, setupRequest *SetupRequest) error {
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to save cln hold plugin address")
 			return err
+		}
+	}
+
+	return nil
+}
+
+// readAndCanonicalizeLNDCert reads the LND TLS certificate at the given path,
+// validates that it contains at least one parseable certificate, and returns
+// the hex-encoded re-encoding of only the parsed certificate(s). Any non
+// CERTIFICATE PEM blocks (e.g. a bundled private key) are discarded so they are
+// never persisted. Callers must not reflect the returned error to the client.
+func readAndCanonicalizeLNDCert(path string) (string, error) {
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return "", fmt.Errorf("failed to read LND cert file: %w", err)
+	}
+
+	var canonical []byte
+	rest := raw
+	for {
+		var block *pem.Block
+		block, rest = pem.Decode(rest)
+		if block == nil {
+			break
+		}
+		if block.Type != "CERTIFICATE" {
+			continue
+		}
+		cert, err := x509.ParseCertificate(block.Bytes)
+		if err != nil {
+			return "", fmt.Errorf("failed to parse LND certificate: %w", err)
+		}
+		canonical = append(canonical, pem.EncodeToMemory(&pem.Block{
+			Type:  "CERTIFICATE",
+			Bytes: cert.Raw,
+		})...)
+	}
+	if len(canonical) == 0 {
+		return "", errors.New("no valid certificate found in LND cert file")
+	}
+
+	return hex.EncodeToString(canonical), nil
+}
+
+// readAndCanonicalizeLNDMacaroon reads the LND macaroon at the given path,
+// validates that it is a well-formed macaroon, and returns the hex-encoded
+// re-marshalling so that only the parsed structure is persisted. Callers must
+// not reflect the returned error to the client.
+func readAndCanonicalizeLNDMacaroon(path string) (string, error) {
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return "", fmt.Errorf("failed to read LND macaroon file: %w", err)
+	}
+
+	mac := &macaroon.Macaroon{}
+	if err := mac.UnmarshalBinary(raw); err != nil {
+		return "", fmt.Errorf("failed to parse LND macaroon: %w", err)
+	}
+	canonical, err := mac.MarshalBinary()
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal LND macaroon: %w", err)
+	}
+
+	return hex.EncodeToString(canonical), nil
+}
+
+// validateCLNLightningDir checks that the given directory holds the CLN TLS
+// credentials that will later be loaded at connect time (ca.pem, client.pem,
+// client-key.pem), for each gRPC server name the config will use. This mirrors
+// the parses performed by the CLN client's loadTLSCredentials so a directory
+// that passes here is one CLN can actually use. Callers must not reflect the
+// returned error to the client.
+func validateCLNLightningDir(lightningDir string, hold bool) error {
+	// "cln" reads the directory directly; other server names are joined as a
+	// subdirectory, matching loadTLSCredentials in lnclient/cln.
+	serverNames := []string{"cln"}
+	if hold {
+		serverNames = append(serverNames, "hold")
+	}
+
+	for _, serverName := range serverNames {
+		dir := lightningDir
+		if serverName != "cln" {
+			dir = filepath.Join(dir, serverName)
+		}
+
+		caPEM, err := os.ReadFile(filepath.Join(dir, "ca.pem"))
+		if err != nil {
+			return fmt.Errorf("failed to read CLN CA cert (%s): %w", serverName, err)
+		}
+		if !x509.NewCertPool().AppendCertsFromPEM(caPEM) {
+			return fmt.Errorf("failed to parse CLN CA cert (%s)", serverName)
+		}
+		if _, err := tls.LoadX509KeyPair(filepath.Join(dir, "client.pem"), filepath.Join(dir, "client-key.pem")); err != nil {
+			return fmt.Errorf("failed to load CLN client cert/key (%s): %w", serverName, err)
 		}
 	}
 
