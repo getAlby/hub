@@ -104,3 +104,55 @@ func TestCreateBackup(t *testing.T) {
 	require.Equal(t, app.Name, restoredApp.Name)
 	require.Equal(t, app.AppPubkey, restoredApp.AppPubkey)
 }
+
+// TestRestoreBackupRejectsPathTraversal verifies that a backup archive
+// containing an entry whose name points outside the restore directory is
+// rejected and that no file is written outside it.
+func TestRestoreBackupRejectsPathTraversal(t *testing.T) {
+	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
+
+	gormDB, err := test_db.NewDB(t)
+	require.NoError(t, err)
+	defer test_db.CloseDB(gormDB)
+
+	if gormDB.Dialector.Name() != "sqlite" {
+		t.Skip("restore is only supported on sqlite")
+	}
+
+	workDir := t.TempDir()
+
+	appConfig := &config.AppConfig{
+		Workdir:     workDir,
+		DatabaseUri: test_db.GetTestDatabaseURI(),
+	}
+	cfg, err := config.NewConfig(appConfig, gormDB)
+	require.NoError(t, err)
+
+	theAPI := &api{
+		db:  gormDB,
+		cfg: cfg,
+	}
+
+	unlockPassword := ""
+
+	// The restore directory is <workDir>/restore, so a "../" entry targets a
+	// file directly in the working directory, one level above it.
+	const escapeEntryName = "../pwned.txt"
+	escapeTarget := filepath.Join(workDir, "pwned.txt")
+
+	var buf bytes.Buffer
+	cw, err := encryptingWriter(&buf, unlockPassword)
+	require.NoError(t, err)
+	zw := zip.NewWriter(cw)
+	entryWriter, err := zw.Create(escapeEntryName)
+	require.NoError(t, err)
+	_, err = entryWriter.Write([]byte("pwned"))
+	require.NoError(t, err)
+	require.NoError(t, zw.Close())
+
+	err = theAPI.RestoreBackup(unlockPassword, &buf)
+	require.Error(t, err)
+
+	_, statErr := os.Stat(escapeTarget)
+	require.True(t, os.IsNotExist(statErr), "traversal entry must not be written outside the restore directory")
+}

@@ -257,8 +257,24 @@ func (api *api) RestoreBackup(unlockPassword string, r io.Reader) error {
 		return fmt.Errorf("failed to create zip reader: %w", err)
 	}
 
+	restoreDir := filepath.Join(workDir, "restore")
+
 	extractZipEntry := func(zipFile *zip.File) error {
-		fsFilePath := filepath.Join(workDir, "restore", filepath.FromSlash(zipFile.Name))
+		// Entry names come from the archive and must not be trusted. Reject any
+		// name that is absolute or points outside the restore directory via
+		// ".." segments before joining it to a path.
+		entryName := filepath.FromSlash(zipFile.Name)
+		if !filepath.IsLocal(entryName) {
+			return fmt.Errorf("refusing to extract zip entry outside restore directory: %q", zipFile.Name)
+		}
+
+		fsFilePath := filepath.Join(restoreDir, entryName)
+
+		// Confirm the cleaned path is still contained within the restore
+		// directory.
+		if fsFilePath != restoreDir && !strings.HasPrefix(fsFilePath, restoreDir+string(os.PathSeparator)) {
+			return fmt.Errorf("refusing to extract zip entry outside restore directory: %q", zipFile.Name)
+		}
 
 		if err = os.MkdirAll(filepath.Dir(fsFilePath), 0700); err != nil {
 			return fmt.Errorf("failed to create directory for zip entry: %w", err)
