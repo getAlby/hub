@@ -66,6 +66,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
 		ContentTypeNosniff:    "nosniff",
 		XFrameOptions:         "DENY",
+		// when making changes here, also update the CSP in frontend/vite.config.ts
 		ContentSecurityPolicy: "default-src 'self'; img-src 'self' https://uploads.getalby-assets.com https://cdn.getalby-assets.com https://getalby.com; connect-src 'self' https://api.getalby.com https://getalby.com https://zapplanner.albylabs.com wss://relay.getalby.com wss://relay2.getalby.com; frame-src https://www.youtube-nocookie.com",
 		ReferrerPolicy:        "no-referrer",
 	}))
