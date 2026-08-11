@@ -438,3 +438,119 @@ func TestCreateApp_ReadonlyPermission(t *testing.T) {
 
 	assert.Equal(t, http.StatusForbidden, rec2.Code)
 }
+
+func TestGetLogOutput_ReadonlyPermission(t *testing.T) {
+	e := echo.New()
+	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
+	mockSvc := mocks.NewMockService(t)
+	gormDb, err := db.NewDB(t)
+	require.NoError(t, err)
+	defer db.CloseDB(gormDb)
+
+	mockEventPublisher := events.NewEventPublisher()
+
+	mockConfig := mocks.NewMockConfig(t)
+	mockConfig.On("GetEnv").Return(&config.AppConfig{})
+	mockConfig.On("CheckUnlockPassword", "123").Return(true)
+	mockConfig.On("GetJWTSecret").Return("dummy secret", nil)
+
+	mockSvc.On("GetDB").Return(gormDb)
+	mockSvc.On("GetConfig").Return(mockConfig)
+	mockSvc.On("GetKeys").Return(mocks.NewMockKeys(t))
+	mockSvc.On("GetAlbySvc").Return(mocks.NewMockAlbyService(t))
+	mockSvc.On("GetAlbyOAuthSvc").Return(mocks.NewMockAlbyOAuthService(t))
+	lnClient := mocks.NewMockLNClient(t)
+	lnClient.On("GetNodeStatus", mock.Anything).Return(&lnclient.NodeStatus{}, nil)
+	mockSvc.On("GetLNClient").Return(lnClient)
+
+	httpSvc := NewHttpService(mockSvc, mockEventPublisher)
+	httpSvc.RegisterSharedRoutes(e)
+
+	requestBody := api.UnlockRequest{UnlockPassword: "123", Permission: "readonly"}
+	jsonBody, _ := json.Marshal(requestBody)
+	req := httptest.NewRequest(http.MethodPost, "/api/unlock", bytes.NewBuffer(jsonBody))
+	req.Header.Set("Content-Type", "application/json") // Set Content-Type header
+	rec := httptest.NewRecorder()
+	e.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+
+	body, err := io.ReadAll(rec.Body)
+	require.NoError(t, err)
+
+	type authTokenResponse struct {
+		Token string `json:"token"`
+	}
+
+	var unlockAuthTokenResponse authTokenResponse
+	err = json.Unmarshal(body, &unlockAuthTokenResponse)
+	require.NoError(t, err)
+	assert.NotEmpty(t, unlockAuthTokenResponse.Token)
+
+	req2 := httptest.NewRequest(http.MethodGet, "/api/log/app", nil)
+	req2.Header.Set("Authorization", "Bearer "+unlockAuthTokenResponse.Token)
+	rec2 := httptest.NewRecorder()
+	e.ServeHTTP(rec2, req2)
+
+	assert.Equal(t, http.StatusForbidden, rec2.Code)
+}
+
+func TestGetLogOutput_FullPermission(t *testing.T) {
+	e := echo.New()
+	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
+	mockSvc := mocks.NewMockService(t)
+	gormDb, err := db.NewDB(t)
+	require.NoError(t, err)
+	defer db.CloseDB(gormDb)
+
+	mockEventPublisher := events.NewEventPublisher()
+
+	mockConfig := mocks.NewMockConfig(t)
+	mockConfig.On("GetEnv").Return(&config.AppConfig{})
+	mockConfig.On("CheckUnlockPassword", "123").Return(true)
+	mockConfig.On("GetJWTSecret").Return("dummy secret", nil)
+
+	mockSvc.On("GetDB").Return(gormDb)
+	mockSvc.On("GetConfig").Return(mockConfig)
+	mockSvc.On("GetKeys").Return(mocks.NewMockKeys(t))
+	mockSvc.On("GetAlbySvc").Return(mocks.NewMockAlbyService(t))
+	mockSvc.On("GetAlbyOAuthSvc").Return(mocks.NewMockAlbyOAuthService(t))
+	lnClient := mocks.NewMockLNClient(t)
+	lnClient.On("GetNodeStatus", mock.Anything).Return(&lnclient.NodeStatus{}, nil)
+	mockSvc.On("GetLNClient").Return(lnClient)
+
+	httpSvc := NewHttpService(mockSvc, mockEventPublisher)
+	httpSvc.RegisterSharedRoutes(e)
+
+	requestBody := api.UnlockRequest{UnlockPassword: "123", Permission: "full"}
+	jsonBody, _ := json.Marshal(requestBody)
+	req := httptest.NewRequest(http.MethodPost, "/api/unlock", bytes.NewBuffer(jsonBody))
+	req.Header.Set("Content-Type", "application/json") // Set Content-Type header
+	rec := httptest.NewRecorder()
+	e.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+
+	body, err := io.ReadAll(rec.Body)
+	require.NoError(t, err)
+
+	type authTokenResponse struct {
+		Token string `json:"token"`
+	}
+
+	var unlockAuthTokenResponse authTokenResponse
+	err = json.Unmarshal(body, &unlockAuthTokenResponse)
+	require.NoError(t, err)
+	assert.NotEmpty(t, unlockAuthTokenResponse.Token)
+
+	req2 := httptest.NewRequest(http.MethodGet, "/api/log/app", nil)
+	req2.Header.Set("Authorization", "Bearer "+unlockAuthTokenResponse.Token)
+	rec2 := httptest.NewRecorder()
+	e.ServeHTTP(rec2, req2)
+
+	assert.Equal(t, http.StatusOK, rec2.Code)
+
+	var logResponse api.GetLogOutputResponse
+	err = json.Unmarshal(rec2.Body.Bytes(), &logResponse)
+	require.NoError(t, err)
+}
