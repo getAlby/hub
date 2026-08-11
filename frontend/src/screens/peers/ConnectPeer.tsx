@@ -9,6 +9,7 @@ import { Label } from "src/components/ui/label";
 import { splitSocketAddress } from "src/lib/utils";
 import { ConnectPeerRequest } from "src/types";
 import { request } from "src/utils/request";
+import { safeReturnToUrl } from "src/utils/safeReturnToUrl";
 
 export default function ConnectPeer() {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ export default function ConnectPeer() {
   const [connectionString, setConnectionString] = React.useState(
     queryParams.get("peer") ?? ""
   );
-  const returnTo = queryParams.get("return_to") ?? "";
+  const returnTo = safeReturnToUrl(queryParams.get("return_to")) ?? "";
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

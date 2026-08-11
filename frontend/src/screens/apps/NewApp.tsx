@@ -50,6 +50,7 @@ import {
 import { useApp } from "src/hooks/useApp";
 import { ConnectAppCard } from "src/screens/apps/ConnectAppCard";
 import { handleRequestError } from "src/utils/handleRequestError";
+import { safeReturnToUrl } from "src/utils/safeReturnToUrl";
 import Permissions from "../../components/Permissions";
 import { AppStoreApp } from "../../components/connections/SuggestedAppData";
 
@@ -87,7 +88,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
     appStoreApp?.firefoxLink;
 
   const pubkey = queryParams.get("pubkey") ?? "";
-  const returnTo = queryParams.get("return_to") ?? "";
+  const returnTo = safeReturnToUrl(queryParams.get("return_to")) ?? "";
 
   const nameParam = queryParams.get("name") || queryParams.get("c");
   const [appName, setAppName] = useState(nameParam || appStoreApp?.title || "");
@@ -307,10 +308,11 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
         );
       }
 
-      if (createAppResponse.returnTo) {
+      const returnToUrl = safeReturnToUrl(createAppResponse.returnTo);
+      if (returnToUrl) {
         // open connection URI directly in an app
         // eslint-disable-next-line react-hooks/immutability
-        window.location.href = createAppResponse.returnTo;
+        window.location.href = returnToUrl;
         return;
       }
       toast("App created");

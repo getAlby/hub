@@ -130,21 +130,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 	responseBody.RelayUrls = relayUrls
 	responseBody.Lud16 = lightningAddress
 
-	if createAppRequest.ReturnTo != "" {
-		returnToUrl, err := url.Parse(createAppRequest.ReturnTo)
-		if err == nil {
-			query := returnToUrl.Query()
-			for _, relayUrl := range relayUrls {
-				query.Add("relay", relayUrl)
-			}
-			query.Add("pubkey", *app.WalletPubkey)
-			if lightningAddress != "" && !app.Isolated {
-				query.Add("lud16", lightningAddress)
-			}
-			returnToUrl.RawQuery = query.Encode()
-			responseBody.ReturnTo = returnToUrl.String()
-		}
-	}
+	responseBody.ReturnTo = buildReturnToUrl(createAppRequest.ReturnTo, relayUrls, *app.WalletPubkey, lightningAddress, app.Isolated)
 
 	var lud16 string
 	if lightningAddress != "" && !app.Isolated {
@@ -153,6 +139,28 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", *app.WalletPubkey, strings.Join(relayUrls, "&relay="), pairingSecretKey, lud16)
 
 	return responseBody, nil
+}
+
+// buildReturnToUrl adds the connection query parameters to the return_to
+// URL the user will be redirected to. Only http and https URLs are accepted.
+func buildReturnToUrl(returnTo string, relayUrls []string, walletPubkey string, lightningAddress string, isolated bool) string {
+	if returnTo == "" {
+		return ""
+	}
+	returnToUrl, err := url.Parse(returnTo)
+	if err != nil || (returnToUrl.Scheme != "http" && returnToUrl.Scheme != "https") {
+		return ""
+	}
+	query := returnToUrl.Query()
+	for _, relayUrl := range relayUrls {
+		query.Add("relay", relayUrl)
+	}
+	query.Add("pubkey", walletPubkey)
+	if lightningAddress != "" && !isolated {
+		query.Add("lud16", lightningAddress)
+	}
+	returnToUrl.RawQuery = query.Encode()
+	return returnToUrl.String()
 }
 
 func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) error {
