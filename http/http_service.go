@@ -1231,7 +1231,7 @@ func (httpSvc *HttpService) appsCreateHandler(c echo.Context) error {
 	responseBody, err := httpSvc.api.CreateApp(&requestData)
 
 	if err != nil {
-		logger.Logger.WithField("requestData", requestData).WithError(err).Error("Failed to save app")
+		logger.Logger.WithField("appName", requestData.Name).WithError(err).Error("Failed to save app")
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to save app: %v", err),
 		})
