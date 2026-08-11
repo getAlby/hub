@@ -276,7 +276,7 @@ func (svc *service) StartApp(encryptionKey string) error {
 	unlockPasswordCheckSet, err := svc.cfg.IsUnlockPasswordCheckSet()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to check unlock password check")
-		return err
+		return fmt.Errorf("check unlock password check: %w", err)
 	}
 	if !unlockPasswordCheckSet {
 		logger.Logger.Error("Unlock password check is missing from the database")

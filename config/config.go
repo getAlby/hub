@@ -417,7 +417,7 @@ func (cfg *config) IsUnlockPasswordCheckSet() (bool, error) {
 	// presence of the canary row without needing the (possibly wrong) password.
 	value, err := cfg.Get("UnlockPasswordCheck", "")
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("read unlock password check: %w", err)
 	}
 	return value != "", nil
 }
