@@ -16,8 +16,6 @@ func TestCheckUnlockPasswordCache_InvalidSecond(t *testing.T) {
 	require.NoError(t, err)
 	defer svc.Remove()
 
-	err = svc.Cfg.ChangeUnlockPassword("", unlockPassword)
-	require.NoError(t, err)
 	err = svc.Cfg.SaveUnlockPasswordCheck(unlockPassword)
 	require.NoError(t, err)
 
@@ -35,8 +33,6 @@ func TestCheckUnlockPasswordCache_InvalidFirst(t *testing.T) {
 	require.NoError(t, err)
 	defer svc.Remove()
 
-	err = svc.Cfg.ChangeUnlockPassword("", unlockPassword)
-	require.NoError(t, err)
 	err = svc.Cfg.SaveUnlockPasswordCheck(unlockPassword)
 	require.NoError(t, err)
 
@@ -58,8 +54,6 @@ func TestCheckUnlockPassword_ChangePassword(t *testing.T) {
 	require.NoError(t, err)
 	defer svc.Remove()
 
-	err = svc.Cfg.ChangeUnlockPassword("", unlockPassword)
-	require.NoError(t, err)
 	err = svc.Cfg.SaveUnlockPasswordCheck(unlockPassword)
 	require.NoError(t, err)
 
@@ -79,6 +73,50 @@ func TestCheckUnlockPassword_ChangePassword(t *testing.T) {
 	// test caching
 	assert.False(t, svc.Cfg.CheckUnlockPassword(unlockPassword))
 	assert.True(t, svc.Cfg.CheckUnlockPassword(newUnlockPassword))
+}
+
+func TestCheckUnlockPassword_MissingCanaryFailsClosed(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	// A fresh hub has not saved the unlock-password canary yet.
+	set, err := svc.Cfg.IsUnlockPasswordCheckSet()
+	require.NoError(t, err)
+	assert.False(t, set)
+
+	// Without the canary, no password may validate - including an empty one.
+	assert.False(t, svc.Cfg.CheckUnlockPassword(""))
+	assert.False(t, svc.Cfg.CheckUnlockPassword("any-password"))
+
+	// After the canary is saved, only the correct password validates.
+	err = svc.Cfg.SaveUnlockPasswordCheck("correct")
+	require.NoError(t, err)
+
+	set, err = svc.Cfg.IsUnlockPasswordCheckSet()
+	require.NoError(t, err)
+	assert.True(t, set)
+
+	assert.True(t, svc.Cfg.CheckUnlockPassword("correct"))
+	assert.False(t, svc.Cfg.CheckUnlockPassword("wrong"))
+	assert.False(t, svc.Cfg.CheckUnlockPassword(""))
+}
+
+func TestCheckUnlockPassword_NoPasswordHub(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	// A hub configured without an unlock password stores the canary unencrypted;
+	// the empty password must still validate after the fail-closed change.
+	err = svc.Cfg.SaveUnlockPasswordCheck("")
+	require.NoError(t, err)
+
+	set, err := svc.Cfg.IsUnlockPasswordCheckSet()
+	require.NoError(t, err)
+	assert.True(t, set)
+
+	assert.True(t, svc.Cfg.CheckUnlockPassword(""))
 }
 
 func TestSetIgnore_NoEncryptionKey(t *testing.T) {
@@ -219,7 +257,7 @@ func TestJWTSecret_GeneratedOnLoad(t *testing.T) {
 	cfg, err := config.NewConfig(&config.AppConfig{}, svc.DB)
 	require.NoError(t, err)
 
-	err = cfg.ChangeUnlockPassword("", "123")
+	err = cfg.SaveUnlockPasswordCheck("123")
 	require.NoError(t, err)
 
 	err = cfg.LoadJWTSecret("123")
@@ -251,9 +289,6 @@ func TestJWTSecret_WrongPassword(t *testing.T) {
 	cfg, err := config.NewConfig(&config.AppConfig{}, svc.DB)
 	require.NoError(t, err)
 
-	err = cfg.ChangeUnlockPassword("", "123")
-	require.NoError(t, err)
-
 	err = cfg.SaveUnlockPasswordCheck("123")
 	require.NoError(t, err)
 
@@ -272,7 +307,7 @@ func TestJWTSecret_ChangePassword(t *testing.T) {
 	cfg, err := config.NewConfig(&config.AppConfig{}, svc.DB)
 	require.NoError(t, err)
 
-	err = cfg.ChangeUnlockPassword("", "123")
+	err = cfg.SaveUnlockPasswordCheck("123")
 	require.NoError(t, err)
 
 	err = cfg.LoadJWTSecret("123")
@@ -282,7 +317,7 @@ func TestJWTSecret_ChangePassword(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotEmpty(t, jwtSecret)
 
-	err = cfg.ChangeUnlockPassword("", "1234")
+	err = cfg.ChangeUnlockPassword("123", "1234")
 	require.NoError(t, err)
 
 	newJwtSecret, err := cfg.GetJWTSecret()
@@ -306,7 +341,7 @@ func TestJWTSecret_ReplaceUnencryptedSecretOnLoad(t *testing.T) {
 	cfg, err := config.NewConfig(&config.AppConfig{}, svc.DB)
 	require.NoError(t, err)
 
-	err = cfg.ChangeUnlockPassword("", "123")
+	err = cfg.SaveUnlockPasswordCheck("123")
 	require.NoError(t, err)
 
 	// simulate a hub that had an unencrypted JWT secret

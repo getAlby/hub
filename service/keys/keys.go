@@ -46,11 +46,15 @@ func NewKeys() *keys {
 }
 
 func (keys *keys) Init(cfg config.Config, encryptionKey string) error {
-	nostrSecretKey, _ := cfg.Get("NostrSecretKey", encryptionKey)
+	nostrSecretKey, err := cfg.Get("NostrSecretKey", encryptionKey)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to decrypt nostr secret key")
+		return err
+	}
 
 	if nostrSecretKey == "" {
 		nostrSecretKey = nostr.GeneratePrivateKey()
-		err := cfg.SetUpdate("NostrSecretKey", nostrSecretKey, encryptionKey)
+		err = cfg.SetUpdate("NostrSecretKey", nostrSecretKey, encryptionKey)
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to save generated nostr secret key")
 			return err
