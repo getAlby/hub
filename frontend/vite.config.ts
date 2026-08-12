@@ -72,6 +72,10 @@ export default defineConfig(({ command }) => ({
       // assets from the public folder
       // this is necessary to inject the base path during build
       public: "",
+      // lottie-react's `browser` field points to a UMD build, which breaks
+      // under Vite 8's Node-style CJS interop (default import resolves to the
+      // whole exports object); force the ESM build instead
+      "lottie-react": "lottie-react/build/index.es.js",
     },
   },
   build: {

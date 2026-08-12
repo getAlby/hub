@@ -1,5 +1,4 @@
-import { useMemo } from "react";
-import Lottie from "react-lottie";
+import Lottie from "lottie-react";
 import animationDataDark from "src/assets/lotties/loading-dark.json";
 import animationDataLight from "src/assets/lotties/loading-light.json";
 import { useTheme } from "src/components/ui/theme-provider";
@@ -7,15 +6,13 @@ import { useTheme } from "src/components/ui/theme-provider";
 export default function LottieLoading({ size }: { size?: number }) {
   const { isDarkMode } = useTheme();
 
-  const options = useMemo(
-    () => ({
-      loop: true,
-      autoplay: true,
-      animationData: isDarkMode ? animationDataDark : animationDataLight,
-      rendererSettings: { preserveAspectRatio: "xMidYMid slice" },
-    }),
-    [isDarkMode]
+  return (
+    <Lottie
+      animationData={isDarkMode ? animationDataDark : animationDataLight}
+      loop
+      autoplay
+      rendererSettings={{ preserveAspectRatio: "xMidYMid slice" }}
+      style={{ width: size ?? "100%", height: size ?? "100%" }}
+    />
   );
-
-  return <Lottie options={options} height={size} width={size} />;
 }
