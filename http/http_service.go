@@ -97,12 +97,22 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.POST("/api/setup", httpSvc.setupHandler)
 	e.POST("/api/restore", httpSvc.restoreBackupHandler)
 
-	// allow one unlock request per second
-	unlockRateLimiter := middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(1))
+	// A single global rate limiter (one bucket for all callers, not per-IP)
+	// shared by every endpoint that verifies the unlock password, to bound how
+	// fast the password can be guessed.
+	unlockRateLimiter := middleware.RateLimiterWithConfig(middleware.RateLimiterConfig{
+		Store: middleware.NewRateLimiterMemoryStoreWithConfig(
+			// burst of 2 so unlocking and then immediately acting is not blocked
+			middleware.RateLimiterMemoryStoreConfig{Rate: 1, Burst: 2},
+		),
+		IdentifierExtractor: func(c echo.Context) (string, error) {
+			return "", nil
+		},
+	})
 	e.POST("/api/start", httpSvc.startHandler, unlockRateLimiter)
 	e.POST("/api/unlock", httpSvc.unlockHandler, unlockRateLimiter)
 	e.POST("/api/backup", httpSvc.createBackupHandler, unlockRateLimiter)
-	e.GET("/logout", httpSvc.logoutHandler, unlockRateLimiter)
+	e.GET("/logout", httpSvc.logoutHandler)
 
 	frontend.RegisterHandlers(e)
 
@@ -157,17 +167,17 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	fullAccessApiGroup.Use(httpSvc.requireFullAccess)
 
 	fullAccessApiGroup.POST("/event", httpSvc.eventHandler)
-	fullAccessApiGroup.PATCH("/unlock-password", httpSvc.changeUnlockPasswordHandler)
-	fullAccessApiGroup.PATCH("/auto-unlock", httpSvc.autoUnlockHandler)
+	fullAccessApiGroup.PATCH("/unlock-password", httpSvc.changeUnlockPasswordHandler, unlockRateLimiter)
+	fullAccessApiGroup.PATCH("/auto-unlock", httpSvc.autoUnlockHandler, unlockRateLimiter)
 	fullAccessApiGroup.PATCH("/settings", httpSvc.updateSettingsHandler)
 	fullAccessApiGroup.PATCH("/apps/:pubkey", httpSvc.appsUpdateHandler)
 	fullAccessApiGroup.PATCH("/transactions/:id/labels", httpSvc.setTransactionUserLabelsHandler)
 	fullAccessApiGroup.DELETE("/apps/:pubkey", httpSvc.appsDeleteHandler)
 	fullAccessApiGroup.POST("/transfers", httpSvc.transfersHandler)
-	fullAccessApiGroup.POST("/apps", httpSvc.appsCreateHandler)
+	fullAccessApiGroup.POST("/apps", httpSvc.appsCreateHandler, unlockRateLimiter)
 	fullAccessApiGroup.POST("/lightning-addresses", httpSvc.lightningAddressesCreateHandler)
 	fullAccessApiGroup.DELETE("/lightning-addresses/:appId", httpSvc.lightningAddressesDeleteHandler)
-	fullAccessApiGroup.POST("/mnemonic", httpSvc.mnemonicHandler)
+	fullAccessApiGroup.POST("/mnemonic", httpSvc.mnemonicHandler, unlockRateLimiter)
 	fullAccessApiGroup.PATCH("/backup-reminder", httpSvc.backupReminderHandler)
 	fullAccessApiGroup.POST("/channels", httpSvc.openChannelHandler)
 	fullAccessApiGroup.POST("/channels/rebalance", httpSvc.rebalanceChannelHandler)
@@ -192,7 +202,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	fullAccessApiGroup.POST("/swaps/refund", httpSvc.refundSwapHandler)
 	fullAccessApiGroup.GET("/swaps/mnemonic", httpSvc.swapMnemonicHandler)
 	fullAccessApiGroup.GET("/log/:type", httpSvc.getLogOutputHandler)
-	fullAccessApiGroup.POST("/autoswap", httpSvc.enableAutoSwapOutHandler)
+	fullAccessApiGroup.POST("/autoswap", httpSvc.enableAutoSwapOutHandler, unlockRateLimiter)
 	fullAccessApiGroup.DELETE("/autoswap", httpSvc.disableAutoSwapOutHandler)
 	fullAccessApiGroup.POST("/node/alias", httpSvc.setNodeAliasHandler)
 
