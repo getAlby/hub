@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"testing"
+	"testing/iotest"
 
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
@@ -185,6 +186,38 @@ func TestDecryptingReaderLegacyBackup(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, dbFile.Close())
 	require.Equal(t, "legacy backup contents", string(dbContents))
+}
+
+// TestDecryptingReaderFragmentedReader verifies that a backup file is
+// decrypted correctly even when the reader delivers one byte at a time,
+// which would truncate the header if it were not read in full.
+func TestDecryptingReaderFragmentedReader(t *testing.T) {
+	var buf bytes.Buffer
+	cw, err := encryptingWriter(&buf, "test-unlock-password")
+	require.NoError(t, err)
+
+	zw := zip.NewWriter(cw)
+	entryWriter, err := zw.Create("nwc.db")
+	require.NoError(t, err)
+	_, err = entryWriter.Write([]byte("backup contents"))
+	require.NoError(t, err)
+	require.NoError(t, zw.Close())
+
+	cr, err := decryptingReader(iotest.OneByteReader(bytes.NewReader(buf.Bytes())), "test-unlock-password")
+	require.NoError(t, err)
+
+	decrypted, err := io.ReadAll(cr)
+	require.NoError(t, err)
+
+	zr, err := zip.NewReader(bytes.NewReader(decrypted), int64(len(decrypted)))
+	require.NoError(t, err)
+
+	dbFile, err := zr.Open("nwc.db")
+	require.NoError(t, err)
+	dbContents, err := io.ReadAll(dbFile)
+	require.NoError(t, err)
+	require.NoError(t, dbFile.Close())
+	require.Equal(t, "backup contents", string(dbContents))
 }
 
 // TestDecryptingReaderWrongPassword verifies that decryption fails upfront

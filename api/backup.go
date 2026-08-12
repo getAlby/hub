@@ -417,9 +417,14 @@ func decryptingReader(r io.Reader, password string) (io.Reader, error) {
 		minHeaderSize = min(minHeaderSize, headerSize)
 	}
 
+	// Read the full header with io.ReadFull rather than io.ReadAtLeast: the
+	// reader may deliver short reads (e.g. a network request body), and
+	// stopping early could truncate the header of a scheme with a larger
+	// salt. A short file is only acceptable if it still covers the smallest
+	// scheme header.
 	header := make([]byte, maxHeaderSize)
-	n, err := io.ReadAtLeast(r, header, minHeaderSize)
-	if err != nil {
+	n, err := io.ReadFull(r, header)
+	if err != nil && !(errors.Is(err, io.ErrUnexpectedEOF) && n >= minHeaderSize) {
 		return nil, fmt.Errorf("failed to read backup header: %w", err)
 	}
 	header = header[:n]
