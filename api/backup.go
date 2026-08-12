@@ -295,7 +295,21 @@ func (api *api) RestoreBackup(unlockPassword string, r io.Reader) error {
 		return fmt.Errorf("failed to create zip reader: %w", err)
 	}
 
+	if len(zr.File) == 0 {
+		return errors.New("backup file contains no files")
+	}
+
 	restoreDir := filepath.Join(workDir, "restore")
+
+	// Extract into a staging directory and only move it to the restore
+	// directory once every entry has been extracted, so that a failed
+	// extraction cannot leave a partial restore directory behind, which
+	// would be applied on the next startup.
+	stagingDir, err := os.MkdirTemp(workDir, "albyhub-restore-")
+	if err != nil {
+		return fmt.Errorf("failed to create staging directory: %w", err)
+	}
+	defer os.RemoveAll(stagingDir)
 
 	extractZipEntry := func(zipFile *zip.File) error {
 		// Entry names come from the archive and must not be trusted. Reject any
@@ -306,11 +320,11 @@ func (api *api) RestoreBackup(unlockPassword string, r io.Reader) error {
 			return fmt.Errorf("refusing to extract zip entry outside restore directory: %q", zipFile.Name)
 		}
 
-		fsFilePath := filepath.Join(restoreDir, entryName)
+		fsFilePath := filepath.Join(stagingDir, entryName)
 
-		// Confirm the cleaned path is still contained within the restore
+		// Confirm the cleaned path is still contained within the staging
 		// directory.
-		if fsFilePath != restoreDir && !strings.HasPrefix(fsFilePath, restoreDir+string(os.PathSeparator)) {
+		if fsFilePath != stagingDir && !strings.HasPrefix(fsFilePath, stagingDir+string(os.PathSeparator)) {
 			return fmt.Errorf("refusing to extract zip entry outside restore directory: %q", zipFile.Name)
 		}
 
@@ -345,6 +359,13 @@ func (api *api) RestoreBackup(unlockPassword string, r io.Reader) error {
 		}
 	}
 	logger.Logger.WithField("count", len(zr.File)).Info("Extracted files")
+
+	if err = os.RemoveAll(restoreDir); err != nil {
+		return fmt.Errorf("failed to remove existing restore directory: %w", err)
+	}
+	if err = os.Rename(stagingDir, restoreDir); err != nil {
+		return fmt.Errorf("failed to move extracted files to restore directory: %w", err)
+	}
 
 	go func() {
 		logger.Logger.Info("Backup restored. Shutting down Alby Hub...")

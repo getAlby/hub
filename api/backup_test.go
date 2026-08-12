@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"testing"
 	"testing/iotest"
 
@@ -146,7 +147,13 @@ func TestRestoreBackupRejectsPathTraversal(t *testing.T) {
 	cw, err := encryptingWriter(&buf, unlockPassword)
 	require.NoError(t, err)
 	zw := zip.NewWriter(cw)
-	entryWriter, err := zw.Create(escapeEntryName)
+	// A valid entry before the malicious one, to verify that a partially
+	// extracted archive is not left behind when a later entry fails.
+	entryWriter, err := zw.Create("nwc.db")
+	require.NoError(t, err)
+	_, err = entryWriter.Write([]byte("backup contents"))
+	require.NoError(t, err)
+	entryWriter, err = zw.Create(escapeEntryName)
 	require.NoError(t, err)
 	_, err = entryWriter.Write([]byte("pwned"))
 	require.NoError(t, err)
@@ -157,6 +164,17 @@ func TestRestoreBackupRejectsPathTraversal(t *testing.T) {
 
 	_, statErr := os.Stat(escapeTarget)
 	require.True(t, os.IsNotExist(statErr), "traversal entry must not be written outside the restore directory")
+
+	// The failed restore must not leave a restore directory (which would be
+	// applied on the next startup) or any staging leftovers.
+	_, statErr = os.Stat(filepath.Join(workDir, "restore"))
+	require.True(t, os.IsNotExist(statErr), "failed restore must not leave a restore directory")
+
+	entries, err := os.ReadDir(workDir)
+	require.NoError(t, err)
+	for _, entry := range entries {
+		require.False(t, strings.HasPrefix(entry.Name(), "albyhub-restore-"), "failed restore must not leave a staging directory")
+	}
 }
 
 // legacyBackupFixture is a backup file created with the encryption scheme
