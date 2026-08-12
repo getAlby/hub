@@ -39,6 +39,12 @@ func TestCreateBackup(t *testing.T) {
 	cfg, err := config.NewConfig(appConfig, gormDB)
 	require.NoError(t, err)
 
+	unlockPassword := ""
+
+	// Represent a fully set-up hub: the unlock-password canary is written during
+	// setup and is required for the password check to pass.
+	require.NoError(t, cfg.SaveUnlockPasswordCheck(unlockPassword))
+
 	app := &db.App{
 		Name:      "test",
 		AppPubkey: "2b7dea2866958f17c568cf024e113db7a3baa9c253a9016889196b8d0b11c7ae",
@@ -63,8 +69,6 @@ func TestCreateBackup(t *testing.T) {
 		svc:          svc,
 		albyOAuthSvc: albyOAuthSvc,
 	}
-
-	unlockPassword := ""
 
 	var buf bytes.Buffer
 	err = theAPI.CreateBackup(unlockPassword, &buf)

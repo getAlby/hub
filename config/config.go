@@ -408,7 +408,18 @@ func (cfg *config) SetAutoUnlockPassword(unlockPassword string) error {
 func (cfg *config) CheckUnlockPassword(encryptionKey string) bool {
 	decryptedValue, err := cfg.Get("UnlockPasswordCheck", encryptionKey)
 
-	return err == nil && (decryptedValue == "" || decryptedValue == unlockPasswordCheck)
+	// require a non-empty match so an absent or empty canary always fails
+	return err == nil && decryptedValue != "" && decryptedValue == unlockPasswordCheck
+}
+
+func (cfg *config) IsUnlockPasswordCheckSet() (bool, error) {
+	// Read the raw value with an empty encryption key so we can detect the
+	// presence of the canary row without needing the (possibly wrong) password.
+	value, err := cfg.Get("UnlockPasswordCheck", "")
+	if err != nil {
+		return false, fmt.Errorf("read unlock password check: %w", err)
+	}
+	return value != "", nil
 }
 
 func (cfg *config) SaveUnlockPasswordCheck(encryptionKey string) error {
