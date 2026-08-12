@@ -3,6 +3,7 @@ package api
 import (
 	"archive/zip"
 	"bytes"
+	"encoding/hex"
 	"io"
 	"os"
 	"path/filepath"
@@ -155,4 +156,51 @@ func TestRestoreBackupRejectsPathTraversal(t *testing.T) {
 
 	_, statErr := os.Stat(escapeTarget)
 	require.True(t, os.IsNotExist(statErr), "traversal entry must not be written outside the restore directory")
+}
+
+// legacyBackupFixture is a backup file created with the encryption scheme
+// used by older versions (PBKDF2 key derivation), encrypted with the
+// password "test-unlock-password". Its archive contains a single "nwc.db"
+// entry with the contents "legacy backup contents".
+const legacyBackupFixture = "0102030405060708101112131415161718191a1b1c1d1e1f8eca79631915f679a00cdd95d3f20d8d169eb9aa5d52642ca13b93886c3c7d7ba4b759462bc9dd8deccf638edcc9b5b9fda3d23dcd904cf6e99bc57ac59c4df6be5aa676542b7cbc9998029420c0ae5a6986c735150ababde5b382560acaebd5894aa4420924f1ced63fde570adc60c43b32e9e14a0ef60c379da5cac1be0000845992ea072ead036e336c7b859e8d018c4ef61667e3f520fe01"
+
+// TestDecryptingReaderLegacyBackup verifies that backup files created by
+// older versions can still be decrypted.
+func TestDecryptingReaderLegacyBackup(t *testing.T) {
+	encrypted, err := hex.DecodeString(legacyBackupFixture)
+	require.NoError(t, err)
+
+	cr, err := decryptingReader(bytes.NewReader(encrypted), "test-unlock-password")
+	require.NoError(t, err)
+
+	decrypted, err := io.ReadAll(cr)
+	require.NoError(t, err)
+
+	zr, err := zip.NewReader(bytes.NewReader(decrypted), int64(len(decrypted)))
+	require.NoError(t, err)
+
+	dbFile, err := zr.Open("nwc.db")
+	require.NoError(t, err)
+	dbContents, err := io.ReadAll(dbFile)
+	require.NoError(t, err)
+	require.NoError(t, dbFile.Close())
+	require.Equal(t, "legacy backup contents", string(dbContents))
+}
+
+// TestDecryptingReaderWrongPassword verifies that decryption fails upfront
+// when the password does not match the backup file.
+func TestDecryptingReaderWrongPassword(t *testing.T) {
+	var buf bytes.Buffer
+	cw, err := encryptingWriter(&buf, "test-unlock-password")
+	require.NoError(t, err)
+
+	zw := zip.NewWriter(cw)
+	entryWriter, err := zw.Create("nwc.db")
+	require.NoError(t, err)
+	_, err = entryWriter.Write([]byte("backup contents"))
+	require.NoError(t, err)
+	require.NoError(t, zw.Close())
+
+	_, err = decryptingReader(bytes.NewReader(buf.Bytes()), "wrong-password")
+	require.Error(t, err)
 }

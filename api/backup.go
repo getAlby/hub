@@ -1,9 +1,11 @@
 package api
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"strings"
 	"time"
 
@@ -16,11 +18,47 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 
+	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/utils"
 	"golang.org/x/crypto/pbkdf2"
 )
+
+// zipMagic is the ZIP local file header signature "PK\x03\x04" — the first
+// four bytes of every ZIP file, and therefore of every archive produced by
+// CreateBackup. decryptingReader uses it to detect which cipher scheme the
+// backup file was created with.
+var zipMagic = []byte{'P', 'K', 0x03, 0x04}
+
+// backupCipher describes one of the cipher schemes used for backup files,
+// which are laid out as salt || iv || encrypted zip archive.
+type backupCipher struct {
+	saltSize  int
+	deriveKey func(password string, salt []byte) ([]byte, error)
+	newStream func(block cipher.Block, iv []byte) cipher.Stream
+}
+
+var backupCiphers = []backupCipher{
+	// current scheme, used for all new backup files
+	{
+		saltSize: 32,
+		deriveKey: func(password string, salt []byte) ([]byte, error) {
+			key, _, err := config.DeriveKey(password, salt)
+			return key, err
+		},
+		newStream: cipher.NewCTR,
+	},
+	// legacy scheme, kept to restore backup files created by older versions
+	{
+		saltSize: 8,
+		deriveKey: func(password string, salt []byte) ([]byte, error) {
+			return pbkdf2.Key([]byte(password), salt, 4096, 32, sha256.New), nil
+		},
+		//nolint:staticcheck // OFB is required to read files created by older versions
+		newStream: cipher.NewOFB,
+	},
+}
 
 func (api *api) CreateBackup(unlockPassword string, w io.Writer) error {
 	logger.Logger.Info("Creating backup to migrate Alby Hub to another device")
@@ -328,12 +366,17 @@ func (api *api) RestoreBackup(unlockPassword string, r io.Reader) error {
 }
 
 func encryptingWriter(w io.Writer, password string) (io.Writer, error) {
-	salt := make([]byte, 8)
+	scheme := backupCiphers[0]
+
+	salt := make([]byte, scheme.saltSize)
 	if _, err := rand.Read(salt); err != nil {
 		return nil, fmt.Errorf("failed to generate salt: %w", err)
 	}
 
-	encKey := pbkdf2.Key([]byte(password), salt, 4096, 32, sha256.New)
+	encKey, err := scheme.deriveKey(password, salt)
+	if err != nil {
+		return nil, fmt.Errorf("failed to derive encryption key: %w", err)
+	}
 	block, err := aes.NewCipher(encKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create AES cipher: %w", err)
@@ -354,9 +397,8 @@ func encryptingWriter(w io.Writer, password string) (io.Writer, error) {
 		return nil, fmt.Errorf("failed to write IV: %w", err)
 	}
 
-	stream := cipher.NewOFB(block, iv)
 	cw := &cipher.StreamWriter{
-		S: stream,
+		S: scheme.newStream(block, iv),
 		W: w,
 	}
 
@@ -364,27 +406,56 @@ func encryptingWriter(w io.Writer, password string) (io.Writer, error) {
 }
 
 func decryptingReader(r io.Reader, password string) (io.Reader, error) {
-	salt := make([]byte, 8)
-	if _, err := io.ReadFull(r, salt); err != nil {
-		return nil, fmt.Errorf("failed to read salt: %w", err)
+	// Read the largest possible header (salt, IV and the first bytes of the
+	// archive) upfront, then trial-decrypt with each supported cipher scheme
+	// and pick the one that produces the ZIP signature.
+	maxHeaderSize := 0
+	minHeaderSize := math.MaxInt
+	for _, scheme := range backupCiphers {
+		headerSize := scheme.saltSize + aes.BlockSize + len(zipMagic)
+		maxHeaderSize = max(maxHeaderSize, headerSize)
+		minHeaderSize = min(minHeaderSize, headerSize)
 	}
 
-	iv := make([]byte, aes.BlockSize)
-	if _, err := io.ReadFull(r, iv); err != nil {
-		return nil, fmt.Errorf("failed to read IV: %w", err)
-	}
-
-	encKey := pbkdf2.Key([]byte(password), salt, 4096, 32, sha256.New)
-	block, err := aes.NewCipher(encKey)
+	header := make([]byte, maxHeaderSize)
+	n, err := io.ReadAtLeast(r, header, minHeaderSize)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create AES cipher: %w", err)
+		return nil, fmt.Errorf("failed to read backup header: %w", err)
+	}
+	header = header[:n]
+
+	for _, scheme := range backupCiphers {
+		if len(header) < scheme.saltSize+aes.BlockSize+len(zipMagic) {
+			continue
+		}
+		salt := header[:scheme.saltSize]
+		iv := header[scheme.saltSize : scheme.saltSize+aes.BlockSize]
+		encrypted := header[scheme.saltSize+aes.BlockSize:]
+
+		encKey, err := scheme.deriveKey(password, salt)
+		if err != nil {
+			return nil, fmt.Errorf("failed to derive encryption key: %w", err)
+		}
+
+		block, err := aes.NewCipher(encKey)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create AES cipher: %w", err)
+		}
+
+		stream := scheme.newStream(block, iv)
+		decrypted := make([]byte, len(encrypted))
+		stream.XORKeyStream(decrypted, encrypted)
+		if !bytes.Equal(decrypted[:len(zipMagic)], zipMagic) {
+			continue
+		}
+
+		cr := &cipher.StreamReader{
+			S: stream,
+			R: r,
+		}
+
+		return io.MultiReader(bytes.NewReader(decrypted), cr), nil
 	}
 
-	stream := cipher.NewOFB(block, iv)
-	cr := &cipher.StreamReader{
-		S: stream,
-		R: r,
-	}
-
-	return cr, nil
+	return nil, errors.New("invalid unlock password or backup file")
 }
