@@ -1,6 +1,7 @@
 import {
   ClockIcon,
   HandCoinsIcon,
+  InfoIcon,
   LandmarkIcon,
   ShieldAlertIcon,
   UnlockIcon,
@@ -13,6 +14,12 @@ import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
 import { Label } from "src/components/ui/label";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "src/components/ui/tooltip";
 import { useInfo } from "src/hooks/useInfo";
 import useSetupStore from "src/state/SetupStore";
 
@@ -71,10 +78,40 @@ export function SetupSecurity() {
               <div className="flex gap-3 items-center">
                 <ClockIcon className="size-6 shrink-0" />
                 <span className="text-sm text-muted-foreground">
-                  Your funds will be refreshed periodically which will incur a
-                  small fee.
+                  Your funds will be refreshed automatically which will incur a
+                  small fee. Keep your Alby Hub online so your funds do not
+                  expire.
                 </span>
               </div>
+              <div className="flex gap-3 items-center">
+                <ShieldAlertIcon className="size-6 shrink-0" />
+                <span className="text-sm text-muted-foreground">
+                  Unilateral exit is not implemented in Alby Hub yet.{" "}
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger type="button">
+                        <InfoIcon className="size-4 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        Bark supports unilateral exit, but you will need to take
+                        your wallet data and execute the exit yourself.
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </span>
+              </div>
+              <ExternalLink
+                className="text-muted-foreground flex items-center text-sm"
+                to="https://second.tech/terms"
+              >
+                <p>
+                  By using Bark you agree to{" "}
+                  <span className="font-semibold underline">
+                    Second&apos;s Terms of Service
+                  </span>
+                  .
+                </p>
+              </ExternalLink>
             </>
           )}
           <div className="flex gap-3 items-center">
