@@ -152,7 +152,6 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	readOnlyApiGroup.GET("/transactions/:paymentHash", httpSvc.lookupTransactionHandler)
 	readOnlyApiGroup.GET("/balances", httpSvc.balancesHandler)
 	readOnlyApiGroup.GET("/mempool", httpSvc.mempoolApiHandler)
-	readOnlyApiGroup.GET("/log/:type", httpSvc.getLogOutputHandler)
 	readOnlyApiGroup.GET("/health", httpSvc.healthHandler)
 	readOnlyApiGroup.GET("/commands", httpSvc.getCustomNodeCommandsHandler)
 	readOnlyApiGroup.GET("/swaps", httpSvc.listSwapsHandler)
@@ -202,6 +201,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	fullAccessApiGroup.POST("/swaps/in", httpSvc.initiateSwapInHandler)
 	fullAccessApiGroup.POST("/swaps/refund", httpSvc.refundSwapHandler)
 	fullAccessApiGroup.GET("/swaps/mnemonic", httpSvc.swapMnemonicHandler)
+	fullAccessApiGroup.GET("/log/:type", httpSvc.getLogOutputHandler)
 	fullAccessApiGroup.POST("/autoswap", httpSvc.enableAutoSwapOutHandler, unlockRateLimiter)
 	fullAccessApiGroup.DELETE("/autoswap", httpSvc.disableAutoSwapOutHandler)
 	fullAccessApiGroup.POST("/node/alias", httpSvc.setNodeAliasHandler)
@@ -1241,7 +1241,7 @@ func (httpSvc *HttpService) appsCreateHandler(c echo.Context) error {
 	responseBody, err := httpSvc.api.CreateApp(&requestData)
 
 	if err != nil {
-		logger.Logger.WithField("requestData", requestData).WithError(err).Error("Failed to save app")
+		logger.Logger.WithField("appName", requestData.Name).WithError(err).Error("Failed to save app")
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to save app: %v", err),
 		})

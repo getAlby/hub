@@ -10,7 +10,7 @@ export const request = async <T>(
       args[1]?.body?.toString() || ""
     );
 
-    console.info("Wails request", ...args, res);
+    console.info("Wails request", args[0].toString(), args[1]?.method || "GET");
     if (res.error) {
       throw new Error(res.error);
     }

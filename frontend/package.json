@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
-    "@fontsource-variable/figtree": "^5.2.10",
+    "@fontsource-variable/figtree": "^5.3.0",
     "@fontsource-variable/inter": "^5.3.0",
     "@getalby/lightning-tools": "^8.1.0",
     "@getalby/sdk": "^8.0.3",
@@ -35,7 +35,7 @@
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.20",
     "embla-carousel-react": "^8.6.0",
-    "lucide-react": "^1.7.0",
+    "lucide-react": "^1.28.0",
     "qr-code-styling": "^1.9.2",
     "radix-ui": "^1.4.3",
     "react": "^19.2.6",
@@ -76,7 +76,7 @@
     "tailwindcss": "^4.3.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.61.0",
-    "vite": "^5.4.0",
+    "vite": "^8.2.0",
     "vite-plugin-pwa": "^1.3.0",
     "vite-tsconfig-paths": "^6.1.1"
   },

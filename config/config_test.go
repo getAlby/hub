@@ -56,8 +56,6 @@ func TestCheckUnlockPasswordCache(t *testing.T) {
 		Workdir: ".test",
 	}, db)
 	require.NoError(t, err)
-	err = cfg.ChangeUnlockPassword("", unlockPassword)
-	require.NoError(t, err)
 	err = cfg.SaveUnlockPasswordCheck(unlockPassword)
 	require.NoError(t, err)
 

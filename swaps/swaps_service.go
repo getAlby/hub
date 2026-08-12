@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"strconv"
 	"sync"
@@ -68,7 +69,7 @@ type SwapsService interface {
 }
 
 const (
-	AlbySwapServiceFee = 1.0
+	AlbySwapServiceFeePercentage = 1.0
 )
 
 type SwapInfo struct {
@@ -275,7 +276,7 @@ func (svc *swapsService) SwapOut(amountSat uint64, destination string, autoSwap,
 	}).Info("Calculated fees for swap out")
 
 	albyFee := &boltz.ExtraFees{
-		Percentage: AlbySwapServiceFee,
+		Percentage: AlbySwapServiceFeePercentage,
 		Id:         "albyServiceFee",
 	}
 
@@ -334,14 +335,15 @@ func (svc *swapsService) SwapOut(amountSat uint64, destination string, autoSwap,
 			return err
 		}
 
-		paymentRequest, err := decodepay.Decodepay(swap.Invoice)
+		maxSendAmountSat := calculateMaxSwapOutSendAmountSat(amountSat, fees.Percentage, fees.MinerFees.Lockup, fees.MinerFees.Claim)
+		sendAmountSat, err := verifySwapOutInvoice(swap.Invoice, paymentHash, maxSendAmountSat)
 		if err != nil {
-			return fmt.Errorf("failed to decode bolt11 invoice")
+			return fmt.Errorf("invalid swap invoice: %w", err)
 		}
 
 		err = tx.Model(&dbSwap).Updates(&db.Swap{
 			SwapId:             swap.Id,
-			SendAmountSat:      uint64(paymentRequest.MSatoshi / 1000),
+			SendAmountSat:      sendAmountSat,
 			Invoice:            swap.Invoice,
 			LockupAddress:      swap.LockupAddress,
 			TimeoutBlockHeight: swap.TimeoutBlockHeight,
@@ -379,6 +381,44 @@ func (svc *swapsService) SwapOut(amountSat uint64, destination string, autoSwap,
 	}, nil
 }
 
+// swapOutInvoiceToleranceSat covers rounding differences that can occur when
+// the swap provider converts the requested on-chain amount into an invoice amount.
+const swapOutInvoiceToleranceSat = 10
+
+// calculateMaxSwapOutSendAmountSat returns the maximum invoice amount accepted for
+// a swap out: the requested on-chain amount plus the quoted miner fees, marked up
+// by the quoted percentage fees (which are charged on the invoice amount), plus a
+// small rounding tolerance.
+func calculateMaxSwapOutSendAmountSat(receiveAmountSat uint64, serviceFeePercentage float64, lockupFeeSat uint64, claimFeeSat uint64) uint64 {
+	totalFeePercentage := serviceFeePercentage + AlbySwapServiceFeePercentage
+	if totalFeePercentage >= 100 {
+		return 0
+	}
+	onchainAmountSat := float64(receiveAmountSat + claimFeeSat + lockupFeeSat)
+	expectedSendAmountSat := math.Ceil(onchainAmountSat / (1 - totalFeePercentage/100))
+	return uint64(expectedSendAmountSat) + swapOutInvoiceToleranceSat
+}
+
+// verifySwapOutInvoice checks that a swap out invoice is bound to the swap's
+// payment hash and does not exceed maxSendAmountSat, and returns its amount.
+func verifySwapOutInvoice(invoice string, expectedPaymentHash string, maxSendAmountSat uint64) (uint64, error) {
+	paymentRequest, err := decodepay.Decodepay(invoice)
+	if err != nil {
+		return 0, fmt.Errorf("failed to decode bolt11 invoice: %w", err)
+	}
+	if paymentRequest.PaymentHash != expectedPaymentHash {
+		return 0, fmt.Errorf("invoice payment hash %s does not match swap payment hash %s", paymentRequest.PaymentHash, expectedPaymentHash)
+	}
+	if paymentRequest.MSatoshi <= 0 {
+		return 0, errors.New("invoice does not have an amount")
+	}
+	sendAmountSat := uint64(paymentRequest.MSatoshi) / 1000
+	if sendAmountSat > maxSendAmountSat {
+		return 0, fmt.Errorf("invoice amount %d sat exceeds maximum expected amount %d sat", sendAmountSat, maxSendAmountSat)
+	}
+	return sendAmountSat, nil
+}
+
 func (svc *swapsService) SwapIn(amountSat uint64, autoSwap bool) (*SwapResponse, error) {
 	amountMsat := amountSat * 1000
 	invoice, err := svc.transactionsService.MakeInvoice(svc.ctx, amountMsat, "On-chain to lightning swap", "", 0, nil, svc.lnClient, nil, nil, nil)
@@ -409,7 +449,7 @@ func (svc *swapsService) SwapIn(amountSat uint64, autoSwap bool) (*SwapResponse,
 	}).Info("Calculated fees for swap in")
 
 	albyFee := &boltz.ExtraFees{
-		Percentage: AlbySwapServiceFee,
+		Percentage: AlbySwapServiceFeePercentage,
 		Id:         "albyServiceFee",
 	}
 
@@ -522,7 +562,7 @@ func (svc *swapsService) GetSwapOutInfo() (*SwapInfo, error) {
 	limits := pairInfo.Limits
 
 	return &SwapInfo{
-		AlbyServiceFee:     AlbySwapServiceFee,
+		AlbyServiceFee:     AlbySwapServiceFeePercentage,
 		BoltzServiceFee:    fees.Percentage,
 		BoltzNetworkFeeSat: fees.MinerFees.Lockup + fees.MinerFees.Claim,
 		MinAmountSat:       limits.Minimal,
@@ -546,7 +586,7 @@ func (svc *swapsService) GetSwapInInfo() (*SwapInfo, error) {
 	limits := pairInfo.Limits
 
 	return &SwapInfo{
-		AlbyServiceFee:     AlbySwapServiceFee,
+		AlbyServiceFee:     AlbySwapServiceFeePercentage,
 		BoltzServiceFee:    fees.Percentage,
 		BoltzNetworkFeeSat: fees.MinerFees,
 		MinAmountSat:       limits.Minimal,
@@ -1095,6 +1135,13 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 		return
 	}
 
+	if err = tree.CheckAddress(swap.LockupAddress, network, nil); err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"swapId": swap.SwapId,
+		}).Error("Failed to check address")
+		return
+	}
+
 	claimTicker := time.NewTicker(10 * time.Second)
 	defer claimTicker.Stop()
 
@@ -1156,6 +1203,13 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 					}
 					if !errors.Is(err, transactions.NewNotFoundError()) {
 						logger.Logger.WithError(err).WithField("swapId", swap.SwapId).Warn("Failed to lookup transaction")
+						return
+					}
+					if _, err := verifySwapOutInvoice(swap.Invoice, swap.PaymentHash, swap.SendAmountSat); err != nil {
+						logger.Logger.WithError(err).WithFields(logrus.Fields{
+							"swapId": swap.SwapId,
+						}).Error("Refusing to pay swap invoice")
+						paymentErrorCh <- err
 						return
 					}
 					metadata := map[string]interface{}{
