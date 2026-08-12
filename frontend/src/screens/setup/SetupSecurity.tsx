@@ -77,24 +77,35 @@ export function SetupSecurity() {
               </div>
               <div className="flex gap-3 items-center">
                 <ClockIcon className="size-6 shrink-0" />
-                <span className="text-sm text-muted-foreground">
-                  Your funds will be refreshed automatically which will incur a
-                  small fee. Keep your Alby Hub online so your funds do not
-                  expire.
-                </span>
-              </div>
-              <div className="flex gap-3 items-center">
-                <ShieldAlertIcon className="size-6 shrink-0" />
-                <span className="text-sm text-muted-foreground">
-                  Unilateral exit is not implemented in Alby Hub yet.{" "}
+                <span className="text-sm text-muted-foreground flex items-center justify-center gap-1">
+                  Your funds must be refreshed periodically{" "}
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger type="button">
                         <InfoIcon className="size-4 text-muted-foreground" />
                       </TooltipTrigger>
                       <TooltipContent className="max-w-xs">
-                        Bark supports unilateral exit, but you will need to take
-                        your wallet data and execute the exit yourself.
+                        Your virtual UTXOs (VTXOs) will be refreshed
+                        automatically to ensure you maintain ownership.
+                        Refreshes may incur a small fee. Keep your Alby Hub
+                        online so your funds do not expire.
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </span>
+              </div>
+              <div className="flex gap-3 items-center">
+                <ShieldAlertIcon className="size-6 shrink-0" />
+                <span className="text-sm text-muted-foreground flex items-center justify-center gap-1">
+                  Unilateral exit is not implemented in Alby Hub yet{" "}
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger type="button">
+                        <InfoIcon className="size-4 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        You will need to take your hub wallet data and execute
+                        the exit yourself.
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
