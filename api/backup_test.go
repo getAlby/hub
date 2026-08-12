@@ -160,7 +160,7 @@ func TestRestoreBackupRejectsPathTraversal(t *testing.T) {
 	require.NoError(t, zw.Close())
 
 	err = theAPI.RestoreBackup(unlockPassword, &buf)
-	require.Error(t, err)
+	require.ErrorContains(t, err, "refusing to extract zip entry outside restore directory")
 
 	_, statErr := os.Stat(escapeTarget)
 	require.True(t, os.IsNotExist(statErr), "traversal entry must not be written outside the restore directory")
