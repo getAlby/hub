@@ -798,10 +798,10 @@ func (ls *LDKService) getMaxSpendable() uint64 {
 	return spendable
 }
 
-func (ls *LDKService) MakeInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
+func (ls *LDKService) MakeInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expirySeconds int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
 
-	if time.Duration(expiry)*time.Second > maxInvoiceExpiry {
-		return nil, errors.New("expiry is too long")
+	if expirySeconds < 0 || expirySeconds > int64(maxInvoiceExpiry/time.Second) {
+		return nil, errors.New("invalid invoice expiry")
 	}
 
 	maxReceivable := ls.getMaxReceivable()
@@ -826,8 +826,8 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amountMsat int64, descrip
 		})
 	}
 
-	if expiry == 0 {
-		expiry = lnclient.DEFAULT_INVOICE_EXPIRY
+	if expirySeconds == 0 {
+		expirySeconds = lnclient.DEFAULT_INVOICE_EXPIRY
 	}
 
 	var descriptionType ldk_node.Bolt11InvoiceDescription
@@ -847,14 +847,14 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amountMsat int64, descrip
 		invoiceObj, err = ls.node.Bolt11Payment().ReceiveViaJitChannel(
 			uint64(amountMsat),
 			descriptionType,
-			uint32(expiry),
+			uint32(expirySeconds),
 			&maxLspFeeLimitMsat,
 		)
 	} else {
 		invoiceObj, err = ls.node.Bolt11Payment().Receive(
 			uint64(amountMsat),
 			descriptionType,
-			uint32(expiry),
+			uint32(expirySeconds),
 		)
 	}
 
@@ -2454,9 +2454,9 @@ func (ls *LDKService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 	return nil, lnclient.ErrUnknownCustomNodeCommand
 }
 
-func (ls *LDKService) MakeHoldInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, paymentHash string, minCltvExpiryDelta *uint64) (*lnclient.Transaction, error) {
-	if time.Duration(expiry)*time.Second > maxInvoiceExpiry {
-		return nil, errors.New("expiry is too long")
+func (ls *LDKService) MakeHoldInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expirySeconds int64, paymentHash string, minCltvExpiryDelta *uint64) (*lnclient.Transaction, error) {
+	if expirySeconds < 0 || expirySeconds > int64(maxInvoiceExpiry/time.Second) {
+		return nil, errors.New("invalid invoice expiry")
 	}
 
 	maxReceivable := ls.getMaxReceivable()
@@ -2470,8 +2470,8 @@ func (ls *LDKService) MakeHoldInvoice(ctx context.Context, amountMsat int64, des
 		})
 	}
 
-	if expiry == 0 {
-		expiry = lnclient.DEFAULT_INVOICE_EXPIRY
+	if expirySeconds == 0 {
+		expirySeconds = lnclient.DEFAULT_INVOICE_EXPIRY
 	}
 
 	var descriptionType ldk_node.Bolt11InvoiceDescription
@@ -2505,7 +2505,7 @@ func (ls *LDKService) MakeHoldInvoice(ctx context.Context, amountMsat int64, des
 		invoiceObj, err = ls.node.Bolt11Payment().ReceiveForHashWithMinCltvExpiryDelta(
 			uint64(amountMsat),
 			descriptionType,
-			uint32(expiry),
+			uint32(expirySeconds),
 			ldkPaymentHash,
 			uint16(*minCltvExpiryDelta),
 		)
@@ -2513,7 +2513,7 @@ func (ls *LDKService) MakeHoldInvoice(ctx context.Context, amountMsat int64, des
 		invoiceObj, err = ls.node.Bolt11Payment().ReceiveForHash(
 			uint64(amountMsat),
 			descriptionType,
-			uint32(expiry),
+			uint32(expirySeconds),
 			ldkPaymentHash,
 		)
 	}
@@ -2677,11 +2677,19 @@ func (ls *LDKService) GetLiquiditySourceLsps2() string {
 
 func (ls *LDKService) GetLiquiditySourceLsps2MinPaymentSizeMsat() *uint64 {
 	ls.fetchLsps2OpeningFeeParams(lsps2InfoCacheTTL)
+
+	ls.lsps2InfoMu.Lock()
+	defer ls.lsps2InfoMu.Unlock()
+
 	return ls.lsps2MinPaymentSizeMsat
 }
 
 func (ls *LDKService) GetLiquiditySourceLsps2MaxPaymentSizeMsat() *uint64 {
 	ls.fetchLsps2OpeningFeeParams(lsps2InfoCacheTTL)
+
+	ls.lsps2InfoMu.Lock()
+	defer ls.lsps2InfoMu.Unlock()
+
 	return ls.lsps2MaxPaymentSizeMsat
 }
 
