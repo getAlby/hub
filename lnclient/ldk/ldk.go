@@ -61,6 +61,7 @@ type LDKService struct {
 	lsps2InfoFetchedAt                 time.Time
 	lsps2MinPaymentSizeMsat            *uint64
 	lsps2MaxPaymentSizeMsat            *uint64
+	lsps2OpeningFeeParamsMenu          []ldk_node.Lsps2OpeningFeeParams
 	shuttingDown                       bool
 	eventHandlingMutex                 sync.Mutex
 }
@@ -68,6 +69,17 @@ type LDKService struct {
 const resetRouterKey = "ResetRouter"
 const maxInvoiceExpiry = 24 * time.Hour
 const lsps2InfoCacheTTL = 60 * time.Minute
+
+// cached opening fee params must be at most this old when used to derive the
+// maximum LSP fee for a new JIT channel invoice
+const lsps2FeeCapCacheTTL = 1 * time.Minute
+
+// absolute ceiling on the LSPS2 opening fee accepted for a JIT channel,
+// regardless of the fee menu the LSP advertises: the greater of a base amount
+// and a percentage of the payment, so small payments can absorb the fixed
+// cost of a channel open while larger payments cannot be overcharged.
+const lsps2MaxOpeningFeeBaseMsat = 5_000_000
+const lsps2MaxOpeningFeePercent = 10
 
 func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, mnemonic, workDir string, vssToken string, setStartupState func(startupState string), channelPeerSuggestions []alby.ChannelPeerSuggestion) (result lnclient.LNClient, err error) {
 	if mnemonic == "" || workDir == "" {
@@ -786,10 +798,10 @@ func (ls *LDKService) getMaxSpendable() uint64 {
 	return spendable
 }
 
-func (ls *LDKService) MakeInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
+func (ls *LDKService) MakeInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expirySeconds int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
 
-	if time.Duration(expiry)*time.Second > maxInvoiceExpiry {
-		return nil, errors.New("expiry is too long")
+	if expirySeconds < 0 || expirySeconds > int64(maxInvoiceExpiry/time.Second) {
+		return nil, errors.New("invalid invoice expiry")
 	}
 
 	maxReceivable := ls.getMaxReceivable()
@@ -814,8 +826,8 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amountMsat int64, descrip
 		})
 	}
 
-	if expiry == 0 {
-		expiry = lnclient.DEFAULT_INVOICE_EXPIRY
+	if expirySeconds == 0 {
+		expirySeconds = lnclient.DEFAULT_INVOICE_EXPIRY
 	}
 
 	var descriptionType ldk_node.Bolt11InvoiceDescription
@@ -830,17 +842,19 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amountMsat int64, descrip
 
 	var invoiceObj *ldk_node.Bolt11Invoice
 	if isJitInvoice {
+		// cap the opening fee the LSP may deduct from the incoming payment
+		maxLspFeeLimitMsat := ls.getLsps2MaxTotalOpeningFeeMsat(uint64(amountMsat))
 		invoiceObj, err = ls.node.Bolt11Payment().ReceiveViaJitChannel(
 			uint64(amountMsat),
 			descriptionType,
-			uint32(expiry),
-			nil,
+			uint32(expirySeconds),
+			&maxLspFeeLimitMsat,
 		)
 	} else {
 		invoiceObj, err = ls.node.Bolt11Payment().Receive(
 			uint64(amountMsat),
 			descriptionType,
-			uint32(expiry),
+			uint32(expirySeconds),
 		)
 	}
 
@@ -2440,9 +2454,9 @@ func (ls *LDKService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 	return nil, lnclient.ErrUnknownCustomNodeCommand
 }
 
-func (ls *LDKService) MakeHoldInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, paymentHash string, minCltvExpiryDelta *uint64) (*lnclient.Transaction, error) {
-	if time.Duration(expiry)*time.Second > maxInvoiceExpiry {
-		return nil, errors.New("expiry is too long")
+func (ls *LDKService) MakeHoldInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expirySeconds int64, paymentHash string, minCltvExpiryDelta *uint64) (*lnclient.Transaction, error) {
+	if expirySeconds < 0 || expirySeconds > int64(maxInvoiceExpiry/time.Second) {
+		return nil, errors.New("invalid invoice expiry")
 	}
 
 	maxReceivable := ls.getMaxReceivable()
@@ -2456,8 +2470,8 @@ func (ls *LDKService) MakeHoldInvoice(ctx context.Context, amountMsat int64, des
 		})
 	}
 
-	if expiry == 0 {
-		expiry = lnclient.DEFAULT_INVOICE_EXPIRY
+	if expirySeconds == 0 {
+		expirySeconds = lnclient.DEFAULT_INVOICE_EXPIRY
 	}
 
 	var descriptionType ldk_node.Bolt11InvoiceDescription
@@ -2491,7 +2505,7 @@ func (ls *LDKService) MakeHoldInvoice(ctx context.Context, amountMsat int64, des
 		invoiceObj, err = ls.node.Bolt11Payment().ReceiveForHashWithMinCltvExpiryDelta(
 			uint64(amountMsat),
 			descriptionType,
-			uint32(expiry),
+			uint32(expirySeconds),
 			ldkPaymentHash,
 			uint16(*minCltvExpiryDelta),
 		)
@@ -2499,7 +2513,7 @@ func (ls *LDKService) MakeHoldInvoice(ctx context.Context, amountMsat int64, des
 		invoiceObj, err = ls.node.Bolt11Payment().ReceiveForHash(
 			uint64(amountMsat),
 			descriptionType,
-			uint32(expiry),
+			uint32(expirySeconds),
 			ldkPaymentHash,
 		)
 	}
@@ -2662,16 +2676,36 @@ func (ls *LDKService) GetLiquiditySourceLsps2() string {
 }
 
 func (ls *LDKService) GetLiquiditySourceLsps2MinPaymentSizeMsat() *uint64 {
-	ls.fetchLsps2OpeningFeeParams()
+	ls.fetchLsps2OpeningFeeParams(lsps2InfoCacheTTL)
+
+	ls.lsps2InfoMu.Lock()
+	defer ls.lsps2InfoMu.Unlock()
+
 	return ls.lsps2MinPaymentSizeMsat
 }
 
 func (ls *LDKService) GetLiquiditySourceLsps2MaxPaymentSizeMsat() *uint64 {
-	ls.fetchLsps2OpeningFeeParams()
+	ls.fetchLsps2OpeningFeeParams(lsps2InfoCacheTTL)
+
+	ls.lsps2InfoMu.Lock()
+	defer ls.lsps2InfoMu.Unlock()
+
 	return ls.lsps2MaxPaymentSizeMsat
 }
 
-func (ls *LDKService) fetchLsps2OpeningFeeParams() {
+// getLsps2MaxTotalOpeningFeeMsat returns the maximum opening fee to accept
+// for a JIT channel invoice of the given payment size, derived from the
+// LSP's advertised opening fee menu and an absolute ceiling.
+func (ls *LDKService) getLsps2MaxTotalOpeningFeeMsat(paymentSizeMsat uint64) uint64 {
+	ls.fetchLsps2OpeningFeeParams(lsps2FeeCapCacheTTL)
+
+	ls.lsps2InfoMu.Lock()
+	defer ls.lsps2InfoMu.Unlock()
+
+	return computeLsps2MaxTotalOpeningFeeMsat(paymentSizeMsat, ls.lsps2OpeningFeeParamsMenu)
+}
+
+func (ls *LDKService) fetchLsps2OpeningFeeParams(maxCacheAge time.Duration) {
 	if ls.lsps2Pubkey == "" || ls.lsps2Address == "" {
 		return
 	}
@@ -2679,7 +2713,7 @@ func (ls *LDKService) fetchLsps2OpeningFeeParams() {
 	ls.lsps2InfoMu.Lock()
 	defer ls.lsps2InfoMu.Unlock()
 
-	if !ls.lsps2InfoFetchedAt.IsZero() && time.Since(ls.lsps2InfoFetchedAt) < lsps2InfoCacheTTL {
+	if !ls.lsps2InfoFetchedAt.IsZero() && time.Since(ls.lsps2InfoFetchedAt) < maxCacheAge {
 		return
 	}
 
@@ -2708,11 +2742,46 @@ func (ls *LDKService) fetchLsps2OpeningFeeParams() {
 
 	ls.lsps2MinPaymentSizeMsat = minPaymentSizeMsat
 	ls.lsps2MaxPaymentSizeMsat = maxPaymentSizeMsat
+	ls.lsps2OpeningFeeParamsMenu = response.OpeningFeeParamsMenu
 	ls.lsps2InfoFetchedAt = time.Now()
 }
 
+// computeLsps2MaxTotalOpeningFeeMsat returns the maximum LSPS2 opening fee to
+// accept for a payment of the given size: the highest fee the advertised fee
+// menu allows for that size, further limited by the absolute fee ceiling. The
+// ceiling alone is used when no menu entry covers the payment size.
+func computeLsps2MaxTotalOpeningFeeMsat(paymentSizeMsat uint64, menu []ldk_node.Lsps2OpeningFeeParams) uint64 {
+	maxAcceptableFeeMsat := lsps2MaxAcceptableOpeningFeeMsat(paymentSizeMsat)
+
+	var menuMaxFeeMsat *uint64
+	for _, params := range menu {
+		if paymentSizeMsat < params.MinPaymentSizeMsat || paymentSizeMsat > params.MaxPaymentSizeMsat {
+			continue
+		}
+		feeMsat := ldk_node.Lsps2ComputeOpeningFeeMsat(paymentSizeMsat, params)
+		if feeMsat == nil {
+			continue
+		}
+		if menuMaxFeeMsat == nil || *feeMsat > *menuMaxFeeMsat {
+			menuMaxFeeMsat = feeMsat
+		}
+	}
+
+	if menuMaxFeeMsat != nil && *menuMaxFeeMsat < maxAcceptableFeeMsat {
+		return *menuMaxFeeMsat
+	}
+	return maxAcceptableFeeMsat
+}
+
+// the absolute ceiling on the LSPS2 opening fee for a payment of the given
+// size, independent of the fees the LSP advertises
+func lsps2MaxAcceptableOpeningFeeMsat(paymentSizeMsat uint64) uint64 {
+	return max(lsps2MaxOpeningFeeBaseMsat, paymentSizeMsat/100*lsps2MaxOpeningFeePercent)
+}
+
 // finds the smallest incoming payment for which the user is left
-// with a usable amount after the LSP skims its LSPS2 opening fee.
+// with a usable amount after the LSP skims its LSPS2 opening fee and the fee
+// stays within the absolute fee ceiling applied when creating JIT invoices.
 func computeLsps2MinPaymentSizeMsat(params ldk_node.Lsps2OpeningFeeParams) (uint64, bool) {
 	// The smallest amount the user must net after the opening fee. We require a
 	// whole satoshi rather than a single millisat so the minimum payment size
@@ -2728,12 +2797,20 @@ func computeLsps2MinPaymentSizeMsat(params ldk_node.Lsps2OpeningFeeParams) (uint
 		}
 		// The incoming amount must exceed the opening fee by at least 1 sat,
 		// otherwise the user receives a sub-satoshi (effectively zero) amount
-		// after the LSP skims its fee.
-		if *openingFeeMsat+minNetReceiveMsat <= paymentSizeMsat {
+		// after the LSP skims its fee. The fee must also stay within the
+		// absolute fee ceiling, otherwise invoices of this size are rejected.
+		if *openingFeeMsat+minNetReceiveMsat <= paymentSizeMsat &&
+			*openingFeeMsat <= lsps2MaxAcceptableOpeningFeeMsat(paymentSizeMsat) {
 			return paymentSizeMsat, paymentSizeMsat <= params.MaxPaymentSizeMsat
 		}
 
 		nextPaymentSizeMsat := *openingFeeMsat + minNetReceiveMsat
+		if *openingFeeMsat > lsps2MaxOpeningFeeBaseMsat {
+			// the smallest payment size at which a fee this large stays within
+			// the percentage part of the ceiling
+			minSizeForFeeMsat := (*openingFeeMsat + lsps2MaxOpeningFeePercent - 1) / lsps2MaxOpeningFeePercent * 100
+			nextPaymentSizeMsat = max(nextPaymentSizeMsat, minSizeForFeeMsat)
+		}
 		if nextPaymentSizeMsat <= paymentSizeMsat || nextPaymentSizeMsat > params.MaxPaymentSizeMsat {
 			return 0, false
 		}
