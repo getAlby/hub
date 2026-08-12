@@ -3,13 +3,11 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { defineConfig, Plugin } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
-import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig(({ command }) => ({
   plugins: [
     react(),
     tailwindcss(),
-    tsconfigPaths(),
     VitePWA({
       registerType: "autoUpdate",
       // disable service worker - Alby Hub cannot be used offline (and also breaks oauth callback)
@@ -66,9 +64,10 @@ export default defineConfig(({ command }) => ({
     },
   },
   resolve: {
+    tsconfigPaths: true,
     alias: {
-      src: path.resolve(__dirname, "./src"),
-      wailsjs: path.resolve(__dirname, "./wailsjs"),
+      src: path.resolve(import.meta.dirname, "./src"),
+      wailsjs: path.resolve(import.meta.dirname, "./wailsjs"),
       // used to refrence public assets when importing images or other
       // assets from the public folder
       // this is necessary to inject the base path during build
