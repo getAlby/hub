@@ -92,6 +92,95 @@ func TestUnlock_UnknownPermission(t *testing.T) {
 	mockConfig.AssertNotCalled(t, "GetJWTSecret")
 }
 
+// TestUnlock_RateLimited verifies that repeated requests to an unlock-password
+// endpoint are throttled with HTTP 429 once the limit is exceeded.
+func TestUnlock_RateLimited(t *testing.T) {
+	e := echo.New()
+	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
+	mockSvc := mocks.NewMockService(t)
+	gormDb, err := db.NewDB(t)
+	require.NoError(t, err)
+	defer db.CloseDB(gormDb)
+
+	mockEventPublisher := events.NewEventPublisher()
+
+	mockConfig := mocks.NewMockConfig(t)
+	mockConfig.On("GetEnv").Return(&config.AppConfig{})
+	mockConfig.On("CheckUnlockPassword", "wrong").Return(false)
+
+	mockSvc.On("GetDB").Return(gormDb)
+	mockSvc.On("GetConfig").Return(mockConfig)
+	mockSvc.On("GetKeys").Return(mocks.NewMockKeys(t))
+	mockSvc.On("GetAlbySvc").Return(mocks.NewMockAlbyService(t))
+	mockSvc.On("GetAlbyOAuthSvc").Return(mocks.NewMockAlbyOAuthService(t))
+
+	httpSvc := NewHttpService(mockSvc, mockEventPublisher)
+	httpSvc.RegisterSharedRoutes(e)
+
+	jsonBody, _ := json.Marshal(api.UnlockRequest{UnlockPassword: "wrong", Permission: "full"})
+	send := func() int {
+		req := httptest.NewRequest(http.MethodPost, "/api/unlock", bytes.NewBuffer(jsonBody))
+		req.Header.Set("Content-Type", "application/json")
+		rec := httptest.NewRecorder()
+		e.ServeHTTP(rec, req)
+		return rec.Code
+	}
+
+	// the burst of 2 is served (wrong password, so unauthorized)
+	assert.Equal(t, http.StatusUnauthorized, send())
+	assert.Equal(t, http.StatusUnauthorized, send())
+	// the next request exceeds the limit and is rejected with 429
+	assert.Equal(t, http.StatusTooManyRequests, send())
+}
+
+// TestUnlock_RateLimitNotBypassedBySpoofedIP verifies that the unlock rate
+// limiter is global rather than per-IP: varying the X-Forwarded-For header per
+// request does not grant each request a fresh bucket.
+func TestUnlock_RateLimitNotBypassedBySpoofedIP(t *testing.T) {
+	e := echo.New()
+	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
+	mockSvc := mocks.NewMockService(t)
+	gormDb, err := db.NewDB(t)
+	require.NoError(t, err)
+	defer db.CloseDB(gormDb)
+
+	mockEventPublisher := events.NewEventPublisher()
+
+	mockConfig := mocks.NewMockConfig(t)
+	mockConfig.On("GetEnv").Return(&config.AppConfig{})
+	mockConfig.On("CheckUnlockPassword", "wrong").Return(false)
+
+	mockSvc.On("GetDB").Return(gormDb)
+	mockSvc.On("GetConfig").Return(mockConfig)
+	mockSvc.On("GetKeys").Return(mocks.NewMockKeys(t))
+	mockSvc.On("GetAlbySvc").Return(mocks.NewMockAlbyService(t))
+	mockSvc.On("GetAlbyOAuthSvc").Return(mocks.NewMockAlbyOAuthService(t))
+
+	httpSvc := NewHttpService(mockSvc, mockEventPublisher)
+	httpSvc.RegisterSharedRoutes(e)
+
+	jsonBody, _ := json.Marshal(api.UnlockRequest{UnlockPassword: "wrong", Permission: "full"})
+
+	send := func(forwardedFor string) int {
+		req := httptest.NewRequest(http.MethodPost, "/api/unlock", bytes.NewBuffer(jsonBody))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-Forwarded-For", forwardedFor)
+		rec := httptest.NewRecorder()
+		e.ServeHTTP(rec, req)
+		return rec.Code
+	}
+
+	rateLimited := 0
+	for i := 0; i < 12; i++ {
+		// each request presents a distinct client address
+		if send("10.0.0."+strconv.Itoa(i)) == http.StatusTooManyRequests {
+			rateLimited++
+		}
+	}
+
+	assert.Positive(t, rateLimited, "spoofing X-Forwarded-For must not grant a fresh rate-limit bucket")
+}
+
 func TestGetApps_NoToken(t *testing.T) {
 	e := echo.New()
 	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
