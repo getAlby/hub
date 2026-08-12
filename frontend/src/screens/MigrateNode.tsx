@@ -116,8 +116,7 @@ export function MigrateNode() {
           </div>
           <p className="text-sm ml-7">
             Anyone with this file and your unlock password can access your
-            funds. Never send it to anyone, including Alby support — we will
-            never ask for it.
+            funds. Never send it to anyone. Alby support will never ask for it.
           </p>
         </div>
         <div className="flex flex-col gap-1">
