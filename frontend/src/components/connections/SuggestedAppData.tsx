@@ -9,6 +9,7 @@ import amethyst from "src/assets/suggested-apps/amethyst.png";
 import bitcoinCardTopup from "src/assets/suggested-apps/bitcoin-card-topup.png";
 import bitrefill from "src/assets/suggested-apps/bitrefill.png";
 import bitrequest from "src/assets/suggested-apps/bitrequest.png";
+import blitzpool from "src/assets/suggested-apps/blitzpool.png";
 import bringin from "src/assets/suggested-apps/bringin.png";
 import btcpay from "src/assets/suggested-apps/btcpay.png";
 import buzzpay from "src/assets/suggested-apps/buzzpay.png";
@@ -130,6 +131,10 @@ export const appStoreCategories = {
   games: {
     title: "Games",
     priority: 50,
+  },
+  mining: {
+    title: "Mining",
+    priority: 20,
   },
   misc: {
     title: "Misc",
@@ -2497,6 +2502,47 @@ export const appStoreApps: AppStoreApp[] = (
       ),
       categories: ["payment-tools"],
       addedDate: "2026-04-10",
+    },
+    {
+      id: "blitzpool",
+      title: "Blitzpool",
+      description: "Rent and sell Bitcoin hashrate",
+      webLink: "https://blitzpool.yourdevice.ch",
+      logo: blitzpool,
+      categories: ["mining"],
+      extendedDescription:
+        "A peer-to-peer hashrate marketplace: anyone running a miner can put " +
+        "it up for rent and earn from it, not just buy. Rent hashrate from " +
+        "other miners and pay only for work actually delivered, or list your " +
+        "own rigs and get paid straight to your Hub. Settlement runs " +
+        "continuously against delivered hashrate, so a rig that " +
+        "under-delivers simply costs less.",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://blitzpool.yourdevice.ch"
+              className="font-medium text-foreground underline"
+            >
+              blitzpool.yourdevice.ch
+            </ExternalLink>{" "}
+            and sign in with your Bitcoin address.
+          </p>
+          <p className="text-muted-foreground">
+            Go to{" "}
+            <span className="font-medium text-foreground">
+              Hashrate Market &rarr; Wallet &amp; Payouts
+            </span>{" "}
+            and choose{" "}
+            <span className="font-medium text-foreground">
+              Connect with Alby Hub
+            </span>
+            , then scan the code shown here.
+          </p>
+        </>
+      ),
+      addedDate: "2026-07-25",
     },
   ] satisfies AppStoreApp[]
 ).sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));
