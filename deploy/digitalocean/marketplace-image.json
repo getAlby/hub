@@ -1,0 +1,45 @@
+{
+  "variables": {
+    "token": "{{env `DIGITALOCEAN_API_TOKEN`}}",
+    "image_name": "albyhub-snapshot-{{timestamp}}",
+    "albyhub_image": "ghcr.io/getalby/hub:latest"
+  },
+  "builders": [
+    {
+      "type": "digitalocean",
+      "api_token": "{{user `token`}}",
+      "image": "ubuntu-24-04-x64",
+      "region": "fra1",
+      "size": "s-1vcpu-2gb",
+      "ssh_username": "root",
+      "snapshot_name": "{{user `image_name`}}",
+      "droplet_name": "packer-albyhub-{{timestamp}}"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "files/",
+      "destination": "/tmp/files"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "cp -r /tmp/files/* /",
+        "rm -rf /tmp/files"
+      ]
+    },
+    {
+      "type": "shell",
+      "environment_vars": [
+        "ALBYHUB_IMAGE={{user `albyhub_image`}}",
+        "DEBIAN_FRONTEND=noninteractive"
+      ],
+      "scripts": [
+        "scripts/01-install-albyhub.sh",
+        "scripts/90-cleanup.sh",
+        "scripts/99-img_check.sh"
+      ]
+    }
+  ]
+}
