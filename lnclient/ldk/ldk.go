@@ -59,6 +59,8 @@ type LDKService struct {
 	lsps2Address                       string
 	lsps2InfoMu                        sync.Mutex
 	lsps2InfoFetchedAt                 time.Time
+	lsps2InfoLastAttemptedAt           time.Time
+	lsps2InfoFetchInProgress           bool
 	lsps2MinPaymentSizeMsat            *uint64
 	lsps2MaxPaymentSizeMsat            *uint64
 	lsps2OpeningFeeParamsMenu          []ldk_node.Lsps2OpeningFeeParams
@@ -69,6 +71,7 @@ type LDKService struct {
 const resetRouterKey = "ResetRouter"
 const maxInvoiceExpiry = 24 * time.Hour
 const lsps2InfoCacheTTL = 60 * time.Minute
+const lsps2InfoRetryBackoff = 1 * time.Minute
 
 // cached opening fee params must be at most this old when used to derive the
 // maximum LSP fee for a new JIT channel invoice
@@ -2675,22 +2678,13 @@ func (ls *LDKService) GetLiquiditySourceLsps2() string {
 	return fmt.Sprintf("%s@%s", ls.lsps2Pubkey, ls.lsps2Address)
 }
 
-func (ls *LDKService) GetLiquiditySourceLsps2MinPaymentSizeMsat() *uint64 {
+func (ls *LDKService) GetLiquiditySourceLsps2PaymentSizeRangeMsat() (*uint64, *uint64) {
 	ls.fetchLsps2OpeningFeeParams(lsps2InfoCacheTTL)
 
 	ls.lsps2InfoMu.Lock()
 	defer ls.lsps2InfoMu.Unlock()
 
-	return ls.lsps2MinPaymentSizeMsat
-}
-
-func (ls *LDKService) GetLiquiditySourceLsps2MaxPaymentSizeMsat() *uint64 {
-	ls.fetchLsps2OpeningFeeParams(lsps2InfoCacheTTL)
-
-	ls.lsps2InfoMu.Lock()
-	defer ls.lsps2InfoMu.Unlock()
-
-	return ls.lsps2MaxPaymentSizeMsat
+	return ls.lsps2MinPaymentSizeMsat, ls.lsps2MaxPaymentSizeMsat
 }
 
 // getLsps2MaxTotalOpeningFeeMsat returns the maximum opening fee to accept
@@ -2706,26 +2700,45 @@ func (ls *LDKService) getLsps2MaxTotalOpeningFeeMsat(paymentSizeMsat uint64) uin
 }
 
 func (ls *LDKService) fetchLsps2OpeningFeeParams(maxCacheAge time.Duration) {
+	ls.fetchLsps2OpeningFeeParamsWith(maxCacheAge, func() ([]ldk_node.Lsps2OpeningFeeParams, error) {
+		response, err := ls.node.Lsps2Liquidity().RequestOpeningFeeParams()
+		if err != nil {
+			return nil, err
+		}
+		return response.OpeningFeeParamsMenu, nil
+	})
+}
+
+func (ls *LDKService) fetchLsps2OpeningFeeParamsWith(maxCacheAge time.Duration, request func() ([]ldk_node.Lsps2OpeningFeeParams, error)) {
 	if ls.lsps2Pubkey == "" || ls.lsps2Address == "" {
 		return
 	}
 
 	ls.lsps2InfoMu.Lock()
-	defer ls.lsps2InfoMu.Unlock()
-
-	if !ls.lsps2InfoFetchedAt.IsZero() && time.Since(ls.lsps2InfoFetchedAt) < maxCacheAge {
+	now := time.Now()
+	if (!ls.lsps2InfoFetchedAt.IsZero() && now.Sub(ls.lsps2InfoFetchedAt) < maxCacheAge) ||
+		ls.lsps2InfoFetchInProgress ||
+		(!ls.lsps2InfoLastAttemptedAt.IsZero() && now.Sub(ls.lsps2InfoLastAttemptedAt) < lsps2InfoRetryBackoff) {
+		ls.lsps2InfoMu.Unlock()
 		return
 	}
+	ls.lsps2InfoFetchInProgress = true
+	ls.lsps2InfoLastAttemptedAt = now
+	ls.lsps2InfoMu.Unlock()
 
-	response, err := ls.node.Lsps2Liquidity().RequestOpeningFeeParams()
+	menu, err := request()
 	if err != nil {
 		logger.Logger.WithError(err).Warn("Failed to fetch LSPS2 opening fee params")
+		ls.lsps2InfoMu.Lock()
+		ls.lsps2InfoLastAttemptedAt = time.Now()
+		ls.lsps2InfoFetchInProgress = false
+		ls.lsps2InfoMu.Unlock()
 		return
 	}
 
 	var minPaymentSizeMsat *uint64
 	var maxPaymentSizeMsat *uint64
-	for _, params := range response.OpeningFeeParamsMenu {
+	for _, params := range menu {
 		effectiveMinPaymentSizeMsat, ok := computeLsps2MinPaymentSizeMsat(params)
 		if !ok {
 			continue
@@ -2740,10 +2753,13 @@ func (ls *LDKService) fetchLsps2OpeningFeeParams(maxCacheAge time.Duration) {
 		}
 	}
 
+	ls.lsps2InfoMu.Lock()
 	ls.lsps2MinPaymentSizeMsat = minPaymentSizeMsat
 	ls.lsps2MaxPaymentSizeMsat = maxPaymentSizeMsat
-	ls.lsps2OpeningFeeParamsMenu = response.OpeningFeeParamsMenu
+	ls.lsps2OpeningFeeParamsMenu = menu
 	ls.lsps2InfoFetchedAt = time.Now()
+	ls.lsps2InfoFetchInProgress = false
+	ls.lsps2InfoMu.Unlock()
 }
 
 // computeLsps2MaxTotalOpeningFeeMsat returns the maximum LSPS2 opening fee to
