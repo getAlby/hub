@@ -165,7 +165,9 @@ export interface InfoResponse {
   oauthRedirect: boolean;
   albyAccountConnected: boolean;
   ldkVssEnabled: boolean;
+  ldkVssUrl: string;
   vssSupported: boolean;
+  databaseType: string;
   running: boolean;
   albyAuthUrl: string;
   nextBackupReminder: string;
@@ -192,6 +194,7 @@ export interface InfoResponse {
   jitChannelsEnabled: boolean;
   hideUpdateBanner: boolean;
   supportsBolt12: boolean;
+  nodeMigrationFileCreated: boolean;
 }
 
 export type BitcoinDisplayFormat = "sats" | "bip177";
@@ -385,6 +388,7 @@ export type CreateInvoiceRequest = {
   amountSat?: number;
   amountMsat?: number;
   description: string;
+  toAppId?: number;
 };
 
 export type PayInvoiceRequest = {

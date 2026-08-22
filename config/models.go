@@ -98,6 +98,7 @@ type Config interface {
 	GetMempoolUrl() string
 	GetEnv() *AppConfig
 	CheckUnlockPassword(password string) bool
+	IsUnlockPasswordCheckSet() (bool, error)
 	ChangeUnlockPassword(currentUnlockPassword string, newUnlockPassword string) error
 	SetAutoUnlockPassword(unlockPassword string) error
 	SaveUnlockPasswordCheck(encryptionKey string) error

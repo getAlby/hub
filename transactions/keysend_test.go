@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"strconv"
 	"testing"
 
@@ -42,11 +43,41 @@ func TestSendKeysend(t *testing.T) {
 	assert.NotNil(t, transaction.Preimage)
 	assert.Equal(t, 64, len(*transaction.Preimage))
 
-	assert.Equal(t, 1, len(mockEventConsumer.GetConsumedEvents()))
-	assert.Equal(t, "nwc_payment_sent", mockEventConsumer.GetConsumedEvents()[0].Event)
-	settledTransaction := mockEventConsumer.GetConsumedEvents()[0].Properties.(*db.Transaction)
+	consumedEvents := mockEventConsumer.WaitForConsumedEvents(1)
+	assert.Equal(t, 1, len(consumedEvents))
+	assert.Equal(t, "nwc_payment_sent", consumedEvents[0].Event)
+	settledTransaction := consumedEvents[0].Properties.(*db.Transaction)
 	assert.Equal(t, transaction, settledTransaction)
 }
+func TestSendKeysend_FailedRemovesFeeReserve(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	svc.LNClient.(*tests.MockLn).PayKeysendErrors = append(svc.LNClient.(*tests.MockLn).PayKeysendErrors, errors.New("Some error"))
+	svc.LNClient.(*tests.MockLn).PayKeysendResponses = append(svc.LNClient.(*tests.MockLn).PayKeysendResponses, nil)
+
+	mockEventConsumer := tests.NewMockEventConsumer()
+	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+	transaction, err := transactionsService.SendKeysend(uint64(1000), "fake destination", nil, "", svc.LNClient, nil, nil)
+
+	assert.Error(t, err)
+	assert.Nil(t, transaction)
+
+	failedTransaction := db.Transaction{}
+	require.NoError(t, svc.DB.Where("type = ? AND state = ?", constants.TRANSACTION_TYPE_OUTGOING, constants.TRANSACTION_STATE_FAILED).First(&failedTransaction).Error)
+
+	assert.Equal(t, uint64(1000), failedTransaction.AmountMsat)
+	assert.Zero(t, failedTransaction.FeeReserveMsat)
+	assert.Equal(t, "Some error", failedTransaction.FailureReason)
+
+	consumedEvents := mockEventConsumer.WaitForConsumedEvents(1)
+	assert.Equal(t, 1, len(consumedEvents))
+	assert.Equal(t, "nwc_payment_failed", consumedEvents[0].Event)
+}
+
 func TestSendKeysend_CustomPreimage(t *testing.T) {
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
@@ -161,11 +192,12 @@ func TestSendKeysend_App_BudgetExceeded(t *testing.T) {
 	assert.ErrorIs(t, err, NewQuotaExceededError())
 	assert.Nil(t, transaction)
 
-	assert.Equal(t, 1, len(mockEventConsumer.GetConsumedEvents()))
-	assert.Equal(t, "nwc_permission_denied", mockEventConsumer.GetConsumedEvents()[0].Event)
-	assert.Equal(t, app.Name, mockEventConsumer.GetConsumedEvents()[0].Properties.(map[string]interface{})["app_name"])
-	assert.Equal(t, constants.ERROR_QUOTA_EXCEEDED, mockEventConsumer.GetConsumedEvents()[0].Properties.(map[string]interface{})["code"])
-	assert.Equal(t, NewQuotaExceededError().Error(), mockEventConsumer.GetConsumedEvents()[0].Properties.(map[string]interface{})["message"])
+	consumedEvents := mockEventConsumer.WaitForConsumedEvents(1)
+	assert.Equal(t, 1, len(consumedEvents))
+	assert.Equal(t, "nwc_permission_denied", consumedEvents[0].Event)
+	assert.Equal(t, app.Name, consumedEvents[0].Properties.(map[string]interface{})["app_name"])
+	assert.Equal(t, constants.ERROR_QUOTA_EXCEEDED, consumedEvents[0].Properties.(map[string]interface{})["code"])
+	assert.Equal(t, NewQuotaExceededError().Error(), consumedEvents[0].Properties.(map[string]interface{})["message"])
 }
 func TestSendKeysend_App_BudgetNotExceeded(t *testing.T) {
 	svc, err := tests.CreateTestService(t)
@@ -501,13 +533,20 @@ func TestSendKeysend_IsolatedAppToIsolatedApp(t *testing.T) {
 	assert.Equal(t, int64(123000), balanceMsat)
 
 	// check notifications
-	assert.Equal(t, 2, len(mockEventConsumer.GetConsumedEvents()))
+	consumedEvents := mockEventConsumer.WaitForConsumedEvents(2)
+	assert.Equal(t, 2, len(consumedEvents))
 
-	assert.Equal(t, "nwc_payment_sent", mockEventConsumer.GetConsumedEvents()[1].Event)
-	settledTransaction := mockEventConsumer.GetConsumedEvents()[1].Properties.(*db.Transaction)
+	// we can't guarantee which notification was processed first because events are published async
+	// so swap them if they are back to front
+	if consumedEvents[1].Event == "nwc_payment_received" {
+		consumedEvents[0], consumedEvents[1] = consumedEvents[1], consumedEvents[0]
+	}
+
+	assert.Equal(t, "nwc_payment_sent", consumedEvents[1].Event)
+	settledTransaction := consumedEvents[1].Properties.(*db.Transaction)
 	assert.Equal(t, transaction.ID, settledTransaction.ID)
 
-	assert.Equal(t, "nwc_payment_received", mockEventConsumer.GetConsumedEvents()[0].Event)
-	receivedTransaction := mockEventConsumer.GetConsumedEvents()[0].Properties.(*db.Transaction)
+	assert.Equal(t, "nwc_payment_received", consumedEvents[0].Event)
+	receivedTransaction := consumedEvents[0].Properties.(*db.Transaction)
 	assert.Equal(t, incomingTransaction.ID, receivedTransaction.ID)
 }

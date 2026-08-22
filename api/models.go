@@ -43,10 +43,10 @@ type API interface {
 	SignMessage(ctx context.Context, message string) (*SignMessageResponse, error)
 	RedeemOnchainFunds(ctx context.Context, toAddress string, amountSat uint64, feeRate *uint64, sendAll bool) (*RedeemOnchainFundsResponse, error)
 	GetBalances(ctx context.Context) (*BalancesResponse, error)
-	ListTransactions(ctx context.Context, appId *uint, limit uint64, offset uint64) (*ListTransactionsResponse, error)
+	ListTransactions(ctx context.Context, appId *uint, limit uint64, offset uint64, filters ListTransactionsFilters) (*ListTransactionsResponse, error)
 	ListOnchainTransactions(ctx context.Context) ([]OnchainTransaction, error)
 	SendPayment(ctx context.Context, invoice string, amountMsat *uint64, metadata map[string]interface{}, fromAppId *uint) (*SendPaymentResponse, error)
-	CreateInvoice(ctx context.Context, amountMsat uint64, description string) (*MakeInvoiceResponse, error)
+	CreateInvoice(ctx context.Context, amountMsat uint64, description string, toAppId *uint) (*MakeInvoiceResponse, error)
 	LookupInvoice(ctx context.Context, paymentHash string) (*LookupInvoiceResponse, error)
 	SetTransactionUserLabels(ctx context.Context, id uint, labels map[string]string) error
 	RequestMempoolApi(ctx context.Context, endpoint string) (interface{}, error)
@@ -322,7 +322,9 @@ type InfoResponse struct {
 	Network                       string              `json:"network"`
 	EnableAdvancedSetup           bool                `json:"enableAdvancedSetup"`
 	LdkVssEnabled                 bool                `json:"ldkVssEnabled"`
+	LdkVssUrl                     string              `json:"ldkVssUrl"`
 	VssSupported                  bool                `json:"vssSupported"`
+	DatabaseType                  string              `json:"databaseType"`
 	StartupState                  string              `json:"startupState"`
 	StartupError                  string              `json:"startupError"`
 	StartupErrorTime              time.Time           `json:"startupErrorTime"`
@@ -341,6 +343,7 @@ type InfoResponse struct {
 	JitChannelsEnabled            bool                `json:"jitChannelsEnabled"`
 	HideUpdateBanner              bool                `json:"hideUpdateBanner"`
 	SupportsBolt12                bool                `json:"supportsBolt12"`
+	NodeMigrationFileCreated      bool                `json:"nodeMigrationFileCreated"`
 }
 
 type UpdateSettingsRequest struct {
@@ -502,6 +505,13 @@ type SetTransactionUserLabelsRequest struct {
 	Labels map[string]string `json:"labels"`
 }
 
+type ListTransactionsFilters struct {
+	Type          *string
+	MinAmountMsat *uint64
+	HideFailed    bool
+	SearchTerm    string
+}
+
 type ListTransactionsResponse struct {
 	TotalCount   uint64        `json:"totalCount"`
 	Transactions []Transaction `json:"transactions"`
@@ -591,6 +601,7 @@ type MakeInvoiceRequest struct {
 	AmountSat   *uint64 `json:"amountSat"`
 	AmountMsat  *uint64 `json:"amountMsat"`
 	Description string  `json:"description"`
+	ToAppID     *uint   `json:"toAppId"`
 }
 
 type ResetRouterRequest struct {

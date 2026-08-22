@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -38,7 +39,7 @@ type TransactionsService interface {
 	events.EventSubscriber
 	MakeInvoice(ctx context.Context, amountMsat uint64, description string, descriptionHash string, expiry uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint, throughNodePubkey *string) (*Transaction, error)
 	LookupTransaction(ctx context.Context, paymentHash string, transactionType *string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error)
-	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool) (transactions []Transaction, totalCount uint64, err error)
+	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool, filters *ListTransactionsFilters) (transactions []Transaction, totalCount uint64, err error)
 	SendPaymentSync(payReq string, amountMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	SendKeysend(amountMsat uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	MakeHoldInvoice(ctx context.Context, amountMsat uint64, description string, descriptionHash string, expiry uint64, paymentHash string, minCltvExpiryDelta *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
@@ -59,6 +60,27 @@ const (
 var balanceValidationLock = &sync.Mutex{}
 
 type Transaction = db.Transaction
+
+type ListTransactionsFilters struct {
+	Type          *string
+	MinAmountMsat *uint64
+	HideFailed    bool
+	SearchTerm    string
+}
+
+var paymentHashRegex = regexp.MustCompile("^[0-9a-f]{64}$")
+
+// escapeLikePattern makes a string match literally in a LIKE ... ESCAPE '\'
+// clause by escaping the wildcard characters % and _. This is not an SQL
+// injection concern (search terms are always passed as bound parameters);
+// without it a term like "50%" would behave as a wildcard pattern.
+// The backslash must be escaped first.
+func escapeLikePattern(s string) string {
+	s = strings.ReplaceAll(s, `\`, `\\`)
+	s = strings.ReplaceAll(s, "%", `\%`)
+	s = strings.ReplaceAll(s, "_", `\_`)
+	return s
+}
 
 type Boostagram struct {
 	AppName        string         `json:"app_name"`
@@ -314,7 +336,11 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 	selfPayment := false
 	var incomingTransaction db.Transaction
 	result := svc.db.Limit(1).Find(&incomingTransaction, &db.Transaction{
-		Type:           constants.TRANSACTION_TYPE_INCOMING,
+		Type: constants.TRANSACTION_TYPE_INCOMING,
+		// NOTE: filter by payment hash so the payment hash index is used,
+		// but also match the payment request as wrapped invoices share
+		// the same hash but have different payment requests
+		PaymentHash:    paymentRequest.PaymentHash,
 		PaymentRequest: payReq,
 	})
 	if result.Error == nil && result.RowsAffected > 0 {
@@ -335,18 +361,26 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 			var existingSettledTransaction db.Transaction
 			if tx.Limit(1).Find(&existingSettledTransaction, &db.Transaction{
 				Type:           constants.TRANSACTION_TYPE_OUTGOING,
+				PaymentHash:    paymentRequest.PaymentHash,
 				PaymentRequest: payReq,
 				State:          constants.TRANSACTION_STATE_SETTLED,
 			}).RowsAffected > 0 {
-				logger.Logger.WithField("payment_request", dbTransaction.PaymentRequest).Debug("this invoice has already been paid")
+				logger.Logger.WithFields(logrus.Fields{
+					"payment_request": payReq,
+					"payment_hash":    paymentRequest.PaymentHash,
+				}).Debug("this invoice has already been paid")
 				return errors.New("this invoice has already been paid")
 			}
 			if tx.Limit(1).Find(&existingSettledTransaction, &db.Transaction{
 				Type:           constants.TRANSACTION_TYPE_OUTGOING,
+				PaymentHash:    paymentRequest.PaymentHash,
 				PaymentRequest: payReq,
 				State:          constants.TRANSACTION_STATE_PENDING,
 			}).RowsAffected > 0 {
-				logger.Logger.WithField("payment_request", dbTransaction.PaymentRequest).Debug("this invoice is already being paid")
+				logger.Logger.WithFields(logrus.Fields{
+					"payment_request": payReq,
+					"payment_hash":    paymentRequest.PaymentHash,
+				}).Debug("this invoice is already being paid")
 				return errors.New("there is already a payment pending for this invoice")
 			}
 
@@ -410,19 +444,17 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 			"bolt11": payReq,
 		}).WithError(err).Error("Failed to send payment")
 
-		svc.db.Transaction(func(tx *gorm.DB) error {
-			return svc.markPaymentFailed(tx, &dbTransaction, err.Error())
-		})
+		if _, markFailedErr := svc.markPaymentFailed(&dbTransaction, err.Error()); markFailedErr != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"bolt11": payReq,
+			}).WithError(markFailedErr).Error("Failed to mark payment as failed")
+		}
 
 		return nil, err
 	}
 
 	// the payment definitely succeeded
-	var settledTransaction *db.Transaction
-	err = svc.db.Transaction(func(tx *gorm.DB) error {
-		settledTransaction, err = svc.markTransactionSettled(tx, &dbTransaction, response.Preimage, response.FeeMsat, selfPayment)
-		return err
-	})
+	settledTransaction, err := svc.markTransactionSettled(&dbTransaction, response.Preimage, response.FeeMsat, selfPayment)
 	if err != nil {
 		return nil, err
 	}
@@ -545,27 +577,18 @@ func (svc *transactionsService) SendKeysend(amountMsat uint64, destination strin
 			"amount_msat": amountMsat,
 		}).WithError(err).Error("Failed to send payment")
 
-		dbErr := svc.db.Model(&dbTransaction).Updates(&db.Transaction{
-			PaymentHash: paymentHash,
-			State:       constants.TRANSACTION_STATE_FAILED,
-		}).Error
-		if dbErr != nil {
+		if _, markFailedErr := svc.markPaymentFailed(&dbTransaction, err.Error()); markFailedErr != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"destination": destination,
 				"amount_msat": amountMsat,
-			}).WithError(dbErr).Error("Failed to update DB transaction")
+			}).WithError(markFailedErr).Error("Failed to mark payment as failed")
 		}
 
 		return nil, err
 	}
 
 	// the payment definitely succeeded
-	var settledTransaction *db.Transaction
-	err = svc.db.Transaction(func(tx *gorm.DB) error {
-		settledTransaction, err = svc.markTransactionSettled(tx, &dbTransaction, preimage, payKeysendResponse.FeeMsat, selfPayment)
-		return err
-	})
-
+	settledTransaction, err := svc.markTransactionSettled(&dbTransaction, preimage, payKeysendResponse.FeeMsat, selfPayment)
 	if err != nil {
 		return nil, err
 	}
@@ -628,7 +651,7 @@ func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHa
 	return &transaction, nil
 }
 
-func (svc *transactionsService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool) (transactions []Transaction, totalCount uint64, err error) {
+func (svc *transactionsService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool, filters *ListTransactionsFilters) (transactions []Transaction, totalCount uint64, err error) {
 	svc.checkUnsettledTransactions(ctx, lnClient)
 
 	var isIsolatedApp bool
@@ -660,8 +683,40 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 		tx = tx.Where("state = ? OR type = ?", constants.TRANSACTION_STATE_SETTLED, constants.TRANSACTION_TYPE_INCOMING)
 	}
 
-	if transactionType != nil {
-		tx = tx.Where("type = ?", *transactionType)
+	if filters != nil {
+		if filters.Type != nil {
+			tx = tx.Where("type = ?", *filters.Type)
+		}
+		if filters.MinAmountMsat != nil {
+			tx = tx.Where("amount_msat >= ?", *filters.MinAmountMsat)
+		}
+		if filters.HideFailed {
+			tx = tx.Where("state != ?", constants.TRANSACTION_STATE_FAILED)
+		}
+		if searchTerm := strings.ToLower(strings.TrimSpace(filters.SearchTerm)); searchTerm != "" {
+			likePattern := "%" + escapeLikePattern(searchTerm) + "%"
+			labelsCondition := `EXISTS (SELECT 1 FROM json_each(transactions.metadata, '$.user_labels') AS user_labels WHERE LOWER(user_labels.key) LIKE ? ESCAPE '\' OR LOWER(user_labels.value) LIKE ? ESCAPE '\')`
+			if svc.db.Dialector.Name() == "postgres" {
+				labelsCondition = `EXISTS (SELECT 1 FROM jsonb_each_text((transactions.metadata->'user_labels')::jsonb) AS user_labels WHERE LOWER(user_labels.key) LIKE ? ESCAPE '\' OR LOWER(user_labels.value) LIKE ? ESCAPE '\')`
+			}
+			conditions := `LOWER(description) LIKE ? ESCAPE '\' OR ` + labelsCondition
+			args := []interface{}{likePattern, likePattern, likePattern}
+
+			paymentHash := ""
+			if paymentHashRegex.MatchString(searchTerm) {
+				paymentHash = searchTerm
+			} else if strings.HasPrefix(searchTerm, "ln") {
+				if paymentRequest, err := decodepay.Decodepay(searchTerm); err == nil {
+					paymentHash = strings.ToLower(paymentRequest.PaymentHash)
+				}
+			}
+			if paymentHash != "" {
+				conditions += " OR payment_hash = ?"
+				args = append(args, paymentHash)
+			}
+
+			tx = tx.Where(conditions, args...)
+		}
 	}
 
 	if from > 0 {
@@ -729,11 +784,7 @@ func (svc *transactionsService) checkUnsettledTransaction(ctx context.Context, t
 	}
 	// update transaction state
 	if lnClientTransaction.SettledAt != nil {
-		err = svc.db.Transaction(func(tx *gorm.DB) error {
-			_, err = svc.markTransactionSettled(tx, transaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaidMsat), false)
-			return err
-		})
-
+		_, err = svc.markTransactionSettled(transaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaidMsat), false)
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to mark payment sent when checking unsettled transaction")
 		}
@@ -750,71 +801,70 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 		}
 
 		var dbTransaction db.Transaction
-		err := svc.db.Transaction(func(tx *gorm.DB) error {
-
-			result := tx.Limit(1).Find(&dbTransaction, &db.Transaction{
-				Type:        constants.TRANSACTION_TYPE_INCOMING,
-				PaymentHash: lnClientTransaction.PaymentHash,
-			})
-
-			if result.RowsAffected == 0 {
-				var appId *uint
-				description := lnClientTransaction.Description
-				var metadataBytes []byte
-				var boostagramBytes []byte
-				if lnClientTransaction.Metadata != nil {
-					var err error
-					metadataBytes, err = json.Marshal(lnClientTransaction.Metadata)
-					if err != nil {
-						logger.Logger.WithError(err).Error("Failed to serialize transaction metadata")
-						return err
-					}
-
-					var customRecords []lnclient.TLVRecord
-					customRecords, _ = lnClientTransaction.Metadata["tlv_records"].([]lnclient.TLVRecord)
-					boostagramBytes = svc.getBoostagramBytesFromCustomRecords(customRecords)
-					extractedDescription := svc.getDescriptionFromCustomRecords(customRecords)
-					if extractedDescription != "" {
-						description = extractedDescription
-					}
-					// find app by custom key/value records
-					appId = svc.getAppIdFromCustomRecords(customRecords, tx)
-				}
-				var expiresAt *time.Time
-				if lnClientTransaction.ExpiresAt != nil {
-					expiresAtValue := time.Unix(*lnClientTransaction.ExpiresAt, 0)
-					expiresAt = &expiresAtValue
-				}
-				dbTransaction = db.Transaction{
-					Type:            constants.TRANSACTION_TYPE_INCOMING,
-					AmountMsat:      uint64(lnClientTransaction.AmountMsat),
-					PaymentRequest:  lnClientTransaction.Invoice,
-					PaymentHash:     lnClientTransaction.PaymentHash,
-					Description:     description,
-					DescriptionHash: lnClientTransaction.DescriptionHash,
-					ExpiresAt:       expiresAt,
-					Metadata:        datatypes.JSON(metadataBytes),
-					Boostagram:      datatypes.JSON(boostagramBytes),
-					AppId:           appId,
-				}
-				err := tx.Create(&dbTransaction).Error
-				if err != nil {
-					logger.Logger.WithFields(logrus.Fields{
-						"payment_hash": lnClientTransaction.PaymentHash,
-					}).WithError(err).Error("Failed to create transaction")
-					return err
-				}
-			}
-
-			_, err := svc.markTransactionSettled(tx, &dbTransaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaidMsat), false)
-			return err
+		result := svc.db.Limit(1).Find(&dbTransaction, &db.Transaction{
+			Type:        constants.TRANSACTION_TYPE_INCOMING,
+			PaymentHash: lnClientTransaction.PaymentHash,
 		})
 
-		if err != nil {
+		if result.Error != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"payment_hash": lnClientTransaction.PaymentHash,
-			}).WithError(err).Error("Failed to execute DB transaction")
+			}).WithError(result.Error).Error("Failed to find transaction")
 			return
+		}
+
+		if result.RowsAffected == 0 {
+			var appId *uint
+			description := lnClientTransaction.Description
+			var metadataBytes []byte
+			var boostagramBytes []byte
+			if lnClientTransaction.Metadata != nil {
+				var err error
+				metadataBytes, err = json.Marshal(lnClientTransaction.Metadata)
+				if err != nil {
+					logger.Logger.WithError(err).Error("Failed to serialize transaction metadata")
+					return
+				}
+
+				var customRecords []lnclient.TLVRecord
+				customRecords, _ = lnClientTransaction.Metadata["tlv_records"].([]lnclient.TLVRecord)
+				boostagramBytes = svc.getBoostagramBytesFromCustomRecords(customRecords)
+				extractedDescription := svc.getDescriptionFromCustomRecords(customRecords)
+				if extractedDescription != "" {
+					description = extractedDescription
+				}
+				// find app by custom key/value records
+				appId = svc.getAppIdFromCustomRecords(customRecords, svc.db)
+			}
+			var expiresAt *time.Time
+			if lnClientTransaction.ExpiresAt != nil {
+				expiresAtValue := time.Unix(*lnClientTransaction.ExpiresAt, 0)
+				expiresAt = &expiresAtValue
+			}
+			dbTransaction = db.Transaction{
+				Type:            constants.TRANSACTION_TYPE_INCOMING,
+				AmountMsat:      uint64(lnClientTransaction.AmountMsat),
+				PaymentRequest:  lnClientTransaction.Invoice,
+				PaymentHash:     lnClientTransaction.PaymentHash,
+				Description:     description,
+				DescriptionHash: lnClientTransaction.DescriptionHash,
+				ExpiresAt:       expiresAt,
+				Metadata:        datatypes.JSON(metadataBytes),
+				Boostagram:      datatypes.JSON(boostagramBytes),
+				AppId:           appId,
+			}
+			if _, err := svc.createSettledTransactionFromNotification(&dbTransaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaidMsat), false); err != nil {
+				logger.Logger.WithFields(logrus.Fields{
+					"payment_hash": lnClientTransaction.PaymentHash,
+				}).WithError(err).Error("Failed to create settled transaction")
+			}
+			return
+		}
+
+		if _, err := svc.markTransactionSettled(&dbTransaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaidMsat), false); err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"payment_hash": lnClientTransaction.PaymentHash,
+			}).WithError(err).Error("Failed to mark transaction as settled")
 		}
 
 	case "nwc_lnclient_hold_invoice_accepted":
@@ -827,7 +877,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 			logger.Logger.WithField("event", event).Error("Transaction has no settle deadline")
 			return
 		}
-		svc.markHoldInvoiceAccepted(lnClientTransaction.Invoice, *lnClientTransaction.SettleDeadline, false)
+		svc.markHoldInvoiceAccepted(lnClientTransaction.Invoice, lnClientTransaction.PaymentHash, *lnClientTransaction.SettleDeadline, false)
 
 	case "nwc_lnclient_payment_sent":
 		lnClientTransaction, ok := event.Properties.(*lnclient.Transaction)
@@ -837,78 +887,79 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 		}
 
 		var dbTransaction db.Transaction
-		err := svc.db.Transaction(func(tx *gorm.DB) error {
 
-			// first lookup by pending
-			result := tx.Limit(1).Find(&dbTransaction, &db.Transaction{
+		// first lookup by pending
+		result := svc.db.Limit(1).Find(&dbTransaction, &db.Transaction{
+			Type:        constants.TRANSACTION_TYPE_OUTGOING,
+			State:       constants.TRANSACTION_STATE_PENDING,
+			PaymentHash: lnClientTransaction.PaymentHash,
+		})
+
+		if result.Error != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"payment_hash": lnClientTransaction.PaymentHash,
+			}).WithError(result.Error).Error("Failed to find transaction")
+			return
+		}
+
+		if result.RowsAffected == 0 {
+			// if no pending payment was found, lookup by failed, latest updated first
+			result := svc.db.Limit(1).Order("updated_at DESC").Find(&dbTransaction, &db.Transaction{
 				Type:        constants.TRANSACTION_TYPE_OUTGOING,
-				State:       constants.TRANSACTION_STATE_PENDING,
+				State:       constants.TRANSACTION_STATE_FAILED,
 				PaymentHash: lnClientTransaction.PaymentHash,
 			})
 
 			if result.Error != nil {
-				return result.Error
+				logger.Logger.WithFields(logrus.Fields{
+					"payment_hash": lnClientTransaction.PaymentHash,
+				}).WithError(result.Error).Error("Failed to find transaction")
+				return
 			}
 
 			if result.RowsAffected == 0 {
-				// if no pending payment was found, lookup by failed, latest updated first
-				result := tx.Limit(1).Order("updated_at DESC").Find(&dbTransaction, &db.Transaction{
+				result := svc.db.Limit(1).Find(&dbTransaction, &db.Transaction{
 					Type:        constants.TRANSACTION_TYPE_OUTGOING,
-					State:       constants.TRANSACTION_STATE_FAILED,
 					PaymentHash: lnClientTransaction.PaymentHash,
 				})
 
 				if result.Error != nil {
-					return result.Error
+					logger.Logger.WithFields(logrus.Fields{
+						"payment_hash": lnClientTransaction.PaymentHash,
+					}).WithError(result.Error).Error("Failed to find transaction")
+					return
 				}
 
 				if result.RowsAffected == 0 {
-					result := tx.Limit(1).Find(&dbTransaction, &db.Transaction{
-						Type:        constants.TRANSACTION_TYPE_OUTGOING,
-						PaymentHash: lnClientTransaction.PaymentHash,
-					})
-
-					if result.Error != nil {
-						return result.Error
+					dbTransaction = db.Transaction{
+						Type:            constants.TRANSACTION_TYPE_OUTGOING,
+						AmountMsat:      uint64(lnClientTransaction.AmountMsat),
+						FeeReserveMsat:  0,
+						PaymentRequest:  lnClientTransaction.Invoice,
+						PaymentHash:     lnClientTransaction.PaymentHash,
+						Description:     lnClientTransaction.Description,
+						DescriptionHash: lnClientTransaction.DescriptionHash,
 					}
 
-					if result.RowsAffected == 0 {
-						dbTransaction = db.Transaction{
-							Type:            constants.TRANSACTION_TYPE_OUTGOING,
-							State:           constants.TRANSACTION_STATE_PENDING,
-							AmountMsat:      uint64(lnClientTransaction.AmountMsat),
-							FeeReserveMsat:  0,
-							PaymentRequest:  lnClientTransaction.Invoice,
-							PaymentHash:     lnClientTransaction.PaymentHash,
-							Description:     lnClientTransaction.Description,
-							DescriptionHash: lnClientTransaction.DescriptionHash,
-						}
-
-						if lnClientTransaction.ExpiresAt != nil {
-							expiresAtValue := time.Unix(*lnClientTransaction.ExpiresAt, 0)
-							dbTransaction.ExpiresAt = &expiresAtValue
-						}
-
-						err := tx.Create(&dbTransaction).Error
-						if err != nil {
-							logger.Logger.WithFields(logrus.Fields{
-								"payment_hash": lnClientTransaction.PaymentHash,
-							}).WithError(err).Error("Failed to create outgoing transaction")
-							return err
-						}
+					if lnClientTransaction.ExpiresAt != nil {
+						expiresAtValue := time.Unix(*lnClientTransaction.ExpiresAt, 0)
+						dbTransaction.ExpiresAt = &expiresAtValue
 					}
+
+					if _, err := svc.createSettledTransactionFromNotification(&dbTransaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaidMsat), false); err != nil {
+						logger.Logger.WithFields(logrus.Fields{
+							"payment_hash": lnClientTransaction.PaymentHash,
+						}).WithError(err).Error("Failed to create settled transaction")
+					}
+					return
 				}
 			}
+		}
 
-			_, err := svc.markTransactionSettled(tx, &dbTransaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaidMsat), false)
-			return err
-		})
-
-		if err != nil {
+		if _, err := svc.markTransactionSettled(&dbTransaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaidMsat), false); err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"payment_hash": lnClientTransaction.PaymentHash,
 			}).WithError(err).Error("Failed to update transaction")
-			return
 		}
 	case "nwc_lnclient_payment_failed":
 		paymentFailedAsyncProperties, ok := event.Properties.(*lnclient.PaymentFailedEventProperties)
@@ -931,29 +982,36 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 			return
 		}
 
-		svc.db.Transaction(func(tx *gorm.DB) error {
-			return svc.markPaymentFailed(tx, &dbTransaction, paymentFailedAsyncProperties.Reason)
-		})
+		if _, err := svc.markPaymentFailed(&dbTransaction, paymentFailedAsyncProperties.Reason); err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"payment_hash": lnClientTransaction.PaymentHash,
+			}).WithError(err).Error("Failed to mark payment as failed")
+		}
 	}
 }
 
-func (svc *transactionsService) markHoldInvoiceAccepted(paymentRequest string, settleDeadline uint32, selfPayment bool) {
+func (svc *transactionsService) markHoldInvoiceAccepted(paymentRequest string, paymentHash string, settleDeadline uint32, selfPayment bool) {
 	logger.Logger.WithFields(logrus.Fields{
 		"payment_request": paymentRequest,
+		"payment_hash":    paymentHash,
 		"self_payment":    selfPayment,
 	}).Info("Processing hold invoice accepted event")
 
 	var dbTransaction db.Transaction
 	err := svc.db.Transaction(func(tx *gorm.DB) error {
-		result := tx.Where("payment_request = ? AND type = ? AND state = ?", paymentRequest, constants.TRANSACTION_TYPE_INCOMING, constants.TRANSACTION_STATE_PENDING).First(&dbTransaction)
+		// NOTE: filter by payment hash so the payment hash index is used,
+		// but also match the payment request as wrapped invoices share the same hash
+		result := tx.Where("payment_hash = ? AND payment_request = ? AND type = ? AND state = ?", paymentHash, paymentRequest, constants.TRANSACTION_TYPE_INCOMING, constants.TRANSACTION_STATE_PENDING).First(&dbTransaction)
 		if result.Error != nil {
 			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 				logger.Logger.WithFields(logrus.Fields{
 					"payment_request": paymentRequest,
+					"payment_hash":    paymentHash,
 				}).Warn("No corresponding pending incoming transaction found in DB for accepted hold invoice")
 			}
 			logger.Logger.WithFields(logrus.Fields{
 				"payment_request": paymentRequest,
+				"payment_hash":    paymentHash,
 			}).WithError(result.Error).Error("Failed to query DB for accepted hold invoice")
 			return result.Error
 		}
@@ -966,6 +1024,7 @@ func (svc *transactionsService) markHoldInvoiceAccepted(paymentRequest string, s
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"payment_request": paymentRequest,
+				"payment_hash":    paymentHash,
 				"id":              dbTransaction.ID,
 			}).WithError(err).Error("Failed to update hold invoice state to accepted in DB")
 			return err
@@ -973,6 +1032,7 @@ func (svc *transactionsService) markHoldInvoiceAccepted(paymentRequest string, s
 
 		logger.Logger.WithFields(logrus.Fields{
 			"payment_request": paymentRequest,
+			"payment_hash":    paymentHash,
 			"id":              dbTransaction.ID,
 		}).Info("Updated hold invoice state to accepted in DB")
 
@@ -981,6 +1041,7 @@ func (svc *transactionsService) markHoldInvoiceAccepted(paymentRequest string, s
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"payment_request": paymentRequest,
+			"payment_hash":    paymentHash,
 			"id":              dbTransaction.ID,
 		}).WithError(err).Error("Failed DB transaction for hold invoice accepted event")
 	} else {
@@ -1013,18 +1074,14 @@ func (svc *transactionsService) interceptSelfPayment(paymentRequest string, paym
 	}
 
 	if incomingTransaction.Hold {
-		return svc.interceptSelfHoldPayment(paymentRequest, lnClient)
+		return svc.interceptSelfHoldPayment(paymentRequest, paymentHash, lnClient)
 	}
 
 	if incomingTransaction.Preimage == nil {
 		return nil, errors.New("preimage is not set on transaction. Self payments not supported")
 	}
 
-	err := svc.db.Transaction(func(tx *gorm.DB) error {
-		_, err := svc.markTransactionSettled(tx, &incomingTransaction, *incomingTransaction.Preimage, uint64(0), true)
-		return err
-	})
-
+	_, err := svc.markTransactionSettled(&incomingTransaction, *incomingTransaction.Preimage, uint64(0), true)
 	if err != nil {
 		return nil, err
 	}
@@ -1035,7 +1092,7 @@ func (svc *transactionsService) interceptSelfPayment(paymentRequest string, paym
 	}, nil
 }
 
-func (svc *transactionsService) interceptSelfHoldPayment(paymentRequest string, lnClient lnclient.LNClient) (*lnclient.PayInvoiceResponse, error) {
+func (svc *transactionsService) interceptSelfHoldPayment(paymentRequest string, paymentHash string, lnClient lnclient.LNClient) (*lnclient.PayInvoiceResponse, error) {
 	settledChannel := make(chan *db.Transaction)
 	canceledChannel := make(chan *db.Transaction)
 
@@ -1054,7 +1111,7 @@ func (svc *transactionsService) interceptSelfHoldPayment(paymentRequest string, 
 
 	fakeSettleDeadline := clientInfo.BlockHeight + 24
 
-	svc.markHoldInvoiceAccepted(paymentRequest, fakeSettleDeadline, true)
+	svc.markHoldInvoiceAccepted(paymentRequest, paymentHash, fakeSettleDeadline, true)
 
 	select {
 	case settledTransaction := <-settledChannel:
@@ -1282,18 +1339,12 @@ func (svc *transactionsService) SettleHoldInvoice(ctx context.Context, preimage 
 		return nil, err
 	}
 
-	var settledTransaction *db.Transaction
-	err = svc.db.Transaction(func(tx *gorm.DB) error {
-		var err error
-		settledTransaction, err = svc.markTransactionSettled(tx, &dbTransaction, preimage, 0, dbTransaction.SelfPayment)
-		return err
-	})
-
+	settledTransaction, err := svc.markTransactionSettled(&dbTransaction, preimage, 0, dbTransaction.SelfPayment)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"payment_hash": paymentHash,
 			"preimage":     preimage,
-		}).WithError(err).Error("Failed DB transaction while settling hold invoice")
+		}).WithError(err).Error("Failed to mark hold invoice as settled")
 		return nil, err
 	}
 
@@ -1325,35 +1376,21 @@ func (svc *transactionsService) CancelHoldInvoice(ctx context.Context, paymentHa
 		}
 	}
 
-	err := svc.db.Transaction(func(tx *gorm.DB) error {
-		var dbTransaction db.Transaction
-		result := tx.Limit(1).Find(&dbTransaction, &db.Transaction{
-			Type:        constants.TRANSACTION_TYPE_INCOMING,
-			State:       constants.TRANSACTION_STATE_ACCEPTED,
-			PaymentHash: paymentHash,
-		})
-
-		if result.Error != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"payment_hash": paymentHash,
-			}).WithError(result.Error).Error("Failed to find accepted hold invoice in DB for cancellation")
-			return result.Error
-		}
-		if result.RowsAffected == 0 {
-			logger.Logger.WithFields(logrus.Fields{
-				"payment_hash": paymentHash,
-			}).Warn("No accepted hold invoice found in DB to mark as failed due to cancellation")
-			return NewNotFoundError()
-		}
-
-		return svc.markPaymentFailed(tx, &dbTransaction, "Hold invoice was cancelled")
-	})
-
+	markedFailed, err := svc.markPaymentFailed(&dbTransaction, "Hold invoice was cancelled")
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"payment_hash": paymentHash,
-		}).WithError(err).Error("Failed DB transaction while canceling hold invoice")
+		}).WithError(err).Error("Failed to mark hold invoice as failed due to cancellation")
 		return err
+	}
+
+	if !markedFailed {
+		// a concurrent cancellation already marked the invoice as failed and
+		// published the canceled event
+		logger.Logger.WithFields(logrus.Fields{
+			"payment_hash": paymentHash,
+		}).Info("Hold invoice was already marked as failed")
+		return nil
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
@@ -1427,61 +1464,171 @@ func (svc *transactionsService) SetTransactionUserLabels(ctx context.Context, id
 	return svc.SetTransactionMetadata(ctx, id, metadata)
 }
 
-func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransaction *db.Transaction, preimage string, feeMsat uint64, selfPayment bool) (*db.Transaction, error) {
+// markTransactionSettled marks an existing transaction as settled in its own
+// database transaction and publishes the corresponding events after it
+// commits, so subscribers never observe uncommitted state.
+func (svc *transactionsService) markTransactionSettled(dbTransaction *db.Transaction, preimage string, feeMsat uint64, selfPayment bool) (*db.Transaction, error) {
 	if preimage == "" {
 		return nil, errors.New("no preimage in payment")
 	}
 
-	if tx.Dialector.Name() == "postgres" {
-		// lock based on payment hash to ensure we only mark one transaction as settled
-		// (in sqlite transactions are serializable by default)
-		transactionsWithPaymentHash := []db.Transaction{}
-		tx.Where(&db.Transaction{
-			PaymentHash: dbTransaction.PaymentHash,
-		}).Clauses(clause.Locking{Strength: "UPDATE"}).Find(&transactionsWithPaymentHash)
+	var settledTransaction *db.Transaction
+	var eventsToPublish []*events.Event
+	err := svc.db.Transaction(func(tx *gorm.DB) error {
+		existingSettledTransaction, err := svc.findSettledTransaction(tx, dbTransaction)
+		if err != nil {
+			return err
+		}
+		if existingSettledTransaction != nil {
+			logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Debug("payment already marked as sent")
+			settledTransaction = existingSettledTransaction
+			return nil
+		}
+
+		settledAt := time.Now()
+		err = tx.Model(dbTransaction).Updates(map[string]interface{}{
+			"State":          constants.TRANSACTION_STATE_SETTLED,
+			"Preimage":       &preimage,
+			"FeeMsat":        feeMsat,
+			"FeeReserveMsat": 0,
+			"SettledAt":      &settledAt,
+			"SelfPayment":    selfPayment,
+		}).Error
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"payment_hash": dbTransaction.PaymentHash,
+			}).WithError(err).Error("Failed to update DB transaction")
+			return err
+		}
+
+		logger.Logger.WithFields(logrus.Fields{
+			"payment_hash": dbTransaction.PaymentHash,
+			"type":         dbTransaction.Type,
+		}).Info("Marked transaction as settled")
+
+		settledTransaction = dbTransaction
+		eventsToPublish = svc.afterTransactionSettled(tx, dbTransaction, &settledAt)
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	svc.publishEvents(eventsToPublish)
+
+	return settledTransaction, nil
+}
+
+// createSettledTransactionFromNotification inserts a transaction directly in
+// its settled state, in its own database transaction, and publishes the
+// corresponding events after it commits. It is for the case where the
+// LNClient notifies us of a sent or received payment we didn't already know
+// about (e.g. if the LNClient is an external node, and the payment was made
+// or received outside of Alby Hub, or a received keysend, which has no
+// invoice created upfront).
+func (svc *transactionsService) createSettledTransactionFromNotification(dbTransaction *db.Transaction, preimage string, feeMsat uint64, selfPayment bool) (*db.Transaction, error) {
+	if preimage == "" {
+		return nil, errors.New("no preimage in payment")
+	}
+
+	var settledTransaction *db.Transaction
+	var eventsToPublish []*events.Event
+	err := svc.db.Transaction(func(tx *gorm.DB) error {
+		existingSettledTransaction, err := svc.findSettledTransaction(tx, dbTransaction)
+		if err != nil {
+			return err
+		}
+		if existingSettledTransaction != nil {
+			logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Debug("payment already marked as settled")
+			settledTransaction = existingSettledTransaction
+			return nil
+		}
+
+		settledAt := time.Now()
+		dbTransaction.State = constants.TRANSACTION_STATE_SETTLED
+		dbTransaction.Preimage = &preimage
+		dbTransaction.FeeMsat = feeMsat
+		dbTransaction.FeeReserveMsat = 0
+		dbTransaction.SettledAt = &settledAt
+		dbTransaction.SelfPayment = selfPayment
+		if err := tx.Create(dbTransaction).Error; err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"payment_hash": dbTransaction.PaymentHash,
+			}).WithError(err).Error("Failed to create settled DB transaction")
+			return err
+		}
+
+		logger.Logger.WithFields(logrus.Fields{
+			"payment_hash": dbTransaction.PaymentHash,
+			"type":         dbTransaction.Type,
+		}).Info("Created settled transaction")
+
+		settledTransaction = dbTransaction
+		eventsToPublish = svc.afterTransactionSettled(tx, dbTransaction, &settledAt)
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	svc.publishEvents(eventsToPublish)
+
+	return settledTransaction, nil
+}
+
+// lockTransactionsByPaymentHash takes a row lock on all transactions with the
+// given payment hash on postgres, so that concurrent state changes for the
+// same payment serialize (in sqlite transactions are serializable by default).
+func (svc *transactionsService) lockTransactionsByPaymentHash(tx *gorm.DB, paymentHash string) error {
+	if tx.Dialector.Name() != "postgres" {
+		return nil
+	}
+	transactionsWithPaymentHash := []db.Transaction{}
+	err := tx.Where(&db.Transaction{
+		PaymentHash: paymentHash,
+	}).Clauses(clause.Locking{Strength: "UPDATE"}).Find(&transactionsWithPaymentHash).Error
+	if err != nil {
+		logger.Logger.WithField("payment_hash", paymentHash).WithError(err).Error("Failed to lock transactions by payment hash")
+	}
+	return err
+}
+
+// findSettledTransaction returns the already-settled transaction matching
+// dbTransaction if one exists, locking all transactions with the same payment
+// hash to ensure only one transaction is settled per payment.
+func (svc *transactionsService) findSettledTransaction(tx *gorm.DB, dbTransaction *db.Transaction) (*db.Transaction, error) {
+	if err := svc.lockTransactionsByPaymentHash(tx, dbTransaction.PaymentHash); err != nil {
+		return nil, err
 	}
 
 	var existingSettledTransaction db.Transaction
-	if tx.Limit(1).Find(&existingSettledTransaction, &db.Transaction{
+	result := tx.Limit(1).Find(&existingSettledTransaction, &db.Transaction{
 		Type:           dbTransaction.Type,
 		PaymentRequest: dbTransaction.PaymentRequest,
 		PaymentHash:    dbTransaction.PaymentHash,
 		State:          constants.TRANSACTION_STATE_SETTLED,
-	}).RowsAffected > 0 {
-		logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Debug("payment already marked as sent")
+	})
+	if result.Error != nil {
+		logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).WithError(result.Error).Error("Failed to check for existing settled transaction")
+		return nil, result.Error
+	}
+	if result.RowsAffected > 0 {
 		return &existingSettledTransaction, nil
 	}
+	return nil, nil
+}
 
-	settledAt := time.Now()
-	err := tx.Model(dbTransaction).Updates(map[string]interface{}{
-		"State":          constants.TRANSACTION_STATE_SETTLED,
-		"Preimage":       &preimage,
-		"FeeMsat":        feeMsat,
-		"FeeReserveMsat": 0,
-		"SettledAt":      &settledAt,
-		"SelfPayment":    selfPayment,
-	}).Error
-	if err != nil {
-		logger.Logger.WithFields(logrus.Fields{
-			"payment_hash": dbTransaction.PaymentHash,
-		}).WithError(err).Error("Failed to update DB transaction")
-		return nil, err
-	}
-
-	logger.Logger.WithFields(logrus.Fields{
-		"payment_hash": dbTransaction.PaymentHash,
-		"type":         dbTransaction.Type,
-	}).Info("Marked transaction as settled")
-
+// afterTransactionSettled runs the post-settlement side effects within the
+// caller's database transaction and returns the events to publish after it
+// commits.
+func (svc *transactionsService) afterTransactionSettled(tx *gorm.DB, dbTransaction *db.Transaction, settledAt *time.Time) []*events.Event {
 	event := "nwc_payment_sent"
 	if dbTransaction.Type == constants.TRANSACTION_TYPE_INCOMING {
 		event = "nwc_payment_received"
 	}
 
-	svc.eventPublisher.Publish(&events.Event{
+	eventsToPublish := []*events.Event{{
 		Event:      event,
 		Properties: dbTransaction,
-	})
+	}}
 
 	if dbTransaction.AppId != nil {
 		var app db.App
@@ -1490,17 +1637,25 @@ func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransactio
 		})
 		if result.RowsAffected == 0 {
 			logger.Logger.WithField("app_id", dbTransaction.AppId).Error("failed to find app by id")
-			return dbTransaction, nil
+			return eventsToPublish
 		}
 
-		svc.updateAppLastSettledTransactionAt(&app, tx, &settledAt)
+		svc.updateAppLastSettledTransactionAt(&app, tx, settledAt)
 
 		if dbTransaction.Type == constants.TRANSACTION_TYPE_OUTGOING {
-			svc.checkBudgetUsage(&app, dbTransaction, tx)
+			if budgetWarningEvent := svc.checkBudgetUsage(&app, dbTransaction, tx); budgetWarningEvent != nil {
+				eventsToPublish = append(eventsToPublish, budgetWarningEvent)
+			}
 		}
 	}
 
-	return dbTransaction, nil
+	return eventsToPublish
+}
+
+func (svc *transactionsService) publishEvents(eventsToPublish []*events.Event) {
+	for _, event := range eventsToPublish {
+		svc.eventPublisher.Publish(event)
+	}
 }
 
 func (svc *transactionsService) updateAppLastSettledTransactionAt(app *db.App, gormTransaction *gorm.DB, settledAt *time.Time) {
@@ -1510,9 +1665,11 @@ func (svc *transactionsService) updateAppLastSettledTransactionAt(app *db.App, g
 	}
 }
 
-func (svc *transactionsService) checkBudgetUsage(app *db.App, dbTransaction *db.Transaction, gormTransaction *gorm.DB) {
+// checkBudgetUsage returns a budget warning event to publish after the
+// caller's database transaction commits, or nil if no warning is due.
+func (svc *transactionsService) checkBudgetUsage(app *db.App, dbTransaction *db.Transaction, gormTransaction *gorm.DB) *events.Event {
 	if app.Isolated {
-		return
+		return nil
 	}
 
 	var appPermission db.AppPermission
@@ -1522,59 +1679,91 @@ func (svc *transactionsService) checkBudgetUsage(app *db.App, dbTransaction *db.
 	})
 	if result.RowsAffected == 0 {
 		logger.Logger.WithField("app_id", dbTransaction.AppId).Error("failed to find pay_invoice scope")
-		return
+		return nil
 	}
 
 	budgetUsageMsat, err := queries.GetBudgetUsageMsat(gormTransaction, &appPermission)
 	if err != nil {
 		logger.Logger.WithField("app_id", dbTransaction.AppId).WithError(err).Error("failed to get budget usage")
-		return
+		return nil
 	}
 	budgetUsageSat := budgetUsageMsat / 1000
 	warningUsage := uint64(math.Floor(float64(appPermission.MaxAmountSat) * 0.8))
 	if budgetUsageSat >= warningUsage && budgetUsageSat-dbTransaction.AmountMsat/1000 < warningUsage {
-		svc.eventPublisher.Publish(&events.Event{
+		return &events.Event{
 			Event: "nwc_budget_warning",
 			Properties: map[string]interface{}{
 				"name": app.Name,
 				"id":   app.ID,
 			},
-		})
+		}
 	}
+	return nil
 }
 
-func (svc *transactionsService) markPaymentFailed(tx *gorm.DB, dbTransaction *db.Transaction, reason string) error {
-	var existingTransaction db.Transaction
-	result := tx.Limit(1).Find(&existingTransaction, &db.Transaction{
-		ID: dbTransaction.ID,
-	})
+// markPaymentFailed marks the transaction as failed in its own database
+// transaction and publishes the failed event after it commits, so subscribers
+// never observe uncommitted state. It returns whether this call transitioned
+// the transaction to failed (false if it was already failed), and refuses to
+// mark a settled transaction as failed.
+func (svc *transactionsService) markPaymentFailed(dbTransaction *db.Transaction, reason string) (bool, error) {
+	markedFailed := false
+	var eventsToPublish []*events.Event
+	err := svc.db.Transaction(func(tx *gorm.DB) error {
+		// lock all transactions with the same payment hash so a concurrent
+		// settlement cannot slip in between the state check and the update
+		if err := svc.lockTransactionsByPaymentHash(tx, dbTransaction.PaymentHash); err != nil {
+			return err
+		}
 
-	if result.Error != nil {
-		logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).WithError(result.Error).Error("could not find transaction to mark as failed")
-		return result.Error
-	}
+		var existingTransaction db.Transaction
+		result := tx.Limit(1).Find(&existingTransaction, &db.Transaction{
+			ID: dbTransaction.ID,
+		})
 
-	if existingTransaction.State == constants.TRANSACTION_STATE_FAILED {
-		logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Info("payment already marked as failed")
+		if result.Error != nil {
+			logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).WithError(result.Error).Error("could not find transaction to mark as failed")
+			return result.Error
+		}
+
+		if result.RowsAffected == 0 {
+			logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Error("could not find transaction to mark as failed")
+			return NewNotFoundError()
+		}
+
+		if existingTransaction.State == constants.TRANSACTION_STATE_FAILED {
+			logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Info("payment already marked as failed")
+			return nil
+		}
+
+		if existingTransaction.State == constants.TRANSACTION_STATE_SETTLED {
+			logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Error("cannot mark settled payment as failed")
+			return errors.New("cannot mark settled payment as failed")
+		}
+
+		err := tx.Model(dbTransaction).Updates(map[string]interface{}{
+			"State":          constants.TRANSACTION_STATE_FAILED,
+			"FeeReserveMsat": 0,
+			"FailureReason":  reason,
+		}).Error
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"payment_hash": dbTransaction.PaymentHash,
+			}).WithError(err).Error("Failed to mark transaction as failed")
+			return err
+		}
+		logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Info("Marked transaction as failed")
+
+		markedFailed = true
+		eventsToPublish = append(eventsToPublish, &events.Event{
+			Event:      "nwc_payment_failed",
+			Properties: dbTransaction,
+		})
 		return nil
-	}
-
-	err := tx.Model(dbTransaction).Updates(map[string]interface{}{
-		"State":          constants.TRANSACTION_STATE_FAILED,
-		"FeeReserveMsat": 0,
-		"FailureReason":  reason,
-	}).Error
-	if err != nil {
-		logger.Logger.WithFields(logrus.Fields{
-			"payment_hash": dbTransaction.PaymentHash,
-		}).WithError(err).Error("Failed to mark transaction as failed")
-		return err
-	}
-	logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Info("Marked transaction as failed")
-
-	svc.eventPublisher.Publish(&events.Event{
-		Event:      "nwc_payment_failed",
-		Properties: dbTransaction,
 	})
-	return nil
+	if err != nil {
+		return false, err
+	}
+	svc.publishEvents(eventsToPublish)
+	return markedFailed, nil
 }

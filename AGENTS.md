@@ -88,6 +88,8 @@ go run cmd/http/main.go
 wails dev -tags "wails"
 ```
 
+**Wails versions must stay in sync:** the `github.com/wailsapp/wails/v2` version in `go.mod` and the Wails CLI version installed in `.github/workflows/wails.yml` (`go install ...cmd/wails@vX.Y.Z`) must match. When bumping one, always update the other — this is a common source of drift (e.g. via Dependabot updates to `go.mod` only).
+
 ## Testing
 
 ### Go Backend

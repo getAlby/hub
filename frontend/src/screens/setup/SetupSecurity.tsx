@@ -1,7 +1,7 @@
 import {
   ClockIcon,
   HandCoinsIcon,
-  HardDriveIcon,
+  InfoIcon,
   LandmarkIcon,
   ShieldAlertIcon,
   UnlockIcon,
@@ -14,6 +14,12 @@ import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
 import { Label } from "src/components/ui/label";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "src/components/ui/tooltip";
 import { useInfo } from "src/hooks/useInfo";
 import useSetupStore from "src/state/SetupStore";
 
@@ -71,19 +77,52 @@ export function SetupSecurity() {
               </div>
               <div className="flex gap-3 items-center">
                 <ClockIcon className="size-6 shrink-0" />
-                <span className="text-sm text-muted-foreground">
-                  Your funds will be refreshed periodically which will incur a
-                  small fee.
+                <span className="text-sm text-muted-foreground flex items-center justify-center gap-1">
+                  Your funds must be refreshed periodically{" "}
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger type="button">
+                        <InfoIcon className="size-4 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        Your virtual UTXOs (VTXOs) will be refreshed
+                        automatically to ensure you maintain ownership.
+                        Refreshes may incur a small fee. Keep your Alby Hub
+                        online so your funds do not expire.
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </span>
               </div>
               <div className="flex gap-3 items-center">
-                <HardDriveIcon className="size-6 shrink-0" />
-                <span className="text-sm text-muted-foreground">
-                  During beta, your funds{" "}
-                  <span className="underline">cannot</span> be recovered from
-                  your recovery phrase alone.
+                <ShieldAlertIcon className="size-6 shrink-0" />
+                <span className="text-sm text-muted-foreground flex items-center justify-center gap-1">
+                  Unilateral exit is not implemented in Alby Hub yet{" "}
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger type="button">
+                        <InfoIcon className="size-4 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        You will need to take your hub wallet data and execute
+                        the exit yourself.
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </span>
               </div>
+              <ExternalLink
+                className="text-muted-foreground flex items-center text-sm"
+                to="https://second.tech/terms"
+              >
+                <p>
+                  By using Bark you agree to{" "}
+                  <span className="font-semibold underline">
+                    Second&apos;s Terms of Service
+                  </span>
+                  .
+                </p>
+              </ExternalLink>
             </>
           )}
           <div className="flex gap-3 items-center">
@@ -110,7 +149,20 @@ export function SetupSecurity() {
                 choose the LDK node type.
               </span>
             </div>
-          ) : store.nodeInfo.backendType === "BARK" ? null : (
+          ) : store.hasImportedMnemonic &&
+            store.nodeInfo.backendType === "LDK" ? (
+            <div className="flex gap-3 items-center">
+              <div className="shrink-0">
+                <ShieldAlertIcon className="size-6" />
+              </div>
+              <span className="text-sm text-muted-foreground">
+                Your recovery phrase can only restore funds from lightning
+                channels if you have dynamic channel backups enabled. If you had
+                active channels on a different device, contact Alby support
+                before proceeding.
+              </span>
+            </div>
+          ) : (
             <div className="flex gap-3 items-center">
               <div className="shrink-0">
                 <ShieldAlertIcon className="size-6" />

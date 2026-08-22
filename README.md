@@ -14,7 +14,7 @@ The application can run in two modes:
 
 Ideally the app runs 24/7 (on a node, VPS or always-online desktop/laptop machine) so it can be connected to a lightning address and receive online payments.
 
-## Run on Alby Cloud
+## Learn more about Alby Hub
 
 Visit [albyhub.com](https://albyhub.com) to learn more and get started and get Alby Hub running in minutes.
 
@@ -207,6 +207,12 @@ Migration of the database is currently experimental. Please make a backup before
 3. Run the migration:
 
    go run cmd/db_migrate/main.go -from .data/nwc.db -to postgresql://myuser:mypass@localhost:5432/nwc
+
+#### Migration from Postgres to Sqlite
+
+No manual steps are needed: create a migration file from Settings -> Migrate Alby Hub. The contents of the Postgres database will automatically be copied into a Sqlite database which is included in the migration file. Alternatively, run the migration tool manually:
+
+go run cmd/db_migrate/main.go -from postgresql://myuser:mypass@localhost:5432/nwc -to .data/nwc.db
 
 ## Node-specific backend parameters
 
@@ -448,6 +454,8 @@ Once the user has authorized the app connection a `nwc:success` message is sent 
 
 If you need help contact support@getalby.com or reach out on Nostr: npub1getal6ykt05fsz5nqu4uld09nfj3y3qxmv8crys4aeut53unfvlqr80nfm
 You can also visit the chat of our Community on [Telegram](https://t.me/getalby).
+
+For security vulnerabilities, please follow our [security policy](SECURITY.md).
 
 ## ⚡️Donations
 

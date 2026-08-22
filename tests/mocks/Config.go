@@ -531,6 +531,59 @@ func (_c *MockConfig_GetRelayUrls_Call) RunAndReturn(run func() []string) *MockC
 	return _c
 }
 
+// IsUnlockPasswordCheckSet provides a mock function for the type MockConfig
+func (_mock *MockConfig) IsUnlockPasswordCheckSet() (bool, error) {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsUnlockPasswordCheckSet")
+	}
+
+	var r0 bool
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func() (bool, error)); ok {
+		return returnFunc()
+	}
+	if returnFunc, ok := ret.Get(0).(func() bool); ok {
+		r0 = returnFunc()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	if returnFunc, ok := ret.Get(1).(func() error); ok {
+		r1 = returnFunc()
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockConfig_IsUnlockPasswordCheckSet_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsUnlockPasswordCheckSet'
+type MockConfig_IsUnlockPasswordCheckSet_Call struct {
+	*mock.Call
+}
+
+// IsUnlockPasswordCheckSet is a helper method to define mock.On call
+func (_e *MockConfig_Expecter) IsUnlockPasswordCheckSet() *MockConfig_IsUnlockPasswordCheckSet_Call {
+	return &MockConfig_IsUnlockPasswordCheckSet_Call{Call: _e.mock.On("IsUnlockPasswordCheckSet")}
+}
+
+func (_c *MockConfig_IsUnlockPasswordCheckSet_Call) Run(run func()) *MockConfig_IsUnlockPasswordCheckSet_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockConfig_IsUnlockPasswordCheckSet_Call) Return(b bool, err error) *MockConfig_IsUnlockPasswordCheckSet_Call {
+	_c.Call.Return(b, err)
+	return _c
+}
+
+func (_c *MockConfig_IsUnlockPasswordCheckSet_Call) RunAndReturn(run func() (bool, error)) *MockConfig_IsUnlockPasswordCheckSet_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // LoadJWTSecret provides a mock function for the type MockConfig
 func (_mock *MockConfig) LoadJWTSecret(encryptionKey string) error {
 	ret := _mock.Called(encryptionKey)

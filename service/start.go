@@ -274,6 +274,15 @@ func (svc *service) StartApp(encryptionKey string) error {
 	if svc.lnClient != nil {
 		return errors.New("app already started")
 	}
+	unlockPasswordCheckSet, err := svc.cfg.IsUnlockPasswordCheckSet()
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to check unlock password check")
+		return fmt.Errorf("check unlock password check: %w", err)
+	}
+	if !unlockPasswordCheckSet {
+		logger.Logger.Error("Unlock password check is missing from the database")
+		return errors.New("your wallet data is incomplete and cannot be unlocked. Please restore from a backup")
+	}
 	if !svc.cfg.CheckUnlockPassword(encryptionKey) {
 		logger.Logger.Errorf("Invalid password")
 		return errors.New("invalid password")

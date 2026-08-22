@@ -12,7 +12,7 @@ import {
   ZapIcon,
 } from "lucide-react";
 import React from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import twoFiatLogo from "src/assets/cards/2fiat.png";
 import freedomiaLogo from "src/assets/cards/freedomia.png";
 import redotpayLogo from "src/assets/cards/redotpay.png";
@@ -34,6 +34,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "src/components/ui/dialog";
+import { FieldError } from "src/components/ui/field";
+import { Input } from "src/components/ui/input";
+import { Label } from "src/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -198,7 +201,7 @@ const providers: Provider[] = [
   {
     id: "wavespace",
     name: "wavecard by wave.space",
-    url: "https://app.wave.space/spend/?utm_source=albyhub&affiliate=AlbyHub",
+    url: "https://app.wave.space/?utm_source=albyhub&affiliate=AlbyHub",
     logo: wavespaceLogo,
     initials: "WS",
     networks: ["Visa"],
@@ -783,8 +786,100 @@ function ConnectCardDialog({
   onOpenChange: (open: boolean) => void;
   providers: Provider[];
 }) {
+  const navigate = useNavigate();
+  const [showOtherCardForm, setShowOtherCardForm] = React.useState(false);
+  const [otherCardName, setOtherCardName] = React.useState("");
+  const [otherCardNameError, setOtherCardNameError] = React.useState("");
+
+  // The dialog is controlled and opened programmatically (no DialogTrigger),
+  // so onOpenChange never fires with true — reset the form here instead.
+  React.useEffect(() => {
+    if (open) {
+      setShowOtherCardForm(false);
+      setOtherCardName("");
+      setOtherCardNameError("");
+    }
+  }, [open]);
+
+  const handleOpenChange = (o: boolean) => {
+    if (o) {
+      setShowOtherCardForm(false);
+      setOtherCardName("");
+      setOtherCardNameError("");
+    }
+    onOpenChange(o);
+  };
+
+  const handleOtherCardSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const cardName = otherCardName.trim();
+    if (!cardName) {
+      setOtherCardNameError("Enter a card name");
+      return;
+    }
+    sendEvent("debit_card_connect", { name: cardName });
+    onOpenChange(false);
+    navigate(
+      `/apps/new?app=bitcoin-card-topup&name=${encodeURIComponent(`${cardName} - Bitcoin Card Topup`)}`
+    );
+  };
+
+  if (showOtherCardForm) {
+    return (
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Name your card</DialogTitle>
+            <DialogDescription>
+              We'll use it to label your top-up connection.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form
+            onSubmit={handleOtherCardSubmit}
+            className="flex flex-col gap-4"
+          >
+            <div className="grid gap-1.5">
+              <Label htmlFor="other-card-name">Card name</Label>
+              <Input
+                autoFocus
+                type="text"
+                id="other-card-name"
+                value={otherCardName}
+                onChange={(e) => {
+                  setOtherCardName(e.target.value);
+                  setOtherCardNameError("");
+                }}
+                placeholder="e.g. Moon"
+                required
+                autoComplete="off"
+                aria-invalid={!!otherCardNameError || undefined}
+                aria-describedby={
+                  otherCardNameError ? "other-card-name-error" : undefined
+                }
+              />
+              <FieldError id="other-card-name-error">
+                {otherCardNameError}
+              </FieldError>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setShowOtherCardForm(false)}
+              >
+                Back
+              </Button>
+              <Button type="submit">Continue</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Pick your card provider</DialogTitle>
@@ -835,13 +930,11 @@ function ConnectCardDialog({
             );
           })}
 
-          <Link
-            to="/apps/new?app=bitcoin-card-topup"
-            onClick={() => {
-              sendEvent("debit_card_connect", { name: "Other" });
-              onOpenChange(false);
-            }}
-            className="flex items-center gap-3 rounded-lg border border-dashed border-border p-3 hover:bg-accent/40 transition-colors"
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => setShowOtherCardForm(true)}
+            className="h-auto w-full justify-start gap-3 whitespace-normal rounded-lg border border-dashed border-border p-3 text-left text-base font-normal hover:bg-accent/40 dark:hover:bg-accent/40"
           >
             <div className="flex items-center justify-center size-10 rounded-lg shrink-0 bg-secondary text-secondary-foreground">
               <CreditCardIcon className="size-5" />
@@ -853,7 +946,7 @@ function ConnectCardDialog({
               </p>
             </div>
             <ArrowUpRightIcon className="size-4 text-muted-foreground" />
-          </Link>
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

@@ -91,14 +91,18 @@ export default function ReceiveOffer() {
               <CardTitle className="text-center">Lightning Offer</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col items-center gap-6">
-              <QRCode value={offer} className="w-full" />
+              <QRCode
+                value={offer}
+                className="w-full"
+                paymentType="lightning"
+              />
               {description && (
                 <p className="text-muted-foreground my-2">{description}</p>
               )}
             </CardContent>
-            <CardFooter className="flex flex-col gap-2">
+            <CardFooter className="flex flex-col gap-3">
               <Button className="w-full" onClick={copy} variant="secondary">
-                <CopyIcon className="w-4 h-4 mr-2" />
+                <CopyIcon className="size-4" />
                 Copy Offer
               </Button>
               <Button
@@ -109,7 +113,7 @@ export default function ReceiveOffer() {
                   setOffer(null);
                 }}
               >
-                <RefreshCwIcon className="h-4 w-4 shrink-0 mr-2" />
+                <RefreshCwIcon className="size-4 shrink-0" />
                 New Offer
               </Button>
             </CardFooter>
