@@ -926,7 +926,10 @@ func (svc *LDKServerService) handleEvent(event *ldkevents.EventEnvelope) {
 			return
 		}
 		transaction.Metadata = appendCustomRecords(transaction.Metadata, e.PaymentClaimable.CustomRecords)
-		svc.eventPublisher.Publish(&events.Event{
+		transaction.SettleDeadline = e.PaymentClaimable.ClaimDeadline
+		// Process claimable payments synchronously so the durable transaction state is updated
+		// before this client reads another event from the non-replayable ldk-server stream.
+		svc.eventPublisher.PublishSync(&events.Event{
 			Event:      "nwc_lnclient_hold_invoice_accepted",
 			Properties: transaction,
 		})

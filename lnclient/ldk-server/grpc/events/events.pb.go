@@ -993,6 +993,8 @@ type PaymentClaimable struct {
 	Payment *types.Payment `protobuf:"bytes,1,opt,name=payment,proto3" json:"payment,omitempty"`
 	// Custom TLV records attached to the claimable payment, if any.
 	CustomRecords []*types.CustomTlvRecord `protobuf:"bytes,2,rep,name=custom_records,json=customRecords,proto3" json:"custom_records,omitempty"`
+	// The block height by which this payment must be claimed before it is failed back.
+	ClaimDeadline *uint32 `protobuf:"varint,3,opt,name=claim_deadline,json=claimDeadline,proto3,oneof" json:"claim_deadline,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1039,6 +1041,13 @@ func (x *PaymentClaimable) GetCustomRecords() []*types.CustomTlvRecord {
 		return x.CustomRecords
 	}
 	return nil
+}
+
+func (x *PaymentClaimable) GetClaimDeadline() uint32 {
+	if x != nil && x.ClaimDeadline != nil {
+		return *x.ClaimDeadline
+	}
+	return 0
 }
 
 // PaymentForwarded indicates a payment was forwarded through the node.
@@ -1141,10 +1150,12 @@ const file_events_proto_rawDesc = "" +
 	"\x11PaymentSuccessful\x12(\n" +
 	"\apayment\x18\x01 \x01(\v2\x0e.types.PaymentR\apayment\"9\n" +
 	"\rPaymentFailed\x12(\n" +
-	"\apayment\x18\x01 \x01(\v2\x0e.types.PaymentR\apayment\"{\n" +
+	"\apayment\x18\x01 \x01(\v2\x0e.types.PaymentR\apayment\"\xba\x01\n" +
 	"\x10PaymentClaimable\x12(\n" +
 	"\apayment\x18\x01 \x01(\v2\x0e.types.PaymentR\apayment\x12=\n" +
-	"\x0ecustom_records\x18\x02 \x03(\v2\x16.types.CustomTlvRecordR\rcustomRecords\"X\n" +
+	"\x0ecustom_records\x18\x02 \x03(\v2\x16.types.CustomTlvRecordR\rcustomRecords\x12*\n" +
+	"\x0eclaim_deadline\x18\x03 \x01(\rH\x00R\rclaimDeadline\x88\x01\x01B\x11\n" +
+	"\x0f_claim_deadline\"X\n" +
 	"\x10PaymentForwarded\x12D\n" +
 	"\x11forwarded_payment\x18\x01 \x01(\v2\x17.types.ForwardedPaymentR\x10forwardedPayment*\x9a\x01\n" +
 	"\fChannelState\x12\x1d\n" +
@@ -1265,6 +1276,7 @@ func file_events_proto_init() {
 		(*ChannelStateChangeReason_PeerFeerateTooLow)(nil),
 	}
 	file_events_proto_msgTypes[7].OneofWrappers = []any{}
+	file_events_proto_msgTypes[11].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
