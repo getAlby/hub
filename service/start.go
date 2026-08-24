@@ -256,7 +256,56 @@ func (svc *service) watchSubscription(ctx context.Context, pool *nostr.SimplePoo
 	}
 }
 
+// startAppWithRetries runs StartApp with capped exponential backoff until it
+// succeeds or fails permanently. It is used for auto-unlock on startup: a hub
+// that boots before its internet connection is restored (e.g. after a power
+// cut) must not silently stay locked because the first start attempt failed.
+func (svc *service) startAppWithRetries(encryptionKey string) {
+	backoff := 10 * time.Second
+	const maxBackoff = 5 * time.Minute
+
+	for {
+		err := svc.StartApp(encryptionKey)
+		if err == nil {
+			return
+		}
+		if errors.Is(err, ErrAlreadyStarted) {
+			logger.Logger.Info("App was started manually, stopping auto-unlock retries")
+			return
+		}
+		if errors.Is(err, ErrInvalidPassword) || errors.Is(err, ErrIncompleteWalletData) {
+			logger.Logger.WithError(err).Error("Auto-unlock failed permanently, not retrying")
+			return
+		}
+
+		logger.Logger.WithError(err).WithField("retry_in", backoff.String()).Error("Auto-unlock failed, retrying")
+		select {
+		case <-svc.ctx.Done():
+			return
+		case <-time.After(backoff):
+		}
+		backoff = min(backoff*2, maxBackoff)
+	}
+}
+
+// WithStartLock runs fn while holding the start/stop lock, returning
+// ErrAppBusy if a start, stop or setup operation is already in progress.
+func (svc *service) WithStartLock(fn func() error) error {
+	if !svc.startMutex.TryLock() {
+		return ErrAppBusy
+	}
+	defer svc.startMutex.Unlock()
+	return fn()
+}
+
 func (svc *service) StartApp(encryptionKey string) error {
+	// do not allow to start twice in case this is somehow called twice
+	return svc.WithStartLock(func() error {
+		return svc.startAppInternal(encryptionKey)
+	})
+}
+
+func (svc *service) startAppInternal(encryptionKey string) error {
 	defer func() {
 		svc.startupState = ""
 	}()
@@ -271,7 +320,7 @@ func (svc *service) StartApp(encryptionKey string) error {
 	}
 
 	if svc.lnClient != nil {
-		return errors.New("app already started")
+		return ErrAlreadyStarted
 	}
 	unlockPasswordCheckSet, err := svc.cfg.IsUnlockPasswordCheckSet()
 	if err != nil {
@@ -280,11 +329,11 @@ func (svc *service) StartApp(encryptionKey string) error {
 	}
 	if !unlockPasswordCheckSet {
 		logger.Logger.Error("Unlock password check is missing from the database")
-		return errors.New("your wallet data is incomplete and cannot be unlocked. Please restore from a backup")
+		return ErrIncompleteWalletData
 	}
 	if !svc.cfg.CheckUnlockPassword(encryptionKey) {
 		logger.Logger.Errorf("Invalid password")
-		return errors.New("invalid password")
+		return ErrInvalidPassword
 	}
 
 	err = svc.cfg.LoadJWTSecret(encryptionKey)

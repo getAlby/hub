@@ -7,13 +7,17 @@ import (
 	"github.com/getAlby/hub/logger"
 )
 
-func (svc *service) StopApp() {
-	if svc.appCancelFn != nil {
-		logger.Logger.Info("Stopping app...")
-		svc.appCancelFn()
-		svc.wg.Wait()
-		logger.Logger.Info("app stopped")
-	}
+func (svc *service) StopApp() error {
+	// do not allow stopping while a start or stop is already in progress
+	return svc.WithStartLock(func() error {
+		if svc.appCancelFn != nil {
+			logger.Logger.Info("Stopping app...")
+			svc.appCancelFn()
+			svc.wg.Wait()
+			logger.Logger.Info("app stopped")
+		}
+		return nil
+	})
 }
 
 func (svc *service) stopLNClient() {
