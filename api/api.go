@@ -837,9 +837,6 @@ func (api *api) SetAutoUnlockPassword(unlockPassword string) error {
 
 func (api *api) Stop() error {
 	logger.Logger.Info("Running Stop command")
-	if api.svc.GetLNClient() == nil {
-		return ErrLNClientNotStarted
-	}
 
 	// stop the lnclient, nostr relay etc.
 	// The user will be forced to re-enter their unlock password to restart the node

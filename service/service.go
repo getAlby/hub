@@ -230,10 +230,13 @@ func finishRestoreNode(workDir string) error {
 }
 
 func (svc *service) Shutdown() {
-	err := svc.StopApp()
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to stop app during shutdown")
-	}
+	// unlike StopApp, shutdown must never bail out: block until any
+	// in-progress start or stop has finished (the service context is
+	// already cancelled at this point, so an in-progress start aborts),
+	// then stop the app before tearing down the event publisher and DB
+	svc.startMutex.Lock()
+	defer svc.startMutex.Unlock()
+	svc.stopAppInternal()
 	svc.eventPublisher.PublishSync(&events.Event{
 		Event: "nwc_stopped",
 	})

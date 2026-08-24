@@ -64,7 +64,7 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 	nodeInfo, err := fetchNodeInfo(ctx, lndClient)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to connect to LND")
-		return nil, err
+		return nil, fmt.Errorf("connect to LND: %w", err)
 	}
 
 	lndCtx, cancel := context.WithCancel(ctx)

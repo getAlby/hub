@@ -19,6 +19,8 @@ var (
 	ErrAppBusy = errors.New("app is busy")
 	// ErrAlreadyStarted is returned when the app is already unlocked and running.
 	ErrAlreadyStarted = errors.New("app already started")
+	// ErrAppNotStarted is returned when trying to stop an app that is not running.
+	ErrAppNotStarted = errors.New("app not started")
 	// ErrInvalidPassword is returned when the provided unlock password is incorrect.
 	ErrInvalidPassword = errors.New("invalid password")
 	// ErrIncompleteWalletData is returned when the unlock password check is missing from the database.
