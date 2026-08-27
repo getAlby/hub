@@ -2320,6 +2320,10 @@ func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amountMsat
 		return nil, lnclient.ErrOfferWrongNetwork
 	}
 
+	paymentStart := time.Now()
+	ldkEventSubscription := ls.ldkEventBroadcaster.Subscribe()
+	defer ls.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
+
 	offerAmount := offerObj.Amount()
 	var paymentId ldk_node.PaymentId
 	var payerNotePtr = &payerNote
@@ -2346,10 +2350,6 @@ func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amountMsat
 		return nil, errors.New("failed to initiate BOLT-12 payment")
 	}
 
-	paymentStart := time.Now()
-	ldkEventSubscription := ls.ldkEventBroadcaster.Subscribe()
-	defer ls.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
-
 	logger.Logger.WithFields(logrus.Fields{
 		"payment_id": paymentId,
 	}).Info("Initiated BOLT-12 payment")
@@ -2358,68 +2358,74 @@ func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amountMsat
 	preimage := ""
 	paymentHash := ""
 
-	for start := time.Now(); time.Since(start) < time.Second*60; {
-		event := <-ldkEventSubscription
+	// NOTE: the invoice request roundtrip over onion messages can take a
+	// while, so like SendPaymentSync this blocks until a final event (or
+	// shutdown) rather than timing out.
+	for {
+		select {
+		case <-ls.ctx.Done():
+			return nil, ls.ctx.Err()
+		case event := <-ldkEventSubscription:
 
-		eventPaymentSuccessful, isEventPaymentSuccessfulEvent := (*event).(ldk_node.EventPaymentSuccessful)
-		eventPaymentFailed, isEventPaymentFailedEvent := (*event).(ldk_node.EventPaymentFailed)
+			eventPaymentSuccessful, isEventPaymentSuccessfulEvent := (*event).(ldk_node.EventPaymentSuccessful)
+			eventPaymentFailed, isEventPaymentFailedEvent := (*event).(ldk_node.EventPaymentFailed)
 
-		if isEventPaymentSuccessfulEvent && eventPaymentSuccessful.PaymentId != nil && *eventPaymentSuccessful.PaymentId == paymentId {
-			logger.Logger.Info("Got payment success event")
-			payment := ls.node.Payment(paymentId)
-			if payment == nil {
-				logger.Logger.Errorf("Couldn't find payment by payment ID: %v", paymentId)
-				return nil, errors.New("payment not found")
-			}
+			if isEventPaymentSuccessfulEvent && eventPaymentSuccessful.PaymentId != nil && *eventPaymentSuccessful.PaymentId == paymentId {
+				logger.Logger.Info("Got payment success event")
+				payment := ls.node.Payment(paymentId)
+				if payment == nil {
+					logger.Logger.Errorf("Couldn't find payment by payment ID: %v", paymentId)
+					return nil, errors.New("payment not found")
+				}
 
-			bolt12PaymentKind, ok := payment.Kind.(ldk_node.PaymentKindBolt12Offer)
+				bolt12PaymentKind, ok := payment.Kind.(ldk_node.PaymentKindBolt12Offer)
 
-			if !ok {
+				if !ok {
+					logger.Logger.WithFields(logrus.Fields{
+						"payment": payment,
+					}).Error("Payment is not a BOLT-12 offer kind")
+					return nil, errors.New("payment is not a BOLT-12 offer")
+				}
+
+				if bolt12PaymentKind.Preimage == nil {
+					logger.Logger.Errorf("No payment preimage for payment ID: %v", paymentId)
+					return nil, errors.New("payment preimage not found")
+				}
+				preimage = *bolt12PaymentKind.Preimage
+
+				if bolt12PaymentKind.Hash == nil {
+					logger.Logger.Errorf("No payment hash for payment ID: %v", paymentId)
+					return nil, errors.New("payment hash not found")
+				}
+				paymentHash = *bolt12PaymentKind.Hash
+
+				if eventPaymentSuccessful.FeePaidMsat != nil {
+					feeMsat = *eventPaymentSuccessful.FeePaidMsat
+				}
+
 				logger.Logger.WithFields(logrus.Fields{
-					"payment": payment,
-				}).Error("Payment is not a BOLT-12 offer kind")
-				return nil, errors.New("payment is not a BOLT-12 offer")
+					"duration": time.Since(paymentStart).Milliseconds(),
+					"feeMsat":  feeMsat,
+				}).Info("Successful BOLT-12 payment")
+
+				return &lnclient.PayOfferResponse{
+					PaymentHash: paymentHash,
+					Preimage:    preimage,
+					FeeMsat:     feeMsat,
+				}, nil
 			}
+			if isEventPaymentFailedEvent && eventPaymentFailed.PaymentId != nil && *eventPaymentFailed.PaymentId == paymentId {
+				reason := ls.getPaymentFailReason(&eventPaymentFailed)
 
-			if bolt12PaymentKind.Preimage == nil {
-				logger.Logger.Errorf("No payment preimage for payment ID: %v", paymentId)
-				return nil, errors.New("payment preimage not found")
+				logger.Logger.WithFields(logrus.Fields{
+					"payment_id": paymentId,
+					"reason":     reason,
+				}).Error("Received payment failed event")
+
+				return nil, fmt.Errorf("received payment failed event: %s", reason)
 			}
-			preimage = *bolt12PaymentKind.Preimage
-
-			if bolt12PaymentKind.Hash == nil {
-				logger.Logger.Errorf("No payment hash for payment ID: %v", paymentId)
-				return nil, errors.New("payment hash not found")
-			}
-			paymentHash = *bolt12PaymentKind.Hash
-
-			if eventPaymentSuccessful.FeePaidMsat != nil {
-				feeMsat = *eventPaymentSuccessful.FeePaidMsat
-			}
-			break
-		}
-		if isEventPaymentFailedEvent && eventPaymentFailed.PaymentId != nil && *eventPaymentFailed.PaymentId == paymentId {
-			reason := ls.getPaymentFailReason(&eventPaymentFailed)
-
-			logger.Logger.WithFields(logrus.Fields{
-				"payment_id": paymentId,
-				"reason":     reason,
-			}).Error("Received payment failed event")
-
-			return nil, fmt.Errorf("received payment failed event: %s", reason)
 		}
 	}
-
-	logger.Logger.WithFields(logrus.Fields{
-		"duration": time.Since(paymentStart).Milliseconds(),
-		"feeMsat":  feeMsat,
-	}).Info("Successful BOLT-12 payment")
-
-	return &lnclient.PayOfferResponse{
-		PaymentHash: paymentHash,
-		Preimage:    preimage,
-		FeeMsat:     feeMsat,
-	}, nil
 }
 
 const nodeCommandPayBOLT12Offer = "pay_bolt12_offer"
