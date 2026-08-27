@@ -432,7 +432,7 @@ func (svc *LNDService) Shutdown() error {
 	return nil
 }
 
-func (svc *LNDService) SendPaymentSync(payReq string, amountMsat *uint64) (*lnclient.PayInvoiceResponse, error) {
+func (svc *LNDService) SendPaymentSync(payReq string, amountMsat *uint64, maxFeeMsat *uint64) (*lnclient.PayInvoiceResponse, error) {
 	const MAX_PARTIAL_PAYMENTS = 16
 
 	paymentRequest, err := decodepay.Decodepay(payReq)
@@ -447,10 +447,14 @@ func (svc *LNDService) SendPaymentSync(payReq string, amountMsat *uint64) (*lncl
 	if amountMsat != nil {
 		paymentAmountMsat = *amountMsat
 	}
+	feeLimitMsat := transactions.CalculateFeeReserveMsat(paymentAmountMsat)
+	if maxFeeMsat != nil {
+		feeLimitMsat = *maxFeeMsat
+	}
 	sendRequest := &routerrpc.SendPaymentRequest{
 		PaymentRequest: payReq,
 		MaxParts:       MAX_PARTIAL_PAYMENTS,
-		FeeLimitMsat:   int64(transactions.CalculateFeeReserveMsat(paymentAmountMsat)),
+		FeeLimitMsat:   int64(feeLimitMsat),
 		TimeoutSeconds: SEND_PAYMENT_TIMEOUT,
 	}
 

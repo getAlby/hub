@@ -121,13 +121,13 @@ func (api *api) ListTransactions(ctx context.Context, appId *uint, limit uint64,
 	}, nil
 }
 
-func (api *api) SendPayment(ctx context.Context, invoice string, amountMsat *uint64, metadata map[string]interface{}, appId *uint) (*SendPaymentResponse, error) {
+func (api *api) SendPayment(ctx context.Context, invoice string, amountMsat *uint64, maxFeeMsat *uint64, metadata map[string]interface{}, appId *uint) (*SendPaymentResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
 		return nil, ErrLNClientNotStarted
 	}
 
-	transaction, err := api.svc.GetTransactionsService().SendPaymentSync(invoice, amountMsat, metadata, lnClient, appId, nil)
+	transaction, err := api.svc.GetTransactionsService().SendPaymentSync(invoice, amountMsat, maxFeeMsat, metadata, lnClient, appId, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -224,7 +224,7 @@ func (api *api) Transfer(ctx context.Context, fromAppId *uint, toAppId *uint, am
 		return err
 	}
 
-	_, err = api.svc.GetTransactionsService().SendPaymentSync(transaction.PaymentRequest, nil, nil, lnClient, fromAppId, nil)
+	_, err = api.svc.GetTransactionsService().SendPaymentSync(transaction.PaymentRequest, nil, nil, nil, lnClient, fromAppId, nil)
 	return err
 }
 

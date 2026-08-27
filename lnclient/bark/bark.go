@@ -484,10 +484,13 @@ func (bs *BarkService) MakeInvoice(ctx context.Context, amountMsat int64, descri
 	}, nil
 }
 
-func (bs *BarkService) SendPaymentSync(invoice string, amountMsat *uint64) (*lnclient.PayInvoiceResponse, error) {
+func (bs *BarkService) SendPaymentSync(invoice string, amountMsat *uint64, maxFeeMsat *uint64) (*lnclient.PayInvoiceResponse, error) {
 	// 0-amount invoices not supported initially — keeps the surface minimal.
 	if amountMsat != nil {
 		return nil, errors.New("0-amount invoices not supported")
+	}
+	if maxFeeMsat != nil {
+		return nil, errors.New("max fee is not supported by the bark backend")
 	}
 
 	paymentRequest, decodeErr := decodepay.Decodepay(invoice)
