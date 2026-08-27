@@ -972,12 +972,13 @@ func (ls *LDKService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err
 	// an alias is only needed if the user has public channels and wants their node to be publicly visible?
 	status := ls.node.Status()
 	return &lnclient.NodeInfo{
-		Alias:       "NWC",
-		Color:       "#897FFF",
-		Pubkey:      ls.node.NodeId(),
-		Network:     ls.network,
-		BlockHeight: status.CurrentBestBlock.Height,
-		BlockHash:   status.CurrentBestBlock.BlockHash,
+		Alias:          "NWC",
+		Color:          "#897FFF",
+		Pubkey:         ls.node.NodeId(),
+		Network:        ls.network,
+		BlockHeight:    status.CurrentBestBlock.Height,
+		BlockHash:      status.CurrentBestBlock.BlockHash,
+		SupportsBolt12: true,
 	}, nil
 }
 
@@ -2246,39 +2247,115 @@ func (ls *LDKService) GetPubkey() string {
 	return ls.pubkey
 }
 
-func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amount uint64, payerNote string) (*lnclient.PayOfferResponse, error) {
-	// TODO: this is only for testing MakeOffer and needs improvements
-	// (+ BOLT-12 payments need to go through transactions service)
-	// TODO: send liquidity event if amount too large
+func (ls *LDKService) ldkNetwork() (ldk_node.Network, error) {
+	switch strings.ToLower(ls.network) {
+	case "bitcoin", "mainnet":
+		return ldk_node.NetworkBitcoin, nil
+	case "testnet", "testnet3", "testnet4":
+		return ldk_node.NetworkTestnet, nil
+	case "signet", "mutinynet":
+		return ldk_node.NetworkSignet, nil
+	case "regtest":
+		return ldk_node.NetworkRegtest, nil
+	}
+	return 0, fmt.Errorf("unknown node network: %s", ls.network)
+}
+
+func ldkNetworkToString(network ldk_node.Network) string {
+	switch network {
+	case ldk_node.NetworkBitcoin:
+		return "bitcoin"
+	case ldk_node.NetworkTestnet:
+		return "testnet"
+	case ldk_node.NetworkSignet:
+		return "signet"
+	case ldk_node.NetworkRegtest:
+		return "regtest"
+	}
+	return ""
+}
+
+func (ls *LDKService) DecodeOffer(ctx context.Context, offer string) (*lnclient.OfferInfo, error) {
 	offerObj, err := ldk_node.OfferFromStr(offer)
 	if err != nil {
+		logger.Logger.WithField("offer", offer).WithError(err).Error("Failed to decode BOLT-12 offer")
 		return nil, err
+	}
+
+	offerInfo := &lnclient.OfferInfo{
+		Expired: offerObj.IsExpired(),
+	}
+	if offerAmount := offerObj.Amount(); offerAmount != nil {
+		if bitcoinAmount, isBitcoinAmount := (*offerAmount).(ldk_node.OfferAmountBitcoin); isBitcoinAmount {
+			amountMsat := bitcoinAmount.AmountMsats
+			offerInfo.AmountMsat = &amountMsat
+		}
+	}
+	for _, chain := range offerObj.Chains() {
+		offerInfo.Chains = append(offerInfo.Chains, ldkNetworkToString(chain))
+	}
+	if description := offerObj.OfferDescription(); description != nil {
+		offerInfo.Description = *description
+	}
+
+	return offerInfo, nil
+}
+
+func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amountMsat *uint64, payerNote string) (*lnclient.PayOfferResponse, error) {
+	offerObj, err := ldk_node.OfferFromStr(offer)
+	if err != nil {
+		logger.Logger.WithField("offer", offer).WithError(err).Error("Failed to decode BOLT-12 offer")
+		return nil, err
+	}
+
+	if offerObj.IsExpired() {
+		return nil, errors.New("offer has expired")
+	}
+
+	nodeNetwork, err := ls.ldkNetwork()
+	if err != nil {
+		return nil, err
+	}
+	if !offerObj.SupportsChain(nodeNetwork) {
+		return nil, lnclient.ErrOfferWrongNetwork
+	}
+
+	offerAmount := offerObj.Amount()
+	var paymentId ldk_node.PaymentId
+	var payerNotePtr = &payerNote
+	if offerAmount == nil {
+		// variable-amount offers must be funded with an explicit amount
+		if amountMsat == nil {
+			return nil, errors.New("an amount is required to pay a variable-amount offer")
+		}
+		logger.Logger.WithField("amount_msat", *amountMsat).Debug("Sending BOLT-12 payment with amount")
+		paymentId, err = ls.node.Bolt12Payment().SendUsingAmount(offerObj, *amountMsat, nil, payerNotePtr, nil)
+	} else {
+		bitcoinAmount, isBitcoinAmount := (*offerAmount).(ldk_node.OfferAmountBitcoin)
+		if !isBitcoinAmount {
+			return nil, errors.New("offers with a non-bitcoin currency are not supported")
+		}
+		if amountMsat != nil && *amountMsat != bitcoinAmount.AmountMsats {
+			return nil, fmt.Errorf("amount %d does not match the offer amount %d", *amountMsat, bitcoinAmount.AmountMsats)
+		}
+		logger.Logger.WithField("amount_msat", bitcoinAmount.AmountMsats).Debug("Sending BOLT-12 payment")
+		paymentId, err = ls.node.Bolt12Payment().Send(offerObj, nil, payerNotePtr, nil)
+	}
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to initiate BOLT-12 payment")
+		return nil, errors.New("failed to initiate BOLT-12 payment")
 	}
 
 	paymentStart := time.Now()
 	ldkEventSubscription := ls.ldkEventBroadcaster.Subscribe()
 	defer ls.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
 
-	// TODO: use normal send if no amount is provided
-	// TODO: configure sending params to ensure fee reserve is used, etc.
-	paymentId, err := ls.node.Bolt12Payment().SendUsingAmount(offerObj, amount, nil, &payerNote, nil)
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to initiate BOLT-12 variable amount payment")
-		return nil, errors.New("failed to initiate BOLT-12 variable amount payment")
-	}
-
 	logger.Logger.WithFields(logrus.Fields{
 		"payment_id": paymentId,
-	}).Info("Initiated BOLT-12 variable amount payment")
+	}).Info("Initiated BOLT-12 payment")
 
 	feeMsat := uint64(0)
 	preimage := ""
-
-	payment := ls.node.Payment(paymentId)
-	if payment == nil {
-		return nil, errors.New("payment not found by payment ID")
-	}
-
 	paymentHash := ""
 
 	for start := time.Now(); time.Since(start) < time.Second*60; {
@@ -2403,7 +2480,11 @@ func (ls *LDKService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 			return nil, err
 		}
 
-		payOfferResponse, err := ls.PayOfferSync(ctx, offer, amount, payerNote)
+		var amountMsat *uint64
+		if amount > 0 {
+			amountMsat = &amount
+		}
+		payOfferResponse, err := ls.PayOfferSync(ctx, offer, amountMsat, payerNote)
 
 		if err != nil {
 			return nil, err

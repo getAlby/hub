@@ -12,11 +12,13 @@ import (
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/models"
+	"github.com/getAlby/hub/transactions"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 )
 
 const instructionTypeBolt11 = "bolt11"
+const instructionTypeBolt12 = "bolt12"
 
 type payParams struct {
 	Payment   string                 `json:"payment"`
@@ -40,12 +42,15 @@ type payResult struct {
 // parsed payment instructions from a BIP-321 URI
 type bip321Payment struct {
 	bolt11 string
+	bolt12 string
 	// from the BIP-321 "amount" parameter (BTC), converted to msat
 	amountMsat *uint64
 }
 
-// HandlePayEvent handles the NWC-321 pay method. Currently only BOLT-11
-// instructions (the "lightning" URI parameter) are supported.
+// HandlePayEvent handles the NWC-321 pay method. It pays one instruction
+// from a BIP-321 URI: a BOLT-12 offer (the "lno" URI parameter) when the LN
+// backend supports BOLT-12, otherwise the BOLT-11 invoice (the "lightning"
+// URI parameter).
 func (controller *nip47Controller) HandlePayEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, publishResponse publishFunc) {
 	payParams := &payParams{}
 	resp := decodeRequest(nip47Request, payParams)
@@ -68,19 +73,48 @@ func (controller *nip47Controller) HandlePayEvent(ctx context.Context, nip47Requ
 		}, nostr.Tags{})
 	}
 
+	bip321, nip47Error := parseBip321Uri(payParams.Payment)
+	if nip47Error != nil {
+		publishError(nip47Error)
+		return
+	}
+
+	nodeInfo, err := controller.lnClient.GetInfo(ctx)
+	if err != nil {
+		publishError(&models.Error{
+			Code:    constants.ERROR_INTERNAL,
+			Message: fmt.Sprintf("Failed to get node info: %s", err.Error()),
+		})
+		return
+	}
+
+	// prefer the BOLT-12 offer if the backend can pay one; per NWC-321 only
+	// one instruction may be selected
+	if bip321.bolt12 != "" && nodeInfo.SupportsBolt12 {
+		controller.payBolt12(ctx, nip47Request, requestEventId, app, publishResponse, publishError, payParams, bip321, nodeInfo.Network)
+		return
+	}
+
+	if bip321.bolt12 != "" && bip321.bolt11 == "" {
+		publishError(&models.Error{
+			Code:    constants.ERROR_UNSUPPORTED_PAYMENT_INSTRUCTION,
+			Message: "no supported payment instruction found: BOLT-12 payments are not supported by this LN backend",
+		})
+		return
+	}
+
+	controller.payBolt11(ctx, nip47Request, requestEventId, app, publishResponse, publishError, payParams, bip321, nodeInfo.Network)
+}
+
+// payBolt11 pays the BOLT-11 instruction of a BIP-321 URI.
+func (controller *nip47Controller) payBolt11(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, publishResponse publishFunc, publishError func(*models.Error), payParams *payParams, bip321 *bip321Payment, nodeNetwork string) {
 	// BOLT-11 does not support payer-provided messages, and per NWC-321 the
 	// note must either be delivered or the request rejected before payment
 	if payParams.PayerNote != "" {
 		publishError(&models.Error{
 			Code:    constants.ERROR_BAD_REQUEST,
-			Message: "payer_note is not supported: only BOLT-11 payments are supported",
+			Message: "payer_note is not supported: only BOLT-12 payments support payer-provided messages",
 		})
-		return
-	}
-
-	bip321, nip47Error := parseBip321Uri(payParams.Payment)
-	if nip47Error != nil {
-		publishError(nip47Error)
 		return
 	}
 
@@ -101,19 +135,11 @@ func (controller *nip47Controller) HandlePayEvent(ctx context.Context, nip47Requ
 	}
 
 	// the invoice must be for the network this node runs on
-	nodeInfo, err := controller.lnClient.GetInfo(ctx)
-	if err != nil {
-		publishError(&models.Error{
-			Code:    constants.ERROR_INTERNAL,
-			Message: fmt.Sprintf("Failed to get node info: %s", err.Error()),
-		})
-		return
-	}
-	expectedPrefix := networkToInvoicePrefix(nodeInfo.Network)
+	expectedPrefix := networkToInvoicePrefix(nodeNetwork)
 	if expectedPrefix != "" && !strings.EqualFold(paymentRequest.Currency, expectedPrefix) {
 		publishError(&models.Error{
 			Code:    constants.ERROR_UNSUPPORTED_NETWORK,
-			Message: fmt.Sprintf("the payment instruction is for a different network than the wallet network (%s)", nodeInfo.Network),
+			Message: fmt.Sprintf("the payment instruction is for a different network than the wallet network (%s)", nodeNetwork),
 		})
 		return
 	}
@@ -138,11 +164,86 @@ func (controller *nip47Controller) HandlePayEvent(ctx context.Context, nip47Requ
 			"bolt11":           bolt11,
 		}).WithError(err).Error("Failed to send payment")
 
-		publishResponse(&models.Response{
-			ResultType: nip47Request.Method,
-			Error:      mapNip47Error(err),
-		}, nostr.Tags{})
+		publishError(mapNip47Error(err))
 		return
+	}
+
+	controller.publishPayResult(nip47Request, transaction, instructionTypeBolt11, publishResponse)
+}
+
+// payBolt12 pays the BOLT-12 offer instruction of a BIP-321 URI.
+func (controller *nip47Controller) payBolt12(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, publishResponse publishFunc, publishError func(*models.Error), payParams *payParams, bip321 *bip321Payment, nodeNetwork string) {
+	offer := strings.ToLower(bip321.bolt12)
+	offerInfo, err := controller.lnClient.DecodeOffer(ctx, offer)
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"request_event_id": requestEventId,
+			"app_id":           app.ID,
+			"offer":            offer,
+		}).WithError(err).Error("Failed to decode bolt12 offer")
+
+		publishError(&models.Error{
+			Code:    constants.ERROR_BAD_REQUEST,
+			Message: fmt.Sprintf("Failed to decode bolt12 offer: %s", err.Error()),
+		})
+		return
+	}
+
+	if offerInfo.Expired {
+		publishError(&models.Error{
+			Code:    constants.ERROR_BAD_REQUEST,
+			Message: "the payment instruction has expired",
+		})
+		return
+	}
+
+	// offers with a chain restriction must match the network this node runs on
+	if len(offerInfo.Chains) > 0 && !offerChainsContainNetwork(offerInfo.Chains, nodeNetwork) {
+		publishError(&models.Error{
+			Code:    constants.ERROR_UNSUPPORTED_NETWORK,
+			Message: fmt.Sprintf("the payment instruction is for a different network than the wallet network (%s)", nodeNetwork),
+		})
+		return
+	}
+
+	var offerAmountMsat uint64
+	if offerInfo.AmountMsat != nil {
+		offerAmountMsat = *offerInfo.AmountMsat
+	}
+	amountMsat, nip47Error := resolvePayAmount(offerAmountMsat, payParams.Amount, bip321.amountMsat)
+	if nip47Error != nil {
+		publishError(nip47Error)
+		return
+	}
+
+	logger.Logger.WithFields(logrus.Fields{
+		"request_event_id": requestEventId,
+		"app_id":           app.ID,
+		"offer":            offer,
+	}).Info("Sending BOLT-12 payment")
+
+	transaction, err := controller.transactionsService.PayOfferSync(ctx, offer, offerInfo, amountMsat, payParams.PayerNote, payParams.Metadata, controller.lnClient, &app.ID, &requestEventId)
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"request_event_id": requestEventId,
+			"app_id":           app.ID,
+			"offer":            offer,
+		}).WithError(err).Error("Failed to pay BOLT-12 offer")
+
+		publishError(mapNip47Error(err))
+		return
+	}
+
+	controller.publishPayResult(nip47Request, transaction, instructionTypeBolt12, publishResponse)
+}
+
+// publishPayResult publishes the NWC-321 pay result for a settled transaction.
+// If the backend did not return a payment hash, the DB transaction ID is used
+// as the wallet-scoped transaction identifier.
+func (controller *nip47Controller) publishPayResult(nip47Request *models.Request, transaction *transactions.Transaction, instructionType string, publishResponse publishFunc) {
+	transactionId := transaction.PaymentHash
+	if transactionId == "" {
+		transactionId = strconv.FormatUint(uint64(transaction.ID), 10)
 	}
 
 	var settledAt *int64
@@ -151,16 +252,21 @@ func (controller *nip47Controller) HandlePayEvent(ctx context.Context, nip47Requ
 		settledAt = &settledAtUnix
 	}
 
+	preimage := ""
+	if transaction.Preimage != nil {
+		preimage = *transaction.Preimage
+	}
+
 	publishResponse(&models.Response{
 		ResultType: nip47Request.Method,
 		Result: payResult{
-			TransactionId:   transaction.PaymentHash,
+			TransactionId:   transactionId,
 			State:           strings.ToLower(transaction.State),
-			InstructionType: instructionTypeBolt11,
+			InstructionType: instructionType,
 			Amount:          transaction.AmountMsat,
 			FeesPaid:        transaction.FeeMsat,
 			PaymentHash:     transaction.PaymentHash,
-			Preimage:        *transaction.Preimage,
+			Preimage:        preimage,
 			CreatedAt:       transaction.CreatedAt.Unix(),
 			SettledAt:       settledAt,
 		},
@@ -204,6 +310,9 @@ func parseBip321Uri(payment string) (*bip321Payment, *models.Error) {
 		if strings.EqualFold(key, "lightning") && len(values) > 0 && values[0] != "" {
 			result.bolt11 = values[0]
 		}
+		if strings.EqualFold(key, "lno") && len(values) > 0 && values[0] != "" {
+			result.bolt12 = values[0]
+		}
 		if strings.EqualFold(key, "amount") && len(values) > 0 && values[0] != "" {
 			amountMsat, err := parseBtcAmountToMsat(values[0])
 			if err != nil {
@@ -216,10 +325,10 @@ func parseBip321Uri(payment string) (*bip321Payment, *models.Error) {
 		}
 	}
 
-	if result.bolt11 == "" {
+	if result.bolt11 == "" && result.bolt12 == "" {
 		return nil, &models.Error{
 			Code:    constants.ERROR_UNSUPPORTED_PAYMENT_INSTRUCTION,
-			Message: "no supported payment instruction found: only BOLT-11 (lightning) is supported",
+			Message: "no supported payment instruction found",
 		}
 	}
 
@@ -307,6 +416,17 @@ func parseBtcAmountToMsat(value string) (uint64, error) {
 		return 0, err
 	}
 	return whole*100_000_000_000 + frac, nil
+}
+
+// offerChainsContainNetwork returns true if an offer's chain restriction
+// includes the network this node runs on.
+func offerChainsContainNetwork(offerChains []string, nodeNetwork string) bool {
+	for _, chain := range offerChains {
+		if strings.EqualFold(chain, nodeNetwork) {
+			return true
+		}
+	}
+	return false
 }
 
 // networkToInvoicePrefix maps an LNClient network name to the BOLT-11 invoice

@@ -21,8 +21,9 @@ type receiveResult struct {
 	TransactionId string `json:"transaction_id,omitempty"`
 }
 
-// HandleReceiveEvent handles the NWC-321 receive method. Currently only
-// BOLT-11 instructions (the "lightning" URI parameter) are returned.
+// HandleReceiveEvent handles the NWC-321 receive method. Requests with an
+// amount return a BOLT-11 invoice; requests without an amount return a
+// BOLT-12 variable-amount offer if the LN backend supports BOLT-12.
 func (controller *nip47Controller) HandleReceiveEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, appId uint, publishResponse publishFunc) {
 	receiveParams := &receiveParams{}
 	resp := decodeRequest(nip47Request, receiveParams)
@@ -32,14 +33,7 @@ func (controller *nip47Controller) HandleReceiveEvent(ctx context.Context, nip47
 	}
 
 	if receiveParams.Amount == nil {
-		// variable-amount (zero-amount) invoices are not supported
-		publishResponse(&models.Response{
-			ResultType: nip47Request.Method,
-			Error: &models.Error{
-				Code:    constants.ERROR_BAD_REQUEST,
-				Message: "amount is required",
-			},
-		}, nostr.Tags{})
+		controller.receiveVariableAmount(ctx, nip47Request, requestEventId, appId, receiveParams, publishResponse)
 		return
 	}
 
@@ -71,6 +65,60 @@ func (controller *nip47Controller) HandleReceiveEvent(ctx context.Context, nip47
 		Result: receiveResult{
 			Bip321:        "bitcoin:?lightning=" + transaction.PaymentRequest,
 			TransactionId: transaction.PaymentHash,
+		},
+	}, nostr.Tags{})
+}
+
+// receiveVariableAmount handles a receive request without an amount by
+// returning a BOLT-12 variable-amount offer, which lets the payer choose the
+// amount. This requires an LN backend with BOLT-12 support.
+func (controller *nip47Controller) receiveVariableAmount(ctx context.Context, nip47Request *models.Request, requestEventId uint, appId uint, receiveParams *receiveParams, publishResponse publishFunc) {
+	nodeInfo, err := controller.lnClient.GetInfo(ctx)
+	if err != nil {
+		publishResponse(&models.Response{
+			ResultType: nip47Request.Method,
+			Error: &models.Error{
+				Code:    constants.ERROR_INTERNAL,
+				Message: "Failed to get node info: " + err.Error(),
+			},
+		}, nostr.Tags{})
+		return
+	}
+
+	if !nodeInfo.SupportsBolt12 {
+		// variable-amount (zero-amount) invoices are not supported
+		publishResponse(&models.Response{
+			ResultType: nip47Request.Method,
+			Error: &models.Error{
+				Code:    constants.ERROR_BAD_REQUEST,
+				Message: "amount is required",
+			},
+		}, nostr.Tags{})
+		return
+	}
+
+	offer, err := controller.lnClient.MakeOffer(ctx, receiveParams.Description)
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"request_event_id": requestEventId,
+			"app_id":           appId,
+			"description":      receiveParams.Description,
+		}).WithError(err).Error("Failed to create BOLT-12 offer")
+
+		publishResponse(&models.Response{
+			ResultType: nip47Request.Method,
+			Error: &models.Error{
+				Code:    constants.ERROR_INTERNAL,
+				Message: "Failed to create offer: " + err.Error(),
+			},
+		}, nostr.Tags{})
+		return
+	}
+
+	publishResponse(&models.Response{
+		ResultType: nip47Request.Method,
+		Result: receiveResult{
+			Bip321: "bitcoin:?lno=" + offer,
 		},
 	}, nostr.Tags{})
 }

@@ -11,6 +11,7 @@ import (
 
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/getAlby/hub/tests"
 )
@@ -37,7 +38,37 @@ const nip47PayBolt12Json = `
 {
 	"method": "pay",
 	"params": {
-		"payment": "bitcoin:?lno=lno1zrxq8pjw7qjlm68mtp7e3yvxee4y5xrgjhhyf2fxhlphpckrvevh50u0qf"
+		"payment": "bitcoin:?lno=` + tests.MockOffer + `"
+	}
+}
+`
+
+const nip47PayBolt12WithAmountJson = `
+{
+	"method": "pay",
+	"params": {
+		"payment": "bitcoin:?lno=` + tests.MockOffer + `",
+		"amount": 123000
+	}
+}
+`
+
+const nip47PayBolt12WithPayerNoteJson = `
+{
+	"method": "pay",
+	"params": {
+		"payment": "bitcoin:?lno=` + tests.MockOffer + `",
+		"amount": 123000,
+		"payer_note": "thanks for the pizza"
+	}
+}
+`
+
+const nip47PayBolt12AndBolt11Json = `
+{
+	"method": "pay",
+	"params": {
+		"payment": "bitcoin:?lightning=` + tests.MockInvoice + `&lno=` + tests.MockOffer + `"
 	}
 }
 `
@@ -161,6 +192,228 @@ func TestHandlePayEvent_Bolt12Unsupported(t *testing.T) {
 
 	assert.Nil(t, publishedResponse.Result)
 	assert.Equal(t, constants.ERROR_UNSUPPORTED_PAYMENT_INSTRUCTION, publishedResponse.Error.Code)
+}
+
+func TestHandlePayEvent_Bolt12(t *testing.T) {
+	ctx := context.TODO()
+	svc, app, dbRequestEvent := setupPayTest(t)
+	svc.LNClient.(*tests.MockLn).SupportsBolt12 = true
+
+	nip47Request := &models.Request{}
+	err := json.Unmarshal([]byte(nip47PayBolt12WithAmountJson), nip47Request)
+	require.NoError(t, err)
+
+	var publishedResponse *models.Response
+
+	publishResponse := func(response *models.Response, tags nostr.Tags) {
+		publishedResponse = response
+	}
+
+	NewTestNip47Controller(svc).
+		HandlePayEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
+
+	require.Nil(t, publishedResponse.Error)
+	result := publishedResponse.Result.(payResult)
+	assert.Equal(t, "settled", result.State)
+	assert.Equal(t, "bolt12", result.InstructionType)
+	assert.Equal(t, "123preimage", result.Preimage)
+	assert.Equal(t, tests.MockPaymentHash, result.PaymentHash)
+	assert.Equal(t, tests.MockPaymentHash, result.TransactionId)
+	assert.Equal(t, uint64(123000), result.Amount)
+	assert.NotNil(t, result.SettledAt)
+}
+
+func TestHandlePayEvent_Bolt12WithPayerNote(t *testing.T) {
+	ctx := context.TODO()
+	svc, app, dbRequestEvent := setupPayTest(t)
+	svc.LNClient.(*tests.MockLn).SupportsBolt12 = true
+
+	nip47Request := &models.Request{}
+	err := json.Unmarshal([]byte(nip47PayBolt12WithPayerNoteJson), nip47Request)
+	require.NoError(t, err)
+
+	var publishedResponse *models.Response
+
+	publishResponse := func(response *models.Response, tags nostr.Tags) {
+		publishedResponse = response
+	}
+
+	NewTestNip47Controller(svc).
+		HandlePayEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
+
+	// unlike BOLT-11, payer_note can be delivered with a BOLT-12 payment
+	require.Nil(t, publishedResponse.Error)
+	result := publishedResponse.Result.(payResult)
+	assert.Equal(t, "bolt12", result.InstructionType)
+}
+
+func TestHandlePayEvent_Bolt12PreferredOverBolt11(t *testing.T) {
+	ctx := context.TODO()
+	svc, app, dbRequestEvent := setupPayTest(t)
+	mockLn := svc.LNClient.(*tests.MockLn)
+	mockLn.SupportsBolt12 = true
+	offerAmount := uint64(123000)
+	mockLn.MockOfferInfo = &lnclient.OfferInfo{
+		AmountMsat: &offerAmount,
+	}
+
+	nip47Request := &models.Request{}
+	err := json.Unmarshal([]byte(nip47PayBolt12AndBolt11Json), nip47Request)
+	require.NoError(t, err)
+
+	var publishedResponse *models.Response
+
+	publishResponse := func(response *models.Response, tags nostr.Tags) {
+		publishedResponse = response
+	}
+
+	NewTestNip47Controller(svc).
+		HandlePayEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
+
+	// per NWC-321 the wallet selects one supported instruction
+	require.Nil(t, publishedResponse.Error)
+	result := publishedResponse.Result.(payResult)
+	assert.Equal(t, "bolt12", result.InstructionType)
+}
+
+func TestHandlePayEvent_Bolt12VariableAmountWithoutAmount(t *testing.T) {
+	ctx := context.TODO()
+	svc, app, dbRequestEvent := setupPayTest(t)
+	svc.LNClient.(*tests.MockLn).SupportsBolt12 = true
+
+	nip47Request := &models.Request{}
+	err := json.Unmarshal([]byte(nip47PayBolt12Json), nip47Request)
+	require.NoError(t, err)
+
+	var publishedResponse *models.Response
+
+	publishResponse := func(response *models.Response, tags nostr.Tags) {
+		publishedResponse = response
+	}
+
+	NewTestNip47Controller(svc).
+		HandlePayEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
+
+	assert.Nil(t, publishedResponse.Result)
+	assert.Equal(t, constants.ERROR_BAD_REQUEST, publishedResponse.Error.Code)
+}
+
+func TestHandlePayEvent_Bolt12FixedAmount(t *testing.T) {
+	ctx := context.TODO()
+	svc, app, dbRequestEvent := setupPayTest(t)
+	mockLn := svc.LNClient.(*tests.MockLn)
+	mockLn.SupportsBolt12 = true
+	offerAmount := uint64(123000)
+	mockLn.MockOfferInfo = &lnclient.OfferInfo{
+		AmountMsat: &offerAmount,
+	}
+
+	nip47Request := &models.Request{}
+	err := json.Unmarshal([]byte(nip47PayBolt12Json), nip47Request)
+	require.NoError(t, err)
+
+	var publishedResponse *models.Response
+
+	publishResponse := func(response *models.Response, tags nostr.Tags) {
+		publishedResponse = response
+	}
+
+	NewTestNip47Controller(svc).
+		HandlePayEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
+
+	require.Nil(t, publishedResponse.Error)
+	result := publishedResponse.Result.(payResult)
+	assert.Equal(t, "settled", result.State)
+	assert.Equal(t, uint64(123000), result.Amount)
+}
+
+func TestHandlePayEvent_Bolt12ConflictingAmount(t *testing.T) {
+	ctx := context.TODO()
+	svc, app, dbRequestEvent := setupPayTest(t)
+	mockLn := svc.LNClient.(*tests.MockLn)
+	mockLn.SupportsBolt12 = true
+	offerAmount := uint64(123000)
+	mockLn.MockOfferInfo = &lnclient.OfferInfo{
+		AmountMsat: &offerAmount,
+	}
+
+	// offer has an amount of 123000 msat, request says 999
+	nip47Request := &models.Request{}
+	err := json.Unmarshal([]byte(`
+{
+	"method": "pay",
+	"params": {
+		"payment": "bitcoin:?lno=`+tests.MockOffer+`",
+		"amount": 999
+	}
+}
+`), nip47Request)
+	require.NoError(t, err)
+
+	var publishedResponse *models.Response
+
+	publishResponse := func(response *models.Response, tags nostr.Tags) {
+		publishedResponse = response
+	}
+
+	NewTestNip47Controller(svc).
+		HandlePayEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
+
+	assert.Nil(t, publishedResponse.Result)
+	assert.Equal(t, constants.ERROR_BAD_REQUEST, publishedResponse.Error.Code)
+}
+
+func TestHandlePayEvent_Bolt12WrongNetwork(t *testing.T) {
+	ctx := context.TODO()
+	svc, app, dbRequestEvent := setupPayTest(t)
+	mockLn := svc.LNClient.(*tests.MockLn)
+	mockLn.SupportsBolt12 = true
+	mockLn.MockOfferInfo = &lnclient.OfferInfo{
+		// the offer is restricted to mainnet but the mock node is on signet
+		Chains: []string{"bitcoin"},
+	}
+
+	nip47Request := &models.Request{}
+	err := json.Unmarshal([]byte(nip47PayBolt12WithAmountJson), nip47Request)
+	require.NoError(t, err)
+
+	var publishedResponse *models.Response
+
+	publishResponse := func(response *models.Response, tags nostr.Tags) {
+		publishedResponse = response
+	}
+
+	NewTestNip47Controller(svc).
+		HandlePayEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
+
+	assert.Nil(t, publishedResponse.Result)
+	assert.Equal(t, constants.ERROR_UNSUPPORTED_NETWORK, publishedResponse.Error.Code)
+}
+
+func TestHandlePayEvent_Bolt12Expired(t *testing.T) {
+	ctx := context.TODO()
+	svc, app, dbRequestEvent := setupPayTest(t)
+	mockLn := svc.LNClient.(*tests.MockLn)
+	mockLn.SupportsBolt12 = true
+	mockLn.MockOfferInfo = &lnclient.OfferInfo{
+		Expired: true,
+	}
+
+	nip47Request := &models.Request{}
+	err := json.Unmarshal([]byte(nip47PayBolt12WithAmountJson), nip47Request)
+	require.NoError(t, err)
+
+	var publishedResponse *models.Response
+
+	publishResponse := func(response *models.Response, tags nostr.Tags) {
+		publishedResponse = response
+	}
+
+	NewTestNip47Controller(svc).
+		HandlePayEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
+
+	assert.Nil(t, publishedResponse.Result)
+	assert.Equal(t, constants.ERROR_BAD_REQUEST, publishedResponse.Error.Code)
 }
 
 func runPayTest(t *testing.T, requestJson string) *models.Response {

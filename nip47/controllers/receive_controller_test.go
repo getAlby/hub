@@ -100,3 +100,27 @@ func TestHandleReceiveEvent_NoAmount(t *testing.T) {
 	assert.Nil(t, publishedResponse.Result)
 	assert.Equal(t, constants.ERROR_BAD_REQUEST, publishedResponse.Error.Code)
 }
+
+func TestHandleReceiveEvent_NoAmountBolt12Offer(t *testing.T) {
+	ctx := context.TODO()
+	svc, app, dbRequestEvent := setupReceiveTest(t)
+	svc.LNClient.(*tests.MockLn).SupportsBolt12 = true
+
+	nip47Request := &models.Request{}
+	err := json.Unmarshal([]byte(nip47ReceiveNoAmountJson), nip47Request)
+	require.NoError(t, err)
+
+	var publishedResponse *models.Response
+
+	publishResponse := func(response *models.Response, tags nostr.Tags) {
+		publishedResponse = response
+	}
+
+	NewTestNip47Controller(svc).
+		HandleReceiveEvent(ctx, nip47Request, dbRequestEvent.ID, app.ID, publishResponse)
+
+	require.Nil(t, publishedResponse.Error)
+	result := publishedResponse.Result.(receiveResult)
+	assert.Equal(t, "bitcoin:?lno="+tests.MockOffer, result.Bip321)
+	assert.Empty(t, result.TransactionId)
+}

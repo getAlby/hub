@@ -766,7 +766,15 @@ func (bs *BarkService) ResetRouter(key string) error {
 func (bs *BarkService) UpdateLastWalletSyncRequest() {}
 
 func (bs *BarkService) MakeOffer(ctx context.Context, description string) (string, error) {
-	return "", errors.New("not supported")
+	return "", lnclient.ErrBolt12Unsupported
+}
+
+func (bs *BarkService) DecodeOffer(ctx context.Context, offer string) (*lnclient.OfferInfo, error) {
+	return nil, lnclient.ErrBolt12Unsupported
+}
+
+func (bs *BarkService) PayOfferSync(ctx context.Context, offer string, amountMsat *uint64, payerNote string) (*lnclient.PayOfferResponse, error) {
+	return nil, lnclient.ErrBolt12Unsupported
 }
 
 func (bs *BarkService) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {

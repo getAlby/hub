@@ -529,7 +529,15 @@ func (cs *CashuService) executeCommandResetWallet() (*lnclient.CustomNodeCommand
 }
 
 func (svc *CashuService) MakeOffer(ctx context.Context, description string) (string, error) {
-	return "", errors.New("not supported")
+	return "", lnclient.ErrBolt12Unsupported
+}
+
+func (svc *CashuService) DecodeOffer(ctx context.Context, offer string) (*lnclient.OfferInfo, error) {
+	return nil, lnclient.ErrBolt12Unsupported
+}
+
+func (svc *CashuService) PayOfferSync(ctx context.Context, offer string, amountMsat *uint64, payerNote string) (*lnclient.PayOfferResponse, error) {
+	return nil, lnclient.ErrBolt12Unsupported
 }
 
 func (cs *CashuService) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {

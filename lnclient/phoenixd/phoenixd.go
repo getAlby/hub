@@ -596,7 +596,15 @@ func (svc *PhoenixService) ExecuteCustomNodeCommand(ctx context.Context, command
 }
 
 func (svc *PhoenixService) MakeOffer(ctx context.Context, description string) (string, error) {
-	return "", errors.New("not supported")
+	return "", lnclient.ErrBolt12Unsupported
+}
+
+func (svc *PhoenixService) DecodeOffer(ctx context.Context, offer string) (*lnclient.OfferInfo, error) {
+	return nil, lnclient.ErrBolt12Unsupported
+}
+
+func (svc *PhoenixService) PayOfferSync(ctx context.Context, offer string, amountMsat *uint64, payerNote string) (*lnclient.PayOfferResponse, error) {
+	return nil, lnclient.ErrBolt12Unsupported
 }
 
 func (svc *PhoenixService) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
