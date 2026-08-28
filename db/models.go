@@ -64,31 +64,32 @@ type ResponseEvent struct {
 }
 
 type Transaction struct {
-	ID              uint
-	AppId           *uint
-	App             *App
-	RequestEventId  *uint
-	RequestEvent    *RequestEvent
-	Type            string
-	State           string
-	AmountMsat      uint64
-	FeeMsat         uint64
-	FeeReserveMsat  uint64
-	PaymentRequest  string
-	PaymentHash     string
-	Description     string
-	DescriptionHash string
-	Preimage        *string
-	CreatedAt       time.Time
-	ExpiresAt       *time.Time
-	UpdatedAt       time.Time
-	SettledAt       *time.Time
-	Metadata        datatypes.JSON
-	SelfPayment     bool
-	Boostagram      datatypes.JSON
-	FailureReason   string
-	Hold            bool
-	SettleDeadline  *uint32 // block number for accepted hold invoices
+	ID                uint
+	AppId             *uint
+	App               *App
+	RequestEventId    *uint
+	RequestEvent      *RequestEvent
+	Type              string
+	State             string
+	AmountMsat        uint64
+	FeeMsat           uint64
+	FeeReserveMsat    uint64
+	LNClientPaymentID string
+	PaymentRequest    string
+	PaymentHash       string
+	Description       string
+	DescriptionHash   string
+	Preimage          *string
+	CreatedAt         time.Time
+	ExpiresAt         *time.Time
+	UpdatedAt         time.Time
+	SettledAt         *time.Time
+	Metadata          datatypes.JSON
+	SelfPayment       bool
+	Boostagram        datatypes.JSON
+	FailureReason     string
+	Hold              bool
+	SettleDeadline    *uint32 // block number for accepted hold invoices
 }
 
 type Swap struct {

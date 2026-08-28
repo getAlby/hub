@@ -31,6 +31,7 @@ type NodeInfo struct {
 // TODO: use uint for fields that cannot be negative
 type Transaction struct {
 	Type            string
+	PaymentID       string
 	Invoice         string
 	Description     string
 	DescriptionHash string
@@ -102,6 +103,15 @@ type LNClient interface {
 	// PayOfferSync pays a BOLT-12 offer. Backends without BOLT-12 support
 	// must return ErrBolt12Unsupported.
 	PayOfferSync(ctx context.Context, offer string, amountMsat *uint64, payerNote string) (*PayOfferResponse, error)
+}
+
+// OfferPaymentLifecycleClient is implemented by backends that can start a
+// BOLT-12 offer payment, return the backend-local payment ID immediately, and
+// then wait for the terminal result separately. This lets callers persist the
+// payment ID before success/failure events arrive.
+type OfferPaymentLifecycleClient interface {
+	StartOfferPayment(ctx context.Context, offer string, amountMsat *uint64, payerNote string) (paymentID string, err error)
+	WaitForOfferPayment(ctx context.Context, paymentID string) (*PayOfferResponse, error)
 }
 
 type Channel struct {
@@ -269,6 +279,9 @@ var ErrOfferWrongNetwork = errors.New("the offer is for a different network than
 // OfferInfo contains the data decoded from a BOLT-12 offer relevant for
 // validating a payment to be made.
 type OfferInfo struct {
+	// ID is the offer's hash-derived identifier if the backend reports it
+	// (LDK-based backends do, CLN does not). Optional.
+	ID string
 	// AmountMsat is set for offers with a fixed amount, nil for
 	// variable-amount offers.
 	AmountMsat *uint64

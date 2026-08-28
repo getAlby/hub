@@ -2395,6 +2395,9 @@ func (c *CLNService) DecodeOffer(ctx context.Context, offer string) (*lnclient.O
 	}
 
 	offerInfo := &lnclient.OfferInfo{}
+	if offerID := resp.GetOfferId(); len(offerID) > 0 {
+		offerInfo.ID = hex.EncodeToString(offerID)
+	}
 	if amount := resp.GetOfferAmountMsat(); amount != nil {
 		offerInfo.AmountMsat = &amount.Msat
 	} else if amount := resp.GetInvoiceAmountMsat(); amount != nil {

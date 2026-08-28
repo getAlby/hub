@@ -519,6 +519,7 @@ func (svc *LDKServerService) DecodeOffer(ctx context.Context, offer string) (*ln
 	}
 
 	offerInfo := &lnclient.OfferInfo{
+		ID:          resp.GetOfferId(),
 		Chains:      resp.Chains,
 		Description: resp.GetDescription(),
 		Expired:     resp.IsExpired,
@@ -529,17 +530,20 @@ func (svc *LDKServerService) DecodeOffer(ctx context.Context, offer string) (*ln
 	return offerInfo, nil
 }
 
-func (svc *LDKServerService) PayOfferSync(ctx context.Context, offer string, amountMsat *uint64, payerNote string) (*lnclient.PayOfferResponse, error) {
+func (svc *LDKServerService) StartOfferPayment(ctx context.Context, offer string, amountMsat *uint64, payerNote string) (string, error) {
 	resp := &ldkapi.Bolt12SendResponse{}
 	if err := svc.doUnary(ctx, ldkapi.LightningNode_Bolt12Send_FullMethodName, &ldkapi.Bolt12SendRequest{
 		Offer:      offer,
 		AmountMsat: amountMsat,
 		PayerNote:  &payerNote,
 	}, resp); err != nil {
-		return nil, err
+		return "", err
 	}
+	return resp.PaymentId, nil
+}
 
-	payment, err := svc.waitForPaymentTerminal(resp.PaymentId)
+func (svc *LDKServerService) WaitForOfferPayment(ctx context.Context, paymentID string) (*lnclient.PayOfferResponse, error) {
+	payment, err := svc.waitForPaymentTerminal(paymentID)
 	if err != nil {
 		return nil, err
 	}
@@ -566,6 +570,14 @@ func (svc *LDKServerService) PayOfferSync(ctx context.Context, offer string, amo
 		Preimage:    *kind.Bolt12Offer.Preimage,
 		FeeMsat:     payment.GetFeePaidMsat(),
 	}, nil
+}
+
+func (svc *LDKServerService) PayOfferSync(ctx context.Context, offer string, amountMsat *uint64, payerNote string) (*lnclient.PayOfferResponse, error) {
+	paymentID, err := svc.StartOfferPayment(ctx, offer, amountMsat, payerNote)
+	if err != nil {
+		return nil, err
+	}
+	return svc.WaitForOfferPayment(ctx, paymentID)
 }
 
 func (svc *LDKServerService) GetNewOnchainAddress(ctx context.Context) (string, error) {
@@ -1173,6 +1185,7 @@ func paymentToTransaction(payment *ldktypes.Payment) (*lnclient.Transaction, err
 	}
 
 	transaction := &lnclient.Transaction{
+		PaymentID:    payment.GetId(),
 		AmountMsat:   int64(payment.GetAmountMsat()),
 		FeesPaidMsat: int64(payment.GetFeePaidMsat()),
 		CreatedAt:    int64(payment.LatestUpdateTimestamp),

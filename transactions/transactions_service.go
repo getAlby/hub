@@ -83,6 +83,29 @@ func escapeLikePattern(s string) string {
 	return s
 }
 
+func isBolt12SentTransaction(transaction *lnclient.Transaction) bool {
+	if transaction == nil {
+		return false
+	}
+	if strings.HasPrefix(strings.ToLower(transaction.Invoice), "lno") {
+		return true
+	}
+	_, ok := transaction.Metadata["offer"]
+	return ok
+}
+
+func findByLNClientPaymentID(tx *gorm.DB, transactionType string, states []string, paymentID string, dbTransaction *db.Transaction) (*gorm.DB, error) {
+	if paymentID == "" {
+		return nil, nil
+	}
+	query := tx.Limit(1).Order("created_at DESC").Where("type = ? AND ln_client_payment_id = ?", transactionType, paymentID)
+	if len(states) > 0 {
+		query = query.Where("state IN ?", states)
+	}
+	result := query.Find(dbTransaction)
+	return result, result.Error
+}
+
 type Boostagram struct {
 	AppName        string         `json:"app_name"`
 	Name           string         `json:"name"`
@@ -531,7 +554,41 @@ func (svc *transactionsService) PayOfferSync(ctx context.Context, offer string, 
 		"metadata":         metadata,
 	}).Debug("Initiating BOLT-12 payment")
 
-	response, err := lnClient.PayOfferSync(ctx, offer, amountMsat, payerNote)
+	var response *lnclient.PayOfferResponse
+	if lifecycleClient, ok := lnClient.(lnclient.OfferPaymentLifecycleClient); ok {
+		paymentID, err := lifecycleClient.StartOfferPayment(ctx, offer, amountMsat, payerNote)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"offer": offer,
+			}).WithError(err).Error("Failed to start BOLT-12 offer payment")
+
+			if _, markFailedErr := svc.markPaymentFailed(&dbTransaction, err.Error()); markFailedErr != nil {
+				logger.Logger.WithFields(logrus.Fields{
+					"offer": offer,
+				}).WithError(markFailedErr).Error("Failed to mark payment as failed")
+			}
+
+			return nil, err
+		}
+		dbTransaction.LNClientPaymentID = paymentID
+		if err := svc.db.Model(&dbTransaction).Update("LNClientPaymentID", paymentID).Error; err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"offer":      offer,
+				"payment_id": paymentID,
+			}).WithError(err).Error("Failed to persist LN client payment ID for BOLT-12 payment")
+			if _, markFailedErr := svc.markPaymentFailed(&dbTransaction, err.Error()); markFailedErr != nil {
+				logger.Logger.WithFields(logrus.Fields{
+					"offer":      offer,
+					"payment_id": paymentID,
+				}).WithError(markFailedErr).Error("Failed to mark payment as failed")
+			}
+			return nil, err
+		}
+
+		response, err = lifecycleClient.WaitForOfferPayment(ctx, paymentID)
+	} else {
+		response, err = lnClient.PayOfferSync(ctx, offer, amountMsat, payerNote)
+	}
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"offer": offer,
@@ -989,6 +1046,25 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 		}
 
 		var dbTransaction db.Transaction
+		if lnClientTransaction.PaymentID != "" {
+			result, err := findByLNClientPaymentID(svc.db, constants.TRANSACTION_TYPE_OUTGOING, []string{constants.TRANSACTION_STATE_PENDING}, lnClientTransaction.PaymentID, &dbTransaction)
+			if err != nil {
+				logger.Logger.WithFields(logrus.Fields{
+					"payment_id": lnClientTransaction.PaymentID,
+				}).WithError(err).Error("Failed to find transaction by LN client payment ID")
+				return
+			}
+			if result != nil && result.RowsAffected > 0 {
+				dbTransaction.PaymentHash = lnClientTransaction.PaymentHash
+				if _, err := svc.markTransactionSettled(&dbTransaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaidMsat), false); err != nil {
+					logger.Logger.WithFields(logrus.Fields{
+						"payment_id":   lnClientTransaction.PaymentID,
+						"payment_hash": lnClientTransaction.PaymentHash,
+					}).WithError(err).Error("Failed to update transaction")
+				}
+				return
+			}
+		}
 
 		// first lookup by pending
 		result := svc.db.Limit(1).Find(&dbTransaction, &db.Transaction{
@@ -1032,26 +1108,11 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 					return
 				}
 
-				if result.RowsAffected == 0 && lnClientTransaction.Invoice != "" && strings.HasPrefix(lnClientTransaction.Invoice, "lno") {
-					// BOLT-12: the payment hash is not known before paying, so
-					// a pending payment may not have been matched by hash above
-					// (e.g. if this event was handled before the hash was
-					// persisted). Fall back to the offer string, which acts as
-					// the payment request for offer payments.
-					result := svc.db.Limit(1).Order("created_at DESC").Find(&dbTransaction, &db.Transaction{
-						Type:           constants.TRANSACTION_TYPE_OUTGOING,
-						State:          constants.TRANSACTION_STATE_PENDING,
-						PaymentRequest: strings.ToLower(lnClientTransaction.Invoice),
-					})
-					if result.Error == nil && result.RowsAffected > 0 {
-						dbTransaction.PaymentHash = lnClientTransaction.PaymentHash
-						if _, err := svc.markTransactionSettled(&dbTransaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaidMsat), false); err != nil {
-							logger.Logger.WithFields(logrus.Fields{
-								"payment_hash": lnClientTransaction.PaymentHash,
-							}).WithError(err).Error("Failed to update transaction")
-						}
-						return
-					}
+				if result.RowsAffected == 0 && isBolt12SentTransaction(lnClientTransaction) {
+					logger.Logger.WithFields(logrus.Fields{
+						"payment_hash": lnClientTransaction.PaymentHash,
+						"payment_id":   lnClientTransaction.PaymentID,
+					}).Warn("No matching BOLT-12 pending transaction found by payment ID/payment hash")
 				}
 
 				if result.RowsAffected == 0 {
@@ -1095,6 +1156,25 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 		lnClientTransaction := paymentFailedAsyncProperties.Transaction
 
 		var dbTransaction db.Transaction
+		if lnClientTransaction.PaymentID != "" {
+			result, err := findByLNClientPaymentID(svc.db, constants.TRANSACTION_TYPE_OUTGOING, []string{constants.TRANSACTION_STATE_PENDING}, lnClientTransaction.PaymentID, &dbTransaction)
+			if err != nil {
+				logger.Logger.WithFields(logrus.Fields{
+					"payment_id": lnClientTransaction.PaymentID,
+				}).WithError(err).Error("Failed to find transaction by LN client payment ID")
+				return
+			}
+			if result != nil && result.RowsAffected > 0 {
+				dbTransaction.PaymentHash = lnClientTransaction.PaymentHash
+				if _, err := svc.markPaymentFailed(&dbTransaction, paymentFailedAsyncProperties.Reason); err != nil {
+					logger.Logger.WithFields(logrus.Fields{
+						"payment_id":   lnClientTransaction.PaymentID,
+						"payment_hash": lnClientTransaction.PaymentHash,
+					}).WithError(err).Error("Failed to mark payment as failed")
+				}
+				return
+			}
+		}
 		result := svc.db.Limit(1).Find(&dbTransaction, &db.Transaction{
 			Type:        constants.TRANSACTION_TYPE_OUTGOING,
 			State:       constants.TRANSACTION_STATE_PENDING,

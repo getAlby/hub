@@ -1608,6 +1608,7 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 
 	return &lnclient.Transaction{
 		Type:            transactionType,
+		PaymentID:       payment.Id,
 		Preimage:        preimage,
 		PaymentHash:     paymentHash,
 		SettledAt:       settledAt,
@@ -2289,6 +2290,7 @@ func (ls *LDKService) DecodeOffer(ctx context.Context, offer string) (*lnclient.
 	}
 
 	offerInfo := &lnclient.OfferInfo{
+		ID:      offerObj.Id(),
 		Expired: offerObj.IsExpired(),
 	}
 	if offerAmount := offerObj.Amount(); offerAmount != nil {
@@ -2307,28 +2309,24 @@ func (ls *LDKService) DecodeOffer(ctx context.Context, offer string) (*lnclient.
 	return offerInfo, nil
 }
 
-func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amountMsat *uint64, payerNote string) (*lnclient.PayOfferResponse, error) {
+func (ls *LDKService) StartOfferPayment(ctx context.Context, offer string, amountMsat *uint64, payerNote string) (string, error) {
 	offerObj, err := ldk_node.OfferFromStr(offer)
 	if err != nil {
 		logger.Logger.WithField("offer", offer).WithError(err).Error("Failed to decode BOLT-12 offer")
-		return nil, err
+		return "", err
 	}
 
 	if offerObj.IsExpired() {
-		return nil, errors.New("offer has expired")
+		return "", errors.New("offer has expired")
 	}
 
 	nodeNetwork, err := ls.ldkNetwork()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	if !offerObj.SupportsChain(nodeNetwork) {
-		return nil, lnclient.ErrOfferWrongNetwork
+		return "", lnclient.ErrOfferWrongNetwork
 	}
-
-	paymentStart := time.Now()
-	ldkEventSubscription := ls.ldkEventBroadcaster.Subscribe()
-	defer ls.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
 
 	offerAmount := offerObj.Amount()
 	var paymentId ldk_node.PaymentId
@@ -2336,37 +2334,41 @@ func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amountMsat
 	if offerAmount == nil {
 		// variable-amount offers must be funded with an explicit amount
 		if amountMsat == nil {
-			return nil, errors.New("an amount is required to pay a variable-amount offer")
+			return "", errors.New("an amount is required to pay a variable-amount offer")
 		}
 		logger.Logger.WithField("amount_msat", *amountMsat).Debug("Sending BOLT-12 payment with amount")
 		paymentId, err = ls.node.Bolt12Payment().SendUsingAmount(offerObj, *amountMsat, nil, payerNotePtr, nil)
 	} else {
 		bitcoinAmount, isBitcoinAmount := (*offerAmount).(ldk_node.OfferAmountBitcoin)
 		if !isBitcoinAmount {
-			return nil, errors.New("offers with a non-bitcoin currency are not supported")
+			return "", errors.New("offers with a non-bitcoin currency are not supported")
 		}
 		if amountMsat != nil && *amountMsat != bitcoinAmount.AmountMsats {
-			return nil, fmt.Errorf("amount %d does not match the offer amount %d", *amountMsat, bitcoinAmount.AmountMsats)
+			return "", fmt.Errorf("amount %d does not match the offer amount %d", *amountMsat, bitcoinAmount.AmountMsats)
 		}
 		logger.Logger.WithField("amount_msat", bitcoinAmount.AmountMsats).Debug("Sending BOLT-12 payment")
 		paymentId, err = ls.node.Bolt12Payment().Send(offerObj, nil, payerNotePtr, nil)
 	}
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to initiate BOLT-12 payment")
-		return nil, errors.New("failed to initiate BOLT-12 payment")
+		return "", errors.New("failed to initiate BOLT-12 payment")
 	}
 
-	logger.Logger.WithFields(logrus.Fields{
-		"payment_id": paymentId,
-	}).Info("Initiated BOLT-12 payment")
+	return paymentId, nil
+}
+
+func (ls *LDKService) WaitForOfferPayment(ctx context.Context, paymentId string) (*lnclient.PayOfferResponse, error) {
+	paymentStart := time.Now()
+	ldkEventSubscription := ls.ldkEventBroadcaster.Subscribe()
+	defer ls.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
 
 	feeMsat := uint64(0)
 	preimage := ""
 	paymentHash := ""
 
 	// NOTE: the invoice request roundtrip over onion messages can take a
-	// while, so like SendPaymentSync this blocks until a final event (or
-	// shutdown) rather than timing out.
+	// while, so this blocks until a final event (or shutdown) rather than
+	// timing out.
 	for {
 		select {
 		case <-ls.ctx.Done():
@@ -2432,6 +2434,19 @@ func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amountMsat
 			}
 		}
 	}
+}
+
+func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amountMsat *uint64, payerNote string) (*lnclient.PayOfferResponse, error) {
+	paymentId, err := ls.StartOfferPayment(ctx, offer, amountMsat, payerNote)
+	if err != nil {
+		return nil, err
+	}
+
+	logger.Logger.WithFields(logrus.Fields{
+		"payment_id": paymentId,
+	}).Info("Initiated BOLT-12 payment")
+
+	return ls.WaitForOfferPayment(ctx, paymentId)
 }
 
 const nodeCommandPayBOLT12Offer = "pay_bolt12_offer"
