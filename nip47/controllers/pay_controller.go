@@ -63,7 +63,6 @@ func (controller *nip47Controller) HandlePayEvent(ctx context.Context, nip47Requ
 		logger.Logger.WithFields(logrus.Fields{
 			"request_event_id": requestEventId,
 			"app_id":           app.ID,
-			"payment":          payParams.Payment,
 			"code":             nip47Error.Code,
 		}).Error(nip47Error.Message)
 
