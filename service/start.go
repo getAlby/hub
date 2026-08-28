@@ -4,12 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"path"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/lsp"
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/getAlby/hub/swaps"
 	"github.com/getAlby/hub/version"
@@ -25,6 +28,7 @@ import (
 	"github.com/getAlby/hub/lnclient/cashu"
 	"github.com/getAlby/hub/lnclient/cln"
 	"github.com/getAlby/hub/lnclient/ldk"
+	ldkserver "github.com/getAlby/hub/lnclient/ldk-server"
 	"github.com/getAlby/hub/lnclient/lnd"
 	"github.com/getAlby/hub/lnclient/phoenixd"
 	"github.com/getAlby/hub/logger"
@@ -382,6 +386,14 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		PhoenixdAuthorization, _ := svc.cfg.Get("PhoenixdAuthorization", encryptionKey)
 
 		lnClient, err = phoenixd.NewPhoenixService(ctx, PhoenixdAddress, PhoenixdAuthorization)
+	case config.LDKServerBackendType:
+		ldkServerAddress, _ := svc.cfg.Get("LDKServerAddress", encryptionKey)
+		ldkServerTlsCertPem, _ := svc.cfg.Get("LDKServerTlsCertPem", encryptionKey)
+		ldkServerApiKey, _ := svc.cfg.Get("LDKServerApiKey", encryptionKey)
+		lnClient, err = ldkserver.NewLDKServerService(ctx, svc.eventPublisher, ldkServerAddress, ldkServerTlsCertPem, ldkServerApiKey)
+		if err == nil {
+			svc.connectToSuggestedChannelPeers(ctx, lnClient)
+		}
 	case config.CashuBackendType:
 		mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		cashuMintUrl, _ := svc.cfg.Get("CashuMintUrl", encryptionKey)
@@ -445,6 +457,70 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 	})
 
 	return nil
+}
+
+// connectToSuggestedChannelPeers connects an LSPS2 liquidity source peer so the node
+// has a peer with onion message forwarding support (required to create BOLT12 offers).
+// Mirrors the peer selection of the embedded LDK backend (same suggestions and defaults).
+func (svc *service) connectToSuggestedChannelPeers(ctx context.Context, lnClient lnclient.LNClient) {
+	network := svc.cfg.GetNetwork()
+
+	channelPeerSuggestions, err := svc.albySvc.GetChannelPeerSuggestions(ctx)
+	if err != nil {
+		logger.Logger.WithError(err).Warn("Failed to fetch channel peer suggestions for LSPS2 liquidity source")
+	}
+
+	var nodeAddress string
+	for _, suggestion := range channelPeerSuggestions {
+		if suggestion.PaymentMethod == "lightning" &&
+			suggestion.Type == lsp.LSP_TYPE_LSPS2 &&
+			suggestion.Network == network &&
+			suggestion.NodeAddress != "" {
+			nodeAddress = suggestion.NodeAddress
+			break
+		}
+	}
+
+	// fall back to a hardcoded per-network default
+	if nodeAddress == "" {
+		switch network {
+		case "signet":
+			nodeAddress = "03e30fda71887a916ef5548a4d02b06fe04aaa1a8de9e24134ce7f139cf79d7579@64.23.192.68:9736" // Megalith LSP 2 (Mutinynet)
+		case "bitcoin":
+			nodeAddress = "034066e29e402d9cf55af1ae1026cc5adf92eed1e0e421785442f53717ad1453b0@64.23.159.177:9735" // Megalith LSP 2
+		}
+	}
+	if nodeAddress == "" {
+		logger.Logger.WithField("network", network).Warn("No channel peer suggestion available for this network")
+		return
+	}
+
+	pubkey, address, ok := strings.Cut(nodeAddress, "@")
+	if !ok {
+		logger.Logger.WithField("node_address", nodeAddress).Warn("Invalid channel peer node address, expected <pubkey>@<host>:<port>")
+		return
+	}
+	host, portStr, err := net.SplitHostPort(address)
+	if err != nil {
+		logger.Logger.WithField("node_address", nodeAddress).WithError(err).Warn("Invalid channel peer node address host:port")
+		return
+	}
+	port, err := strconv.ParseUint(portStr, 10, 16)
+	if err != nil {
+		logger.Logger.WithField("node_address", nodeAddress).WithError(err).Warn("Invalid channel peer node address port")
+		return
+	}
+
+	if err := lnClient.ConnectPeer(ctx, &lnclient.ConnectPeerRequest{
+		Pubkey:  pubkey,
+		Address: host,
+		Port:    uint16(port),
+	}); err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"pubkey":  pubkey,
+			"address": address,
+		}).WithError(err).Warn("Failed to connect to suggested channel peer")
+	}
 }
 
 func (svc *service) requestVssToken(ctx context.Context) (string, error) {

@@ -11,7 +11,14 @@ import {
   WalletMinimalIcon,
 } from "lucide-react";
 
-export type BackendType = "LND" | "LDK" | "PHOENIX" | "CASHU" | "CLN" | "BARK";
+export type BackendType =
+  | "LND"
+  | "LDK"
+  | "LDK_SERVER"
+  | "PHOENIX"
+  | "CASHU"
+  | "CLN"
+  | "BARK";
 
 export type Nip47RequestMethod =
   | "get_info"
@@ -477,6 +484,10 @@ export type SetupNodeInfo = Partial<{
 
   phoenixdAddress?: string;
   phoenixdAuthorization?: string;
+
+  ldkServerAddress?: string;
+  ldkServerTlsCertFile?: string;
+  ldkServerApiKey?: string;
 
   clnAddress?: string;
   clnLightningDir?: string;
