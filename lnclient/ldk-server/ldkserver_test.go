@@ -9,6 +9,7 @@ import (
 	"github.com/getAlby/hub/lnclient"
 	ldkevents "github.com/getAlby/hub/lnclient/ldk-server/grpc/events"
 	ldktypes "github.com/getAlby/hub/lnclient/ldk-server/grpc/types"
+	"github.com/getAlby/hub/nip47/models"
 )
 
 type recordingEventPublisher struct {
@@ -26,6 +27,15 @@ func (p *recordingEventPublisher) Publish(event *events.Event) {
 
 func (p *recordingEventPublisher) PublishSync(event *events.Event) {
 	p.syncPublished = append(p.syncPublished, event)
+}
+
+func TestSupportedNIP47MethodsIncludePayAndReceive(t *testing.T) {
+	svc := &LDKServerService{}
+
+	methods := svc.GetSupportedNIP47Methods()
+
+	require.Contains(t, methods, models.PAY_METHOD)
+	require.Contains(t, methods, models.RECEIVE_METHOD)
 }
 
 func TestHandlePaymentClaimablePublishesDeadlineSynchronously(t *testing.T) {
