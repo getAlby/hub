@@ -546,12 +546,20 @@ func (svc *transactionsService) PayOfferSync(ctx context.Context, offer string, 
 		return nil, err
 	}
 
+	// The payment hash is only known after the payment: a BOLT-12 offer has
+	// no payment hash itself, it is assigned when the invoice is fetched.
+	// Set it before marking the transaction settled so the LNClient's
+	// payment-sent event handler can match this row by payment hash instead
+	// of creating a duplicate.
+	if response.PaymentHash != "" {
+		dbTransaction.PaymentHash = response.PaymentHash
+	}
+
 	// the payment definitely succeeded
 	settledTransaction, err := svc.markTransactionSettled(&dbTransaction, response.Preimage, response.FeeMsat, false)
 	if err != nil {
 		return nil, err
 	}
-	settledTransaction.PaymentHash = response.PaymentHash
 
 	return settledTransaction, nil
 }
@@ -1022,6 +1030,28 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 						"payment_hash": lnClientTransaction.PaymentHash,
 					}).WithError(result.Error).Error("Failed to find transaction")
 					return
+				}
+
+				if result.RowsAffected == 0 && lnClientTransaction.Invoice != "" && strings.HasPrefix(lnClientTransaction.Invoice, "lno") {
+					// BOLT-12: the payment hash is not known before paying, so
+					// a pending payment may not have been matched by hash above
+					// (e.g. if this event was handled before the hash was
+					// persisted). Fall back to the offer string, which acts as
+					// the payment request for offer payments.
+					result := svc.db.Limit(1).Order("created_at DESC").Find(&dbTransaction, &db.Transaction{
+						Type:           constants.TRANSACTION_TYPE_OUTGOING,
+						State:          constants.TRANSACTION_STATE_PENDING,
+						PaymentRequest: strings.ToLower(lnClientTransaction.Invoice),
+					})
+					if result.Error == nil && result.RowsAffected > 0 {
+						dbTransaction.PaymentHash = lnClientTransaction.PaymentHash
+						if _, err := svc.markTransactionSettled(&dbTransaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaidMsat), false); err != nil {
+							logger.Logger.WithFields(logrus.Fields{
+								"payment_hash": lnClientTransaction.PaymentHash,
+							}).WithError(err).Error("Failed to update transaction")
+						}
+						return
+					}
 				}
 
 				if result.RowsAffected == 0 {
@@ -1587,6 +1617,8 @@ func (svc *transactionsService) markTransactionSettled(dbTransaction *db.Transac
 			"FeeReserveMsat": 0,
 			"SettledAt":      &settledAt,
 			"SelfPayment":    selfPayment,
+			// BOLT-12 payments learn their payment hash only after paying
+			"PaymentHash": dbTransaction.PaymentHash,
 		}).Error
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{

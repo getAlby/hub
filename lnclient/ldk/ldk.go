@@ -1541,6 +1541,13 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 		}
 		paymentHash = *bolt12PaymentKind.Hash
 
+		// ldk-node stores the offer ID, not the offer string. The offer ID is
+		// a hash of the offer and the original string cannot be recovered
+		// from it. For offers paid through the hub's transactions service the
+		// offer string is recorded upfront, and the payment-sent event
+		// handler matches such payments by payment hash (falling back to a
+		// pending payment's offer string) instead of creating a second,
+		// offer-less transaction.
 		offer := map[string]interface{}{}
 		offer["id"] = bolt12PaymentKind.OfferId
 
@@ -1558,7 +1565,6 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 			settledAt = &lastUpdate
 		}
 	}
-
 	spontaneousPaymentKind, isSpontaneousPaymentKind := payment.Kind.(ldk_node.PaymentKindSpontaneous)
 	if isSpontaneousPaymentKind {
 		// keysend payment
