@@ -1191,6 +1191,8 @@ func (ls *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lncli
 
 	for start := time.Now(); time.Since(start) < time.Second*60; {
 		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
 		case <-ls.ctx.Done():
 			return nil, ls.ctx.Err()
 		case event, ok := <-ldkEventSubscription:
@@ -2295,6 +2297,8 @@ func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amount uin
 paymentLoop:
 	for start := time.Now(); time.Since(start) < time.Second*60; {
 		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
 		case <-ls.ctx.Done():
 			return nil, ls.ctx.Err()
 		case event, ok := <-ldkEventSubscription:
