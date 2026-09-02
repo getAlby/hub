@@ -150,6 +150,10 @@ func (controller *nip47Controller) HandlePayEvent(ctx context.Context, nip47Requ
 		settledAtUnix := transaction.SettledAt.Unix()
 		settledAt = &settledAtUnix
 	}
+	preimage := ""
+	if transaction.Preimage != nil {
+		preimage = *transaction.Preimage
+	}
 
 	publishResponse(&models.Response{
 		ResultType: nip47Request.Method,
@@ -160,7 +164,7 @@ func (controller *nip47Controller) HandlePayEvent(ctx context.Context, nip47Requ
 			Amount:          transaction.AmountMsat,
 			FeesPaid:        transaction.FeeMsat,
 			PaymentHash:     transaction.PaymentHash,
-			Preimage:        *transaction.Preimage,
+			Preimage:        preimage,
 			CreatedAt:       transaction.CreatedAt.Unix(),
 			SettledAt:       settledAt,
 		},
@@ -297,14 +301,14 @@ func parseBtcAmountToMsat(value string) (uint64, error) {
 
 	whole, err := strconv.ParseUint(intPart, 10, 64)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("parse whole BTC amount: %w", err)
 	}
 	if whole > 21_000_000 {
 		return 0, fmt.Errorf("amount too large")
 	}
 	frac, err := strconv.ParseUint(fracPart, 10, 64)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("parse fractional BTC amount: %w", err)
 	}
 	return whole*100_000_000_000 + frac, nil
 }

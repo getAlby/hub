@@ -31,13 +31,13 @@ func (controller *nip47Controller) HandleReceiveEvent(ctx context.Context, nip47
 		return
 	}
 
-	if receiveParams.Amount == nil {
+	if receiveParams.Amount == nil || *receiveParams.Amount == 0 {
 		// variable-amount (zero-amount) invoices are not supported
 		publishResponse(&models.Response{
 			ResultType: nip47Request.Method,
 			Error: &models.Error{
 				Code:    constants.ERROR_BAD_REQUEST,
-				Message: "amount is required",
+				Message: "amount is required and must be greater than 0",
 			},
 		}, nostr.Tags{})
 		return

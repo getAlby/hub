@@ -34,6 +34,16 @@ const nip47ReceiveNoAmountJson = `
 }
 `
 
+const nip47ReceiveZeroAmountJson = `
+{
+	"method": "receive",
+	"params": {
+		"amount": 0,
+		"description": "test receive"
+	}
+}
+`
+
 func setupReceiveTest(t *testing.T) (*tests.TestService, *db.App, *db.RequestEvent) {
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
@@ -86,6 +96,27 @@ func TestHandleReceiveEvent_NoAmount(t *testing.T) {
 
 	nip47Request := &models.Request{}
 	err := json.Unmarshal([]byte(nip47ReceiveNoAmountJson), nip47Request)
+	require.NoError(t, err)
+
+	var publishedResponse *models.Response
+
+	publishResponse := func(response *models.Response, tags nostr.Tags) {
+		publishedResponse = response
+	}
+
+	NewTestNip47Controller(svc).
+		HandleReceiveEvent(ctx, nip47Request, dbRequestEvent.ID, app.ID, publishResponse)
+
+	assert.Nil(t, publishedResponse.Result)
+	assert.Equal(t, constants.ERROR_BAD_REQUEST, publishedResponse.Error.Code)
+}
+
+func TestHandleReceiveEvent_ZeroAmount(t *testing.T) {
+	ctx := context.TODO()
+	svc, app, dbRequestEvent := setupReceiveTest(t)
+
+	nip47Request := &models.Request{}
+	err := json.Unmarshal([]byte(nip47ReceiveZeroAmountJson), nip47Request)
 	require.NoError(t, err)
 
 	var publishedResponse *models.Response
