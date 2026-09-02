@@ -580,7 +580,7 @@ func (ls *LDKService) MakeOffer(ctx context.Context, description string) (string
 	return offer.String(), nil
 }
 
-func (ls *LDKService) SendPaymentSync(invoice string, amountMsat *uint64) (*lnclient.PayInvoiceResponse, error) {
+func (ls *LDKService) SendPaymentSync(invoice string, amountMsat *uint64, maxFeeMsat *uint64) (*lnclient.PayInvoiceResponse, error) {
 	paymentRequest, err := decodepay.Decodepay(invoice)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -615,6 +615,9 @@ func (ls *LDKService) SendPaymentSync(invoice string, amountMsat *uint64) (*lncl
 	saturationPower := ls.cfg.GetEnv().LDKMaxChannelSaturationPowerOfHalf
 	maxPathCount := ls.cfg.GetEnv().LDKMaxPathCount
 	maxTotalRoutingFeeMsat := getMaxTotalRoutingFeeLimit(paymentAmountMsat)
+	if maxFeeMsat != nil {
+		maxTotalRoutingFeeMsat = *maxFeeMsat
+	}
 
 	routeParameters := &ldk_node.RouteParametersConfig{
 		MaxTotalRoutingFeeMsat:          &maxTotalRoutingFeeMsat,

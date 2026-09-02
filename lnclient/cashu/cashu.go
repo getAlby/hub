@@ -3,6 +3,7 @@ package cashu
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"strconv"
 	"time"
@@ -71,7 +72,7 @@ func (cs *CashuService) Shutdown() error {
 	return cs.wallet.Shutdown()
 }
 
-func (cs *CashuService) SendPaymentSync(invoice string, amountMsat *uint64) (response *lnclient.PayInvoiceResponse, err error) {
+func (cs *CashuService) SendPaymentSync(invoice string, amountMsat *uint64, maxFeeMsat *uint64) (response *lnclient.PayInvoiceResponse, err error) {
 	// TODO: support 0-amount invoices
 	if amountMsat != nil {
 		return nil, errors.New("0-amount invoices not supported")
@@ -81,6 +82,10 @@ func (cs *CashuService) SendPaymentSync(invoice string, amountMsat *uint64) (res
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to request melt quote")
 		return nil, err
+	}
+
+	if maxFeeMsat != nil && meltQuoteResponse.FeeReserve*1000 > *maxFeeMsat {
+		return nil, fmt.Errorf("melt quote fee reserve of %d msat exceeds max fee of %d msat", meltQuoteResponse.FeeReserve*1000, *maxFeeMsat)
 	}
 
 	meltResponse, err := cs.wallet.Melt(meltQuoteResponse.Quote)

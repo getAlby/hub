@@ -29,7 +29,7 @@ func TestSendPaymentSync_SelfPaymentDetection_WithIncomingTransaction(t *testing
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(tests.MockInvoice, nil, nil, svc.LNClient, nil, nil)
+	transaction, err := transactionsService.SendPaymentSync(tests.MockInvoice, nil, nil, nil, svc.LNClient, nil, nil)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, transaction)
@@ -58,7 +58,7 @@ func TestSendPaymentSync_SelfPaymentDetection_WithoutIncomingTransaction(t *test
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(tests.MockInvoice, nil, nil, svc.LNClient, nil, nil)
+	transaction, err := transactionsService.SendPaymentSync(tests.MockInvoice, nil, nil, nil, svc.LNClient, nil, nil)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, transaction)
@@ -90,7 +90,7 @@ func TestSendPaymentSync_SelfPaymentDetection_DifferentPubkey(t *testing.T) {
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(tests.MockInvoice, nil, nil, svc.LNClient, nil, nil)
+	transaction, err := transactionsService.SendPaymentSync(tests.MockInvoice, nil, nil, nil, svc.LNClient, nil, nil)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, transaction)

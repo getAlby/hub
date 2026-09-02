@@ -87,6 +87,8 @@ type MockLn struct {
 	Pubkey                     string
 	MockTransaction            *lnclient.Transaction
 	LastMinCltvExpiryDelta     *uint64
+	LastSendPaymentAmountMsat  *uint64
+	LastSendPaymentMaxFeeMsat  *uint64
 	SupportedNotificationTypes *[]string
 }
 
@@ -94,7 +96,9 @@ func NewMockLn() (*MockLn, error) {
 	return &MockLn{}, nil
 }
 
-func (mln *MockLn) SendPaymentSync(payReq string, amountMsat *uint64) (*lnclient.PayInvoiceResponse, error) {
+func (mln *MockLn) SendPaymentSync(payReq string, amountMsat *uint64, maxFeeMsat *uint64) (*lnclient.PayInvoiceResponse, error) {
+	mln.LastSendPaymentAmountMsat = amountMsat
+	mln.LastSendPaymentMaxFeeMsat = maxFeeMsat
 	if len(mln.PayInvoiceResponses) > 0 {
 		response := mln.PayInvoiceResponses[0]
 		err := mln.PayInvoiceErrors[0]
