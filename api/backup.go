@@ -194,8 +194,16 @@ func (api *api) CreateBackup(unlockPassword string, w io.Writer) error {
 			if err != nil {
 				return err
 			}
+			if d.IsDir() {
+				return nil
+			}
+			// Only regular files are expected: symlinks could point outside the
+			// storage directory and special files cannot be copied.
+			if !d.Type().IsRegular() {
+				return fmt.Errorf("unexpected non-regular file %q", path)
+			}
 			// Avoid backing up log files.
-			if d.IsDir() || filepath.Ext(path) == ".log" {
+			if filepath.Ext(path) == ".log" {
 				return nil
 			}
 			filesToArchive = append(filesToArchive, path)
