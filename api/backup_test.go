@@ -91,6 +91,10 @@ func TestCreateBackup(t *testing.T) {
 	zr, err := zip.NewReader(bytes.NewReader(decrypted), int64(len(decrypted)))
 	require.NoError(t, err)
 
+	// A backend without a storage directory contributes nothing but the
+	// database to the archive.
+	require.Len(t, zr.File, 1)
+
 	dbFile, err := zr.Open("nwc.db")
 	require.NoError(t, err)
 	dbContents, err := io.ReadAll(dbFile)
@@ -110,6 +114,81 @@ func TestCreateBackup(t *testing.T) {
 	require.NoError(t, restoredDB.First(&restoredApp).Error)
 	require.Equal(t, app.Name, restoredApp.Name)
 	require.Equal(t, app.AppPubkey, restoredApp.AppPubkey)
+}
+
+// TestCreateBackupArchivesStorageDirRecursively verifies that the whole
+// LNClient storage directory tree is archived (e.g. LDK node storage and the
+// static channel backups next to it), excluding log files at any depth.
+func TestCreateBackupArchivesStorageDirRecursively(t *testing.T) {
+	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
+
+	workDir := t.TempDir()
+
+	gormDB, err := test_db.NewDB(t)
+	require.NoError(t, err)
+	defer test_db.CloseDB(gormDB)
+
+	appConfig := &config.AppConfig{
+		Workdir:     workDir,
+		DatabaseUri: test_db.GetTestDatabaseURI(),
+	}
+	cfg, err := config.NewConfig(appConfig, gormDB)
+	require.NoError(t, err)
+
+	unlockPassword := ""
+	require.NoError(t, cfg.SaveUnlockPasswordCheck(unlockPassword))
+
+	storageDir := filepath.Join(workDir, "ldk", "storage")
+	require.NoError(t, os.MkdirAll(storageDir, 0700))
+	require.NoError(t, os.WriteFile(filepath.Join(storageDir, "node.db"), []byte("node data"), 0600))
+
+	scbDir := filepath.Join(workDir, "ldk", "static_channel_backups")
+	require.NoError(t, os.MkdirAll(scbDir, 0700))
+	require.NoError(t, os.WriteFile(filepath.Join(scbDir, "2024-01-02T03-04-05.json"), []byte("{}"), 0600))
+
+	logsDir := filepath.Join(workDir, "ldk", "logs")
+	require.NoError(t, os.MkdirAll(logsDir, 0700))
+	require.NoError(t, os.WriteFile(filepath.Join(logsDir, "ldk_node_2024_01_02.log"), []byte("log"), 0600))
+
+	lnClient := mocks.NewMockLNClient(t)
+	lnClient.On("GetStorageDir").Return(filepath.Join(workDir, "ldk"), nil)
+	lnClient.On("ResetRouter", "ALL").Return(nil)
+
+	svc := mocks.NewMockService(t)
+	svc.On("GetLNClient").Return(lnClient)
+	svc.On("StopApp").Return(nil)
+
+	albyOAuthSvc := mocks.NewMockAlbyOAuthService(t)
+	albyOAuthSvc.On("RemoveOAuthAccessToken").Return(nil)
+
+	theAPI := &api{
+		db:           gormDB,
+		cfg:          cfg,
+		svc:          svc,
+		albyOAuthSvc: albyOAuthSvc,
+	}
+
+	var buf bytes.Buffer
+	err = theAPI.CreateBackup(unlockPassword, &buf)
+	require.NoError(t, err)
+
+	cr, err := decryptingReader(&buf, unlockPassword)
+	require.NoError(t, err)
+	decrypted, err := io.ReadAll(cr)
+	require.NoError(t, err)
+
+	zr, err := zip.NewReader(bytes.NewReader(decrypted), int64(len(decrypted)))
+	require.NoError(t, err)
+
+	entryNames := make([]string, 0, len(zr.File))
+	for _, f := range zr.File {
+		entryNames = append(entryNames, f.Name)
+	}
+	require.ElementsMatch(t, []string{
+		"nwc.db",
+		"ldk/storage/node.db",
+		"ldk/static_channel_backups/2024-01-02T03-04-05.json",
+	}, entryNames)
 }
 
 // TestRestoreBackupRejectsPathTraversal verifies that a backup archive

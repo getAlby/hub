@@ -21,7 +21,6 @@ import (
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/logger"
-	"github.com/getAlby/hub/utils"
 	"golang.org/x/crypto/pbkdf2"
 )
 
@@ -174,18 +173,38 @@ func (api *api) CreateBackup(unlockPassword string, w io.Writer) error {
 	var filesToArchive []string
 
 	if lnStorageDir != "" {
-		lnFiles, err := filepath.Glob(filepath.Join(workDir, lnStorageDir, "*"))
+		// Files are stored in the archive relative to the workdir, so the
+		// storage directory must be located inside it.
+		lnStorageDir, err = filepath.Abs(lnStorageDir)
+		if err != nil {
+			return fmt.Errorf("failed to get absolute LNClient storage directory: %w", err)
+		}
+		if relStorageDir, err := filepath.Rel(workDir, lnStorageDir); err != nil || !filepath.IsLocal(relStorageDir) {
+			return fmt.Errorf("LNClient storage directory %q is not inside the workdir %q", lnStorageDir, workDir)
+		}
+
+		// Archive the whole storage tree: backends may keep state in
+		// subdirectories (e.g. LDK's static channel backups next to its node
+		// storage).
+		err = filepath.WalkDir(lnStorageDir, func(path string, d os.DirEntry, err error) error {
+			if errors.Is(err, os.ErrNotExist) {
+				// nothing to archive if the storage directory does not exist
+				return nil
+			}
+			if err != nil {
+				return err
+			}
+			// Avoid backing up log files.
+			if d.IsDir() || filepath.Ext(path) == ".log" {
+				return nil
+			}
+			filesToArchive = append(filesToArchive, path)
+			return nil
+		})
 		if err != nil {
 			return fmt.Errorf("failed to list files in the LNClient storage directory: %w", err)
 		}
-		logger.Logger.WithField("lnFiles", lnFiles).Info("Listed node storage dir")
-
-		// Avoid backing up log files.
-		lnFiles = utils.Filter(lnFiles, func(s string) bool {
-			return filepath.Ext(s) != ".log"
-		})
-
-		filesToArchive = append(filesToArchive, lnFiles...)
+		logger.Logger.WithField("lnFiles", filesToArchive).Info("Listed node storage dir")
 	}
 
 	cw, err := encryptingWriter(w, unlockPassword)
