@@ -2294,65 +2294,55 @@ func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amount uin
 
 	paymentHash := ""
 
-paymentLoop:
 	for start := time.Now(); time.Since(start) < time.Second*60; {
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		case <-ls.ctx.Done():
-			return nil, ls.ctx.Err()
-		case event, ok := <-ldkEventSubscription:
+		event := <-ldkEventSubscription
+
+		eventPaymentSuccessful, isEventPaymentSuccessfulEvent := (*event).(ldk_node.EventPaymentSuccessful)
+		eventPaymentFailed, isEventPaymentFailedEvent := (*event).(ldk_node.EventPaymentFailed)
+
+		if isEventPaymentSuccessfulEvent && eventPaymentSuccessful.PaymentId != nil && *eventPaymentSuccessful.PaymentId == paymentId {
+			logger.Logger.Info("Got payment success event")
+			payment := ls.node.Payment(paymentId)
+			if payment == nil {
+				logger.Logger.Errorf("Couldn't find payment by payment ID: %v", paymentId)
+				return nil, errors.New("payment not found")
+			}
+
+			bolt12PaymentKind, ok := payment.Kind.(ldk_node.PaymentKindBolt12Offer)
+
 			if !ok {
-				return nil, errors.New("LDK event subscription closed (node shutting down)")
-			}
-
-			eventPaymentSuccessful, isEventPaymentSuccessfulEvent := (*event).(ldk_node.EventPaymentSuccessful)
-			eventPaymentFailed, isEventPaymentFailedEvent := (*event).(ldk_node.EventPaymentFailed)
-
-			if isEventPaymentSuccessfulEvent && eventPaymentSuccessful.PaymentId != nil && *eventPaymentSuccessful.PaymentId == paymentId {
-				logger.Logger.Info("Got payment success event")
-				payment := ls.node.Payment(paymentId)
-				if payment == nil {
-					logger.Logger.Errorf("Couldn't find payment by payment ID: %v", paymentId)
-					return nil, errors.New("payment not found")
-				}
-
-				bolt12PaymentKind, ok := payment.Kind.(ldk_node.PaymentKindBolt12Offer)
-
-				if !ok {
-					logger.Logger.WithFields(logrus.Fields{
-						"payment": payment,
-					}).Error("Payment is not a BOLT-12 offer kind")
-					return nil, errors.New("payment is not a BOLT-12 offer")
-				}
-
-				if bolt12PaymentKind.Preimage == nil {
-					logger.Logger.Errorf("No payment preimage for payment ID: %v", paymentId)
-					return nil, errors.New("payment preimage not found")
-				}
-				preimage = *bolt12PaymentKind.Preimage
-
-				if bolt12PaymentKind.Hash == nil {
-					logger.Logger.Errorf("No payment hash for payment ID: %v", paymentId)
-					return nil, errors.New("payment hash not found")
-				}
-				paymentHash = *bolt12PaymentKind.Hash
-
-				if eventPaymentSuccessful.FeePaidMsat != nil {
-					feeMsat = *eventPaymentSuccessful.FeePaidMsat
-				}
-				break paymentLoop
-			}
-			if isEventPaymentFailedEvent && eventPaymentFailed.PaymentId != nil && *eventPaymentFailed.PaymentId == paymentId {
-				reason := ls.getPaymentFailReason(&eventPaymentFailed)
-
 				logger.Logger.WithFields(logrus.Fields{
-					"payment_id": paymentId,
-					"reason":     reason,
-				}).Error("Received payment failed event")
-
-				return nil, fmt.Errorf("received payment failed event: %s", reason)
+					"payment": payment,
+				}).Error("Payment is not a BOLT-12 offer kind")
+				return nil, errors.New("payment is not a BOLT-12 offer")
 			}
+
+			if bolt12PaymentKind.Preimage == nil {
+				logger.Logger.Errorf("No payment preimage for payment ID: %v", paymentId)
+				return nil, errors.New("payment preimage not found")
+			}
+			preimage = *bolt12PaymentKind.Preimage
+
+			if bolt12PaymentKind.Hash == nil {
+				logger.Logger.Errorf("No payment hash for payment ID: %v", paymentId)
+				return nil, errors.New("payment hash not found")
+			}
+			paymentHash = *bolt12PaymentKind.Hash
+
+			if eventPaymentSuccessful.FeePaidMsat != nil {
+				feeMsat = *eventPaymentSuccessful.FeePaidMsat
+			}
+			break
+		}
+		if isEventPaymentFailedEvent && eventPaymentFailed.PaymentId != nil && *eventPaymentFailed.PaymentId == paymentId {
+			reason := ls.getPaymentFailReason(&eventPaymentFailed)
+
+			logger.Logger.WithFields(logrus.Fields{
+				"payment_id": paymentId,
+				"reason":     reason,
+			}).Error("Received payment failed event")
+
+			return nil, fmt.Errorf("received payment failed event: %s", reason)
 		}
 	}
 

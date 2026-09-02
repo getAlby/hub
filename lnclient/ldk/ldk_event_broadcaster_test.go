@@ -12,7 +12,7 @@ import (
 )
 
 // awaitLdkPaymentEvent mirrors the event-await loops used by SendPaymentSync,
-// SendKeysend, OpenChannel and PayOfferSync: block until a payment event
+// SendKeysend and OpenChannel: block until a payment event
 // arrives, the service context is cancelled, or the broadcaster closes the
 // subscription on node shutdown.
 func awaitLdkPaymentEvent(ctx context.Context, subscription chan *ldk_node.Event) error {
