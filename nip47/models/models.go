@@ -27,6 +27,8 @@ const (
 	MAKE_HOLD_INVOICE_METHOD   = "make_hold_invoice"
 	CANCEL_HOLD_INVOICE_METHOD = "cancel_hold_invoice"
 	SETTLE_HOLD_INVOICE_METHOD = "settle_hold_invoice"
+	PAY_METHOD                 = "pay"
+	RECEIVE_METHOD             = "receive"
 )
 
 type Transaction struct {
