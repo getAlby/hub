@@ -647,7 +647,10 @@ func (ls *LDKService) SendPaymentSync(invoice string, amountMsat *uint64) (*lncl
 		case <-ls.ctx.Done():
 			return nil, ls.ctx.Err()
 
-		case ev := <-ldkEventSubscription:
+		case ev, ok := <-ldkEventSubscription:
+			if !ok {
+				return nil, errors.New("LDK event subscription closed (node shutting down)")
+			}
 			switch event := (*ev).(type) {
 			case ldk_node.EventPaymentSuccessful:
 				if event.PaymentHash != paymentHash {
@@ -731,7 +734,10 @@ func (ls *LDKService) SendKeysend(amountMsat uint64, destination string, custom_
 		select {
 		case <-ls.ctx.Done():
 			return nil, ls.ctx.Err()
-		case event := <-ldkEventSubscription:
+		case event, ok := <-ldkEventSubscription:
+			if !ok {
+				return nil, errors.New("LDK event subscription closed (node shutting down)")
+			}
 
 			eventPaymentSuccessful, isEventPaymentSuccessfulEvent := (*event).(ldk_node.EventPaymentSuccessful)
 			eventPaymentFailed, isEventPaymentFailedEvent := (*event).(ldk_node.EventPaymentFailed)
@@ -1184,28 +1190,37 @@ func (ls *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lncli
 	}).Info("Funded channel")
 
 	for start := time.Now(); time.Since(start) < time.Second*60; {
-		event := <-ldkEventSubscription
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-ls.ctx.Done():
+			return nil, ls.ctx.Err()
+		case event, ok := <-ldkEventSubscription:
+			if !ok {
+				return nil, errors.New("LDK event subscription closed (node shutting down)")
+			}
 
-		channelPendingEvent, isChannelPendingEvent := (*event).(ldk_node.EventChannelPending)
-		channelClosedEvent, isChannelClosedEvent := (*event).(ldk_node.EventChannelClosed)
+			channelPendingEvent, isChannelPendingEvent := (*event).(ldk_node.EventChannelPending)
+			channelClosedEvent, isChannelClosedEvent := (*event).(ldk_node.EventChannelClosed)
 
-		if isChannelClosedEvent {
-			closureReason := ls.getChannelCloseReason(&channelClosedEvent)
-			logger.Logger.WithFields(logrus.Fields{
-				"event":  channelClosedEvent,
-				"reason": closureReason,
-			}).Info("Failed to open channel")
+			if isChannelClosedEvent {
+				closureReason := ls.getChannelCloseReason(&channelClosedEvent)
+				logger.Logger.WithFields(logrus.Fields{
+					"event":  channelClosedEvent,
+					"reason": closureReason,
+				}).Info("Failed to open channel")
 
-			return nil, fmt.Errorf("failed to open channel with %s: %s", foundPeer.NodeId, closureReason)
+				return nil, fmt.Errorf("failed to open channel with %s: %s", foundPeer.NodeId, closureReason)
+			}
+
+			if !isChannelPendingEvent {
+				continue
+			}
+
+			return &lnclient.OpenChannelResponse{
+				FundingTxId: channelPendingEvent.FundingTxo.Txid,
+			}, nil
 		}
-
-		if !isChannelPendingEvent {
-			continue
-		}
-
-		return &lnclient.OpenChannelResponse{
-			FundingTxId: channelPendingEvent.FundingTxo.Txid,
-		}, nil
 	}
 
 	return nil, errors.New("open channel timeout")
