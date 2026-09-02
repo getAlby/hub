@@ -18,7 +18,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"time"
 
@@ -837,22 +836,11 @@ func (api *api) SetAutoUnlockPassword(unlockPassword string) error {
 }
 
 func (api *api) Stop() error {
-	if !startMutex.TryLock() {
-		// do not allow to stop twice in case this is somehow called twice
-		return errors.New("app is busy")
-	}
-	defer startMutex.Unlock()
-
 	logger.Logger.Info("Running Stop command")
-	if api.svc.GetLNClient() == nil {
-		return ErrLNClientNotStarted
-	}
 
 	// stop the lnclient, nostr relay etc.
 	// The user will be forced to re-enter their unlock password to restart the node
-	api.svc.StopApp()
-
-	return nil
+	return api.svc.StopApp()
 }
 
 func (api *api) GetNodeConnectionInfo(ctx context.Context) (*NodeConnectionInfo, error) {
@@ -1722,11 +1710,9 @@ func (api *api) SetNextBackupReminder(backupReminderRequest *BackupReminderReque
 	return nil
 }
 
-var startMutex sync.Mutex
-
 func (api *api) Start(startRequest *StartRequest) {
 	api.startupError = nil
-	err := api.startInternal(startRequest)
+	err := api.svc.StartApp(startRequest.UnlockPassword)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to start node")
 		api.startupError = err
@@ -1734,21 +1720,14 @@ func (api *api) Start(startRequest *StartRequest) {
 	}
 }
 
-func (api *api) startInternal(startRequest *StartRequest) (err error) {
-	if !startMutex.TryLock() {
-		// do not allow to start twice in case this is somehow called twice
-		return errors.New("app is busy")
-	}
-	defer startMutex.Unlock()
-	return api.svc.StartApp(startRequest.UnlockPassword)
+func (api *api) Setup(ctx context.Context, setupRequest *SetupRequest) error {
+	// hold the start/stop lock so setup cannot run concurrently with a start
+	return api.svc.WithStartLock(func() error {
+		return api.setupInternal(ctx, setupRequest)
+	})
 }
 
-func (api *api) Setup(ctx context.Context, setupRequest *SetupRequest) error {
-	if !startMutex.TryLock() {
-		// do not allow to start twice in case this is somehow called twice
-		return errors.New("app is busy")
-	}
-	defer startMutex.Unlock()
+func (api *api) setupInternal(ctx context.Context, setupRequest *SetupRequest) error {
 	info, err := api.GetInfo(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get info")

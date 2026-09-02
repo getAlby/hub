@@ -61,7 +61,7 @@ func TestCreateBackup(t *testing.T) {
 
 	svc := mocks.NewMockService(t)
 	svc.On("GetLNClient").Return(lnClient)
-	svc.On("StopApp").Return()
+	svc.On("StopApp").Return(nil)
 
 	albyOAuthSvc := mocks.NewMockAlbyOAuthService(t)
 	albyOAuthSvc.On("RemoveOAuthAccessToken").Return(nil)

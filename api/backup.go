@@ -105,7 +105,10 @@ func (api *api) CreateBackup(unlockPassword string, w io.Writer) error {
 		return fmt.Errorf("failed to reset router: %w", err)
 	}
 	// Stop the app to ensure no new requests are processed.
-	api.svc.StopApp()
+	err = api.svc.StopApp()
+	if err != nil {
+		return fmt.Errorf("failed to stop app: %w", err)
+	}
 
 	// Remove the OAuth access token from the DB to ensure the user
 	// has to re-auth with the correct OAuth client when they restore the backup

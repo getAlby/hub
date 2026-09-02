@@ -45,6 +45,7 @@ type service struct {
 	wg                   *sync.WaitGroup
 	nip47Service         nip47.Nip47Service
 	appCancelFn          context.CancelFunc
+	startMutex           sync.Mutex
 	keys                 keys.Keys
 	relayStatuses        []RelayStatus
 	startupState         string
@@ -157,7 +158,10 @@ func NewService(ctx context.Context) (*service, error) {
 	if autoUnlockPassword != "" {
 		nodeLastStartTime, _ := cfg.Get("NodeLastStartTime", "")
 		if nodeLastStartTime != "" {
-			svc.StartApp(autoUnlockPassword)
+			// do not block startup of the web UI: if the start attempt fails
+			// (e.g. the hub boots before the internet connection is restored),
+			// keep retrying in the background instead of staying locked
+			go svc.startAppWithRetries(autoUnlockPassword)
 		}
 	}
 
@@ -226,7 +230,13 @@ func finishRestoreNode(workDir string) error {
 }
 
 func (svc *service) Shutdown() {
-	svc.StopApp()
+	// unlike StopApp, shutdown must never bail out: block until any
+	// in-progress start or stop has finished (the service context is
+	// already cancelled at this point, so an in-progress start aborts),
+	// then stop the app before tearing down the event publisher and DB
+	svc.startMutex.Lock()
+	defer svc.startMutex.Unlock()
+	svc.stopAppInternal()
 	svc.eventPublisher.PublishSync(&events.Event{
 		Event: "nwc_stopped",
 	})
