@@ -23,17 +23,19 @@ import (
 	"github.com/getAlby/hub/tests/mocks"
 )
 
-// TestCreateBackup creates a backup from the test database (sqlite by
-// default, postgres when TEST_DATABASE_URI is set) and verifies that the
-// archive contains a valid sqlite database with the expected data.
-func TestCreateBackup(t *testing.T) {
-	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
+// backupTestUnlockPassword is the unlock password of the hubs set up by
+// newBackupTestAPI.
+const backupTestUnlockPassword = ""
 
-	workDir := t.TempDir()
+// newBackupTestAPI sets up a fully set-up hub on the test database (sqlite
+// by default, postgres when TEST_DATABASE_URI is set) whose LNClient reports
+// the given storage directory.
+func newBackupTestAPI(t *testing.T, workDir string, storageDir string) *api {
+	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
 
 	gormDB, err := test_db.NewDB(t)
 	require.NoError(t, err)
-	defer test_db.CloseDB(gormDB)
+	t.Cleanup(func() { test_db.CloseDB(gormDB) })
 
 	appConfig := &config.AppConfig{
 		Workdir:     workDir,
@@ -42,21 +44,12 @@ func TestCreateBackup(t *testing.T) {
 	cfg, err := config.NewConfig(appConfig, gormDB)
 	require.NoError(t, err)
 
-	unlockPassword := ""
-
 	// Represent a fully set-up hub: the unlock-password canary is written during
 	// setup and is required for the password check to pass.
-	require.NoError(t, cfg.SaveUnlockPasswordCheck(unlockPassword))
-
-	app := &db.App{
-		Name:      "test",
-		AppPubkey: "2b7dea2866958f17c568cf024e113db7a3baa9c253a9016889196b8d0b11c7ae",
-		Metadata:  datatypes.JSON("{}"),
-	}
-	require.NoError(t, gormDB.Create(app).Error)
+	require.NoError(t, cfg.SaveUnlockPasswordCheck(backupTestUnlockPassword))
 
 	lnClient := mocks.NewMockLNClient(t)
-	lnClient.On("GetStorageDir").Return("", nil)
+	lnClient.On("GetStorageDir").Return(storageDir, nil)
 	lnClient.On("ResetRouter", "ALL").Return(nil)
 
 	svc := mocks.NewMockService(t)
@@ -66,15 +59,48 @@ func TestCreateBackup(t *testing.T) {
 	albyOAuthSvc := mocks.NewMockAlbyOAuthService(t)
 	albyOAuthSvc.On("RemoveOAuthAccessToken").Return(nil)
 
-	theAPI := &api{
+	return &api{
 		db:           gormDB,
 		cfg:          cfg,
 		svc:          svc,
 		albyOAuthSvc: albyOAuthSvc,
 	}
+}
+
+// zipEntryNames decrypts a backup created by CreateBackup and returns the
+// names of the archive entries.
+func zipEntryNames(t *testing.T, backup *bytes.Buffer) []string {
+	cr, err := decryptingReader(backup, backupTestUnlockPassword)
+	require.NoError(t, err)
+	decrypted, err := io.ReadAll(cr)
+	require.NoError(t, err)
+
+	zr, err := zip.NewReader(bytes.NewReader(decrypted), int64(len(decrypted)))
+	require.NoError(t, err)
+
+	entryNames := make([]string, 0, len(zr.File))
+	for _, f := range zr.File {
+		entryNames = append(entryNames, f.Name)
+	}
+	return entryNames
+}
+
+// TestCreateBackup creates a backup from the test database and verifies that
+// the archive contains a valid sqlite database with the expected data.
+func TestCreateBackup(t *testing.T) {
+	workDir := t.TempDir()
+	theAPI := newBackupTestAPI(t, workDir, "")
+	unlockPassword := backupTestUnlockPassword
+
+	app := &db.App{
+		Name:      "test",
+		AppPubkey: "2b7dea2866958f17c568cf024e113db7a3baa9c253a9016889196b8d0b11c7ae",
+		Metadata:  datatypes.JSON("{}"),
+	}
+	require.NoError(t, theAPI.db.Create(app).Error)
 
 	var buf bytes.Buffer
-	err = theAPI.CreateBackup(unlockPassword, &buf)
+	err := theAPI.CreateBackup(unlockPassword, &buf)
 	require.NoError(t, err)
 
 	// The temporary database created when converting from postgres must
@@ -90,6 +116,10 @@ func TestCreateBackup(t *testing.T) {
 
 	zr, err := zip.NewReader(bytes.NewReader(decrypted), int64(len(decrypted)))
 	require.NoError(t, err)
+
+	// A backend without a storage directory contributes nothing but the
+	// database to the archive.
+	require.Len(t, zr.File, 1)
 
 	dbFile, err := zr.Open("nwc.db")
 	require.NoError(t, err)
@@ -110,6 +140,55 @@ func TestCreateBackup(t *testing.T) {
 	require.NoError(t, restoredDB.First(&restoredApp).Error)
 	require.Equal(t, app.Name, restoredApp.Name)
 	require.Equal(t, app.AppPubkey, restoredApp.AppPubkey)
+}
+
+// TestCreateBackupArchivesStorageDirRecursively verifies that the whole
+// LNClient storage directory tree is archived (e.g. LDK node storage and the
+// static channel backups next to it), excluding log files at any depth.
+func TestCreateBackupArchivesStorageDirRecursively(t *testing.T) {
+	workDir := t.TempDir()
+	theAPI := newBackupTestAPI(t, workDir, filepath.Join(workDir, "ldk"))
+
+	storageDir := filepath.Join(workDir, "ldk", "storage")
+	require.NoError(t, os.MkdirAll(storageDir, 0700))
+	require.NoError(t, os.WriteFile(filepath.Join(storageDir, "node.db"), []byte("node data"), 0600))
+
+	scbDir := filepath.Join(workDir, "ldk", "static_channel_backups")
+	require.NoError(t, os.MkdirAll(scbDir, 0700))
+	require.NoError(t, os.WriteFile(filepath.Join(scbDir, "2024-01-02T03-04-05.json"), []byte("{}"), 0600))
+
+	logsDir := filepath.Join(workDir, "ldk", "logs")
+	require.NoError(t, os.MkdirAll(logsDir, 0700))
+	require.NoError(t, os.WriteFile(filepath.Join(logsDir, "ldk_node_2024_01_02.log"), []byte("log"), 0600))
+
+	var buf bytes.Buffer
+	err := theAPI.CreateBackup(backupTestUnlockPassword, &buf)
+	require.NoError(t, err)
+
+	require.ElementsMatch(t, []string{
+		"nwc.db",
+		"ldk/storage/node.db",
+		"ldk/static_channel_backups/2024-01-02T03-04-05.json",
+	}, zipEntryNames(t, &buf))
+}
+
+// TestCreateBackupRejectsNonRegularFiles verifies that a symlink inside the
+// storage directory tree fails the backup instead of being followed (it could
+// point outside the workdir) or silently omitted.
+func TestCreateBackupRejectsNonRegularFiles(t *testing.T) {
+	workDir := t.TempDir()
+	theAPI := newBackupTestAPI(t, workDir, filepath.Join(workDir, "ldk"))
+
+	scbDir := filepath.Join(workDir, "ldk", "static_channel_backups")
+	require.NoError(t, os.MkdirAll(scbDir, 0700))
+
+	outsideFile := filepath.Join(t.TempDir(), "secret")
+	require.NoError(t, os.WriteFile(outsideFile, []byte("secret"), 0600))
+	require.NoError(t, os.Symlink(outsideFile, filepath.Join(scbDir, "link.json")))
+
+	var buf bytes.Buffer
+	err := theAPI.CreateBackup(backupTestUnlockPassword, &buf)
+	require.ErrorContains(t, err, "unexpected non-regular file")
 }
 
 // TestRestoreBackupRejectsPathTraversal verifies that a backup archive

@@ -2064,11 +2064,8 @@ func (ls *LDKService) GetBalances(ctx context.Context, includeInactiveChannels b
 }
 
 func (ls *LDKService) GetStorageDir() (string, error) {
-	// Note: the below will return the path including the WORK_DIR which is harder to use,
-	// so for now we just return a hardcoded value.
-	// cfg := ls.node.Config()
-	// return cfg.StorageDirPath, nil
-	return "ldk/storage", nil
+	// holds the node storage as well as the static channel backups
+	return ls.workdir, nil
 }
 
 func (ls *LDKService) deleteOldLDKPayments() {
