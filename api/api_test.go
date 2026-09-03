@@ -13,6 +13,55 @@ import (
 	"github.com/getAlby/hub/tests/mocks"
 )
 
+type jitChannelsInfoLNClient struct {
+	*mocks.MockLNClient
+	minPaymentSizeMsat uint64
+	maxPaymentSizeMsat uint64
+	calls              int
+}
+
+func (client *jitChannelsInfoLNClient) GetLiquiditySourceLsps2PaymentSizeRangeMsat() (*uint64, *uint64) {
+	client.calls++
+	return &client.minPaymentSizeMsat, &client.maxPaymentSizeMsat
+}
+
+func TestGetJitChannelsInfo(t *testing.T) {
+	t.Run("does not query LSPS2 when JIT channels are disabled", func(t *testing.T) {
+		cfg := mocks.NewMockConfig(t)
+		svc := mocks.NewMockService(t)
+		cfg.On("Get", "LNBackendType", "").Return("LDK", nil)
+		cfg.On("Get", "JitChannelsEnabled", "").Return("false", nil)
+
+		theAPI := &api{cfg: cfg, svc: svc}
+		info, err := theAPI.GetJitChannelsInfo(context.Background())
+
+		require.NoError(t, err)
+		require.Nil(t, info.MinPaymentSizeMsat)
+		require.Nil(t, info.MaxPaymentSizeMsat)
+	})
+
+	t.Run("returns the LSPS2 payment size range when enabled", func(t *testing.T) {
+		cfg := mocks.NewMockConfig(t)
+		svc := mocks.NewMockService(t)
+		lnClient := &jitChannelsInfoLNClient{
+			MockLNClient:       mocks.NewMockLNClient(t),
+			minPaymentSizeMsat: 1_000_000,
+			maxPaymentSizeMsat: 100_000_000,
+		}
+		cfg.On("Get", "LNBackendType", "").Return("LDK", nil)
+		cfg.On("Get", "JitChannelsEnabled", "").Return("true", nil)
+		svc.On("GetLNClient").Return(lnClient)
+
+		theAPI := &api{cfg: cfg, svc: svc}
+		info, err := theAPI.GetJitChannelsInfo(context.Background())
+
+		require.NoError(t, err)
+		require.Equal(t, 1, lnClient.calls)
+		require.Equal(t, uint64(1_000_000), *info.MinPaymentSizeMsat)
+		require.Equal(t, uint64(100_000_000), *info.MaxPaymentSizeMsat)
+	})
+}
+
 func TestGetCustomNodeCommandDefinitions(t *testing.T) {
 	lnClient := mocks.NewMockLNClient(t)
 	svc := mocks.NewMockService(t)
