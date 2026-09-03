@@ -438,6 +438,12 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, pool nostrmodels.Simpl
 	case models.SETTLE_HOLD_INVOICE_METHOD:
 		controller.
 			HandleSettleHoldInvoiceEvent(ctx, nip47Request, requestEvent.ID, app.ID, publishResponse)
+	case models.PAY_METHOD:
+		controller.
+			HandlePayEvent(ctx, nip47Request, requestEvent.ID, &app, publishResponse)
+	case models.RECEIVE_METHOD:
+		controller.
+			HandleReceiveEvent(ctx, nip47Request, requestEvent.ID, app.ID, publishResponse)
 	default:
 		publishResponse(&models.Response{
 			ResultType: nip47Request.Method,

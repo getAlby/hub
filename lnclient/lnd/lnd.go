@@ -1493,6 +1493,8 @@ func (svc *LNDService) GetSupportedNIP47Methods() []string {
 		models.MAKE_HOLD_INVOICE_METHOD,
 		models.SETTLE_HOLD_INVOICE_METHOD,
 		models.CANCEL_HOLD_INVOICE_METHOD,
+		models.PAY_METHOD,
+		models.RECEIVE_METHOD,
 	}
 }
 
@@ -1616,7 +1618,15 @@ func (svc *LNDService) ExecuteCustomNodeCommand(ctx context.Context, command *ln
 }
 
 func (svc *LNDService) MakeOffer(ctx context.Context, description string) (string, error) {
-	return "", errors.New("not supported")
+	return "", lnclient.ErrBolt12Unsupported
+}
+
+func (svc *LNDService) DecodeOffer(ctx context.Context, offer string) (*lnclient.OfferInfo, error) {
+	return nil, lnclient.ErrBolt12Unsupported
+}
+
+func (svc *LNDService) PayOfferSync(ctx context.Context, offer string, amountMsat *uint64, payerNote string) (*lnclient.PayOfferResponse, error) {
+	return nil, lnclient.ErrBolt12Unsupported
 }
 
 func (svc *LNDService) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {

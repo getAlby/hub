@@ -15,6 +15,7 @@ import (
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/nip47/models"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 )
@@ -408,7 +409,18 @@ func (cs *CashuService) checkOutgoingPayment(meltQuote *storage.MeltQuote) {
 }
 
 func (cs *CashuService) GetSupportedNIP47Methods() []string {
-	return []string{"pay_invoice", "get_balance", "get_budget", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice"}
+	return []string{
+		models.PAY_INVOICE_METHOD,
+		models.GET_BALANCE_METHOD,
+		models.GET_BUDGET_METHOD,
+		models.GET_INFO_METHOD,
+		models.MAKE_INVOICE_METHOD,
+		models.LOOKUP_INVOICE_METHOD,
+		models.LIST_TRANSACTIONS_METHOD,
+		models.MULTI_PAY_INVOICE_METHOD,
+		models.PAY_METHOD,
+		models.RECEIVE_METHOD,
+	}
 }
 
 func (cs *CashuService) GetSupportedNIP47NotificationTypes() []string {
@@ -517,7 +529,15 @@ func (cs *CashuService) executeCommandResetWallet() (*lnclient.CustomNodeCommand
 }
 
 func (svc *CashuService) MakeOffer(ctx context.Context, description string) (string, error) {
-	return "", errors.New("not supported")
+	return "", lnclient.ErrBolt12Unsupported
+}
+
+func (svc *CashuService) DecodeOffer(ctx context.Context, offer string) (*lnclient.OfferInfo, error) {
+	return nil, lnclient.ErrBolt12Unsupported
+}
+
+func (svc *CashuService) PayOfferSync(ctx context.Context, offer string, amountMsat *uint64, payerNote string) (*lnclient.PayOfferResponse, error) {
+	return nil, lnclient.ErrBolt12Unsupported
 }
 
 func (cs *CashuService) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
