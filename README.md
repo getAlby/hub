@@ -94,7 +94,7 @@ _If you get a blank screen, try running in your normal terminal (outside of vsco
 ### Run dockerfile locally (HTTP mode)
 
     $ docker build . -t nwc-local --progress=plain
-    $ docker run -v $(pwd)/.data/docker:/data -e WORK_DIR='/data' -p 8080:8080 nwc-local
+    $ docker run -v $(pwd)/.data/docker:/data -e WORK_DIR='/data' -p 127.0.0.1:8080:8080 nwc-local
 
 ### Debugging
 
@@ -463,6 +463,9 @@ Run NWC on your own node!
 
 ## Deploy it yourself
 
+> [!WARNING]
+> Alby Hub is intended to run on a secure, private network (for example your home network or behind a VPN). Do not expose it directly to the public internet. By default the HTTP server listens on **all network interfaces**, so restrict access with a firewall or bind it to a private address.
+
 ### Requirements
 
 The application has no runtime dependencies. (simple Go executable).
@@ -543,15 +546,17 @@ LDK logs:
 
 Alby provides container images for each release. Please make sure to use a persistent volume. The lightning state and application state is persisted to disk.
 
+The examples below publish the port on `127.0.0.1` only, so Alby Hub is reachable from the Docker host but not from other machines. To reach it from other devices on your local network, use `-p 8080:8080` instead and make sure your firewall blocks the port from the internet.
+
 #### From Alby's Container Registry
 
 _Tested on Linux only_
 
-`docker run -v ~/.local/share/albyhub:/data -e WORK_DIR='/data' -p 8080:8080 --pull always ghcr.io/getalby/hub:latest`
+`docker run -v ~/.local/share/albyhub:/data -e WORK_DIR='/data' -p 127.0.0.1:8080:8080 --pull always ghcr.io/getalby/hub:latest`
 
 ##### Build the image locally
 
-`docker run -v ~/.local/share/albyhub:/data -e WORK_DIR='/data' -p 8080:8080 $(docker build -q .)`
+`docker run -v ~/.local/share/albyhub:/data -e WORK_DIR='/data' -p 127.0.0.1:8080:8080 $(docker build -q .)`
 
 ##### Docker Compose
 
@@ -641,7 +646,7 @@ Sensitive data such as the seed phrase are saved AES-encrypted by the user's unl
 All requests to the wallet service are made with one of the following ways:
 
 - NIP-47 - requests encrypted by NIP-04 using randomly-generated keypairs (one per app connection) and sent via websocket through the configured relay.
-- HTTP - requests encrypted by JWT and ideally HTTPS (except self-hosted, which can be protected by firewall)
+- HTTP - requests authenticated by JWT. Alby Hub is intended for secure local networks and should not be exposed to the public internet. If remote access is needed, use a VPN or an HTTPS reverse proxy with restricted access.
 - Desktop mode - requests are made internally through the Wails router, without any kind of network traffic.
 
 ## Alby Hub Origin

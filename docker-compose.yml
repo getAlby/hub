@@ -7,7 +7,11 @@ services:
     volumes:
       - ./albyhub-data:/data
     ports:
-      - "8080:8080"
+      # Bound to 127.0.0.1 so Alby Hub is only reachable from this machine.
+      # To reach it from other devices on your local network use "8080:8080"
+      # and make sure your firewall blocks the port from the internet.
+      # Alby Hub is not intended to be exposed to the public internet.
+      - "127.0.0.1:8080:8080"
     environment:
       - WORK_DIR=/data/albyhub
     stop_grace_period: 300s
