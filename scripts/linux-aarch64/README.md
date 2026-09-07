@@ -1,5 +1,8 @@
 # Alby Hub on a Linux server
 
+> [!WARNING]
+> Alby Hub is intended to run on a secure, private network (for example your home network or behind a VPN). Do not expose it directly to the public internet. By default the HTTP server listens on **all network interfaces**, so restrict access with a firewall or bind it to a private address.
+
 ## Requirements
 
 - Linux distribution
@@ -22,9 +25,9 @@ Optionally it can also create a systemd service for you.
 
 You can also do these quite simple steps manually, have a look in the install script for details.
 
-Alby Hub will run on localhost:8080 (standalone) or localhost:8029 (when run with a systemd service) configurable using the `PORT` environment variable or by editing `Environment="PORT=8029"` in the albyhub.service systemd config file - See "Editing The Service" below)
+Alby Hub listens on port 8080 (standalone) or port 8029 (when run with a systemd service) on **all network interfaces**, so it is reachable from any machine that can reach the server, for example at `http://<server-ip>:8029`. Restrict access with a firewall so that only your local network or VPN can reach it. The port is configurable using the `PORT` environment variable or by editing `Environment="PORT=8029"` in the albyhub.service systemd config file - See "Editing The Service" below)
 
-To run on a public domain we recommend the use of a reverse proxy using [Caddy](https://caddyserver.com/)
+Alby Hub is not designed to be exposed on the public internet. If you need remote access, prefer a VPN such as WireGuard or Tailscale. If you nevertheless run it on a public domain, you do so at your own risk: put it behind an HTTPS reverse proxy such as [Caddy](https://caddyserver.com/) and restrict who can reach it (for example by IP allowlist or client certificates).
 
 ### Running the services
 
@@ -62,7 +65,9 @@ After the update you will have to unlock Alby Hub again.
 
 Alby Hub comes as docker image: [ghcr.io/getalby/hub:latest](https://github.com/getAlby/hub/pkgs/container/hub)
 
-    $ docker run -v .albyhub-data:/data -e WORK_DIR='/data' -p 8080:8080 ghcr.io/getalby/hub:latest`
+    $ docker run -v .albyhub-data:/data -e WORK_DIR='/data' -p 127.0.0.1:8080:8080 ghcr.io/getalby/hub:latest
+
+This publishes the port on `127.0.0.1` only. To reach Alby Hub from other devices on your local network use `-p 8080:8080` and make sure your firewall blocks the port from the internet.
 
 We also provide a simple docker-compose file:
 
