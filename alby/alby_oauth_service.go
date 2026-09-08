@@ -321,6 +321,9 @@ func (svc *albyOAuthService) fetchUserToken(ctx context.Context) (*oauth2.Token,
 	if shouldUseLatestToken(svc.latestToken, svc.pendingRefreshFrom, currentToken) {
 		currentToken = svc.latestToken
 	}
+	if svc.pendingRefreshFrom != "" {
+		svc.saveToken(currentToken, svc.pendingRefreshFrom)
+	}
 
 	// only use the current token if it has at least 60 seconds before expiry
 	if currentToken.Expiry.After(time.Now().Add(time.Duration(60) * time.Second)) {
@@ -589,7 +592,6 @@ func (svc *albyOAuthService) GetAuthUrl() string {
 }
 
 func (svc *albyOAuthService) UnlinkAccount(ctx context.Context) error {
-	svc.lockAndClearTokenState()
 	ldkVssEnabled, err := svc.cfg.Get("LdkVssEnabled", "")
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch LdkVssEnabled user config")
@@ -599,6 +601,7 @@ func (svc *albyOAuthService) UnlinkAccount(ctx context.Context) error {
 	if ldkVssEnabled == "true" {
 		return errors.New("alby account cannot be unlinked while VSS is activated")
 	}
+	svc.lockAndClearTokenState()
 
 	destroyAlbyAccountErr := svc.destroyAlbyAccountNWCNode(ctx)
 	if destroyAlbyAccountErr != nil {

@@ -165,13 +165,14 @@ func TestFetchUserTokenSurvivesTransientRefreshTokenPersistenceFailure(t *testin
 	require.NoError(t, err)
 	assert.Equal(t, "refresh-token-r1", storedRefreshToken, "stale refresh token must remain in db after failed persistence")
 
-	expired := time.Now().Add(-2 * time.Hour).Unix()
-	require.NoError(t, cfg.SetUpdate(accessTokenExpiryKey, strconv.FormatInt(expired, 10), ""))
-
+	cfg.failKeys = nil
 	secondToken, err := oauthSvc.fetchUserToken(ctx)
 	require.NoError(t, err)
 	require.Equal(t, "access-token-a2", secondToken.AccessToken)
 	require.Equal(t, "refresh-token-r2", secondToken.RefreshToken)
+	storedRefreshToken, err = cfg.Get(refreshTokenKey, "")
+	require.NoError(t, err)
+	require.Equal(t, "refresh-token-r2", storedRefreshToken)
 }
 
 func TestFetchUserTokenRetriesRefreshTokenPersistence(t *testing.T) {
