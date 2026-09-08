@@ -22,6 +22,7 @@ import (
 type oauthTestConfig struct {
 	values            map[string]string
 	remainingFailures int
+	failKeys          map[string]int
 }
 
 func newOAuthTestConfig() *oauthTestConfig {
@@ -33,9 +34,15 @@ func (c *oauthTestConfig) Get(key string, _ string) (string, error) {
 }
 
 func (c *oauthTestConfig) SetUpdate(key string, value string, _ string) error {
-	if key == refreshTokenKey && c.remainingFailures > 0 {
+	if c.remainingFailures > 0 {
 		c.remainingFailures--
 		return errors.New("transient db error")
+	}
+	if c.failKeys != nil {
+		if remaining, ok := c.failKeys[key]; ok && remaining > 0 {
+			c.failKeys[key] = remaining - 1
+			return errors.New("transient db error")
+		}
 	}
 	c.values[key] = value
 	return nil
@@ -144,7 +151,7 @@ func TestFetchUserTokenSurvivesTransientRefreshTokenPersistenceFailure(t *testin
 
 	cfg := newOAuthTestConfig()
 	seedExpiredOAuthTokens(t, cfg)
-	cfg.remainingFailures = 10
+	cfg.failKeys = map[string]int{refreshTokenKey: 10}
 
 	oauthSvc := newOAuthTestService(t, cfg, server.URL+"/oauth/token")
 	ctx := context.Background()
@@ -175,7 +182,7 @@ func TestFetchUserTokenRetriesRefreshTokenPersistence(t *testing.T) {
 
 	cfg := newOAuthTestConfig()
 	seedExpiredOAuthTokens(t, cfg)
-	cfg.remainingFailures = 1
+	cfg.failKeys = map[string]int{refreshTokenKey: 1}
 
 	oauthSvc := newOAuthTestService(t, cfg, server.URL+"/oauth/token")
 	ctx := context.Background()
@@ -224,4 +231,181 @@ func TestFetchUserTokenConcurrentRefreshUsesSingleRotatedToken(t *testing.T) {
 			require.Equal(t, "refresh-token-r2", token.RefreshToken)
 		}
 	}
+}
+
+func newNonRotatingRefreshOAuthServer(t *testing.T) *httptest.Server {
+	t.Helper()
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]interface{}{
+			"access_token": "access-token-a2",
+			"token_type":   "bearer",
+			"expires_in":   3600,
+		})
+	}))
+}
+
+func TestFetchUserTokenPrefersNewerDatabaseTokenOverStaleMemory(t *testing.T) {
+	initOAuthTokenTest(t)
+
+	server := newOAuthTestServer(t)
+	defer server.Close()
+
+	cfg := newOAuthTestConfig()
+	seedExpiredOAuthTokens(t, cfg)
+	cfg.failKeys = map[string]int{refreshTokenKey: 10}
+
+	oauthSvc := newOAuthTestService(t, cfg, server.URL+"/oauth/token")
+	ctx := context.Background()
+
+	_, err := oauthSvc.fetchUserToken(ctx)
+	require.NoError(t, err)
+
+	cfg.failKeys = nil
+	require.NoError(t, cfg.SetUpdate(refreshTokenKey, "refresh-token-r3", ""))
+	require.NoError(t, cfg.SetUpdate(accessTokenKey, "access-token-a3", ""))
+	require.NoError(t, cfg.SetUpdate(accessTokenExpiryKey, strconv.FormatInt(time.Now().Add(2*time.Hour).Unix(), 10), ""))
+
+	token, err := oauthSvc.fetchUserToken(ctx)
+	require.NoError(t, err)
+	require.Equal(t, "refresh-token-r3", token.RefreshToken)
+	require.Equal(t, "access-token-a3", token.AccessToken)
+}
+
+func TestFetchUserTokenPrefersNewerDatabaseExpiryWithSameRefreshToken(t *testing.T) {
+	initOAuthTokenTest(t)
+
+	cfg := newOAuthTestConfig()
+	future := time.Now().Add(2 * time.Hour)
+	past := time.Now().Add(-2 * time.Hour)
+	require.NoError(t, cfg.SetUpdate(accessTokenKey, "access-token-a-db", ""))
+	require.NoError(t, cfg.SetUpdate(accessTokenExpiryKey, strconv.FormatInt(future.Unix(), 10), ""))
+	require.NoError(t, cfg.SetUpdate(refreshTokenKey, "refresh-token-r2", ""))
+
+	oauthSvc := newOAuthTestService(t, cfg, "http://localhost/unused")
+	oauthSvc.setLatestToken(&oauth2.Token{
+		AccessToken:  "access-token-a-mem",
+		RefreshToken: "refresh-token-r2",
+		Expiry:       past,
+	})
+
+	token, err := oauthSvc.fetchUserToken(context.Background())
+	require.NoError(t, err)
+	require.Equal(t, "access-token-a-db", token.AccessToken)
+}
+
+func TestFetchUserTokenPrefersNewerMemoryExpiryWithSameRefreshToken(t *testing.T) {
+	initOAuthTokenTest(t)
+
+	cfg := newOAuthTestConfig()
+	past := time.Now().Add(-2 * time.Hour)
+	future := time.Now().Add(2 * time.Hour)
+	require.NoError(t, cfg.SetUpdate(accessTokenKey, "access-token-a-db", ""))
+	require.NoError(t, cfg.SetUpdate(accessTokenExpiryKey, strconv.FormatInt(past.Unix(), 10), ""))
+	require.NoError(t, cfg.SetUpdate(refreshTokenKey, "refresh-token-r2", ""))
+
+	oauthSvc := newOAuthTestService(t, cfg, "http://localhost/unused")
+	oauthSvc.setLatestToken(&oauth2.Token{
+		AccessToken:  "access-token-a-mem",
+		RefreshToken: "refresh-token-r2",
+		Expiry:       future,
+	})
+
+	token, err := oauthSvc.fetchUserToken(context.Background())
+	require.NoError(t, err)
+	require.Equal(t, "access-token-a-mem", token.AccessToken)
+}
+
+func TestFetchUserTokenNonRotatingRefreshPersistsSameRefreshToken(t *testing.T) {
+	initOAuthTokenTest(t)
+
+	server := newNonRotatingRefreshOAuthServer(t)
+	defer server.Close()
+
+	cfg := newOAuthTestConfig()
+	seedExpiredOAuthTokens(t, cfg)
+
+	oauthSvc := newOAuthTestService(t, cfg, server.URL)
+	ctx := context.Background()
+
+	token, err := oauthSvc.fetchUserToken(ctx)
+	require.NoError(t, err)
+	require.Equal(t, "access-token-a2", token.AccessToken)
+	require.Equal(t, "refresh-token-r1", token.RefreshToken)
+
+	storedRefreshToken, err := cfg.Get(refreshTokenKey, "")
+	require.NoError(t, err)
+	require.Equal(t, "refresh-token-r1", storedRefreshToken)
+}
+
+func TestRemoveOAuthAccessTokenClearsLatestToken(t *testing.T) {
+	initOAuthTokenTest(t)
+
+	cfg := newOAuthTestConfig()
+	future := time.Now().Add(2 * time.Hour)
+	require.NoError(t, cfg.SetUpdate(accessTokenKey, "access-token-a1", ""))
+	require.NoError(t, cfg.SetUpdate(accessTokenExpiryKey, strconv.FormatInt(future.Unix(), 10), ""))
+	require.NoError(t, cfg.SetUpdate(refreshTokenKey, "refresh-token-r1", ""))
+
+	oauthSvc := newOAuthTestService(t, cfg, "http://localhost/unused")
+	oauthSvc.setLatestToken(&oauth2.Token{
+		AccessToken:  "access-token-a1",
+		RefreshToken: "refresh-token-r1",
+		Expiry:       future,
+	})
+
+	require.NoError(t, oauthSvc.RemoveOAuthAccessToken())
+	require.Nil(t, oauthSvc.latestToken)
+
+	token, err := oauthSvc.fetchUserToken(context.Background())
+	require.NoError(t, err)
+	require.Nil(t, token)
+}
+
+func TestLockAndClearTokenStateClearsLatestToken(t *testing.T) {
+	initOAuthTokenTest(t)
+
+	cfg := newOAuthTestConfig()
+	oauthSvc := newOAuthTestService(t, cfg, "http://localhost/unused")
+	oauthSvc.setLatestToken(&oauth2.Token{
+		AccessToken:  "access-token-a1",
+		RefreshToken: "refresh-token-r1",
+		Expiry:       time.Now().Add(2 * time.Hour),
+	})
+	oauthSvc.pendingRefreshFrom = "refresh-token-r0"
+
+	oauthSvc.lockAndClearTokenState()
+	require.Nil(t, oauthSvc.latestToken)
+	require.Equal(t, "", oauthSvc.pendingRefreshFrom)
+}
+
+func TestFetchUserTokenPersistenceEventuallyConverges(t *testing.T) {
+	initOAuthTokenTest(t)
+
+	server := newOAuthTestServer(t)
+	defer server.Close()
+
+	cfg := newOAuthTestConfig()
+	seedExpiredOAuthTokens(t, cfg)
+	cfg.failKeys = map[string]int{refreshTokenKey: 1}
+
+	oauthSvc := newOAuthTestService(t, cfg, server.URL+"/oauth/token")
+	ctx := context.Background()
+
+	_, err := oauthSvc.fetchUserToken(ctx)
+	require.NoError(t, err)
+	require.Equal(t, "", oauthSvc.pendingRefreshFrom)
+
+	token, err := oauthSvc.fetchUserToken(ctx)
+	require.NoError(t, err)
+	require.Equal(t, "access-token-a2", token.AccessToken)
+	require.Equal(t, "refresh-token-r2", token.RefreshToken)
+	require.Equal(t, "", oauthSvc.pendingRefreshFrom)
+	storedRefreshToken, err := cfg.Get(refreshTokenKey, "")
+	require.NoError(t, err)
+	require.Equal(t, "refresh-token-r2", storedRefreshToken)
 }
