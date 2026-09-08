@@ -1578,24 +1578,12 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 			type lsps2SourceProvider interface {
 				GetLiquiditySourceLsps2() string
 			}
-			type lsps2MinPaymentSizeProvider interface {
-				GetLiquiditySourceLsps2MinPaymentSizeMsat() *uint64
-			}
-			type lsps2MaxPaymentSizeProvider interface {
-				GetLiquiditySourceLsps2MaxPaymentSizeMsat() *uint64
-			}
 
-			if ldkService, ok := api.svc.GetLNClient().(chainSourceProvider); ok {
+			if ldkService, ok := lnClient.(chainSourceProvider); ok {
 				info.ChainDataSourceType, info.ChainDataSourceAddress = ldkService.GetChainDataSource()
 			}
-			if ldkService, ok := api.svc.GetLNClient().(lsps2SourceProvider); ok {
+			if ldkService, ok := lnClient.(lsps2SourceProvider); ok {
 				info.JitChannelsLiquiditySource = ldkService.GetLiquiditySourceLsps2()
-			}
-			if ldkService, ok := api.svc.GetLNClient().(lsps2MinPaymentSizeProvider); ok {
-				info.JitChannelsMinPaymentSizeMsat = ldkService.GetLiquiditySourceLsps2MinPaymentSizeMsat()
-			}
-			if ldkService, ok := api.svc.GetLNClient().(lsps2MaxPaymentSizeProvider); ok {
-				info.JitChannelsMaxPaymentSizeMsat = ldkService.GetLiquiditySourceLsps2MaxPaymentSizeMsat()
 			}
 		}
 	}
@@ -1605,6 +1593,32 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.NodeAlias, _ = api.cfg.Get("NodeAlias", "")
 
 	return &info, nil
+}
+
+func (api *api) GetJitChannelsInfo(_ context.Context) (*JitChannelsInfoResponse, error) {
+	info := &JitChannelsInfoResponse{}
+
+	backendType, _ := api.cfg.Get("LNBackendType", "")
+	jitChannelsEnabled, _ := api.cfg.Get("JitChannelsEnabled", "")
+	if backendType != config.LDKBackendType || jitChannelsEnabled == "false" {
+		return info, nil
+	}
+
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
+		return info, nil
+	}
+
+	type lsps2PaymentSizeRangeProvider interface {
+		GetLiquiditySourceLsps2PaymentSizeRangeMsat() (*uint64, *uint64)
+	}
+	ldkService, ok := lnClient.(lsps2PaymentSizeRangeProvider)
+	if !ok {
+		return info, nil
+	}
+
+	info.MinPaymentSizeMsat, info.MaxPaymentSizeMsat = ldkService.GetLiquiditySourceLsps2PaymentSizeRangeMsat()
+	return info, nil
 }
 
 func (api *api) setCurrency(currency string) error {

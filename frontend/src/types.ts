@@ -182,12 +182,15 @@ export interface InfoResponse {
   chainDataSourceType?: string;
   chainDataSourceAddress?: string;
   jitChannelsLiquiditySource?: string;
-  jitChannelsMinPaymentSizeMsat?: number;
-  jitChannelsMaxPaymentSizeMsat?: number;
   jitChannelsEnabled: boolean;
   hideUpdateBanner: boolean;
   supportsBolt12: boolean;
   nodeMigrationFileCreated: boolean;
+}
+
+export interface JitChannelsInfoResponse {
+  minPaymentSizeMsat?: number;
+  maxPaymentSizeMsat?: number;
 }
 
 export type BitcoinDisplayFormat = "sats" | "bip177";
