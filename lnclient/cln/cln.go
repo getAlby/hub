@@ -1,6 +1,7 @@
 package cln
 
 import (
+	"bytes"
 	"context"
 	crand "crypto/rand"
 	"crypto/sha256"
@@ -1028,12 +1029,13 @@ func (c *CLNService) GetInfo(ctx context.Context) (*lnclient.NodeInfo, error) {
 	}
 
 	return &lnclient.NodeInfo{
-		Alias:       resp.GetAlias(),
-		Color:       hex.EncodeToString(resp.Color),
-		Pubkey:      hex.EncodeToString(resp.Id),
-		Network:     resp.Network,
-		BlockHeight: resp.Blockheight,
-		BlockHash:   "", // Not directly available
+		Alias:          resp.GetAlias(),
+		Color:          hex.EncodeToString(resp.Color),
+		Pubkey:         hex.EncodeToString(resp.Id),
+		Network:        resp.Network,
+		BlockHeight:    resp.Blockheight,
+		BlockHash:      "", // Not directly available
+		SupportsBolt12: true,
 	}, nil
 }
 
@@ -1458,6 +1460,8 @@ func (c *CLNService) GetSupportedNIP47Methods() []string {
 		models.MULTI_PAY_INVOICE_METHOD,
 		models.MULTI_PAY_KEYSEND_METHOD,
 		models.SIGN_MESSAGE_METHOD,
+		models.PAY_METHOD,
+		models.RECEIVE_METHOD,
 	}
 
 	if c.holdEnabled {
@@ -2363,6 +2367,135 @@ func (c *CLNService) SendPaymentSync(payReq string, amount *uint64) (*lnclient.P
 		Preimage: hex.EncodeToString(resp.PaymentPreimage),
 		FeeMsat:  feePaidMsat,
 	}, err
+}
+
+// clnChainToNetwork maps a BOLT-12 offer chain hash (sha256 of the chain
+// name) to a known network name. Returns "" for unknown chains.
+func clnChainToNetwork(chainId []byte) string {
+	for _, network := range []string{"bitcoin", "mainnet", "testnet", "testnet3", "testnet4", "signet", "regtest", "mutinynet"} {
+		chainHash := sha256.Sum256([]byte(network))
+		if bytes.Equal(chainHash[:], chainId) {
+			return network
+		}
+	}
+	return ""
+}
+
+func (c *CLNService) DecodeOffer(ctx context.Context, offer string) (*lnclient.OfferInfo, error) {
+	resp, err := c.client.Decode(ctx, &clngrpc.DecodeRequest{String_: offer})
+	if err != nil {
+		logger.Logger.WithError(err).Error("decode offer failed")
+		return nil, fmt.Errorf("decode failed: %w", err)
+	}
+	if resp == nil || !resp.Valid {
+		return nil, errors.New("invalid offer")
+	}
+	if resp.ItemType != clngrpc.DecodeResponse_BOLT12_OFFER {
+		return nil, errors.New("payment instruction is not a BOLT-12 offer")
+	}
+
+	offerInfo := &lnclient.OfferInfo{}
+	if amount := resp.GetOfferAmountMsat(); amount != nil {
+		offerInfo.AmountMsat = &amount.Msat
+	} else if amount := resp.GetInvoiceAmountMsat(); amount != nil {
+		offerInfo.AmountMsat = &amount.Msat
+	}
+	if resp.OfferAbsoluteExpiry != nil {
+		offerInfo.Expired = time.Now().Unix() > int64(*resp.OfferAbsoluteExpiry)
+	}
+	for _, chain := range resp.OfferChains {
+		if network := clnChainToNetwork(chain); network != "" {
+			offerInfo.Chains = append(offerInfo.Chains, network)
+		}
+	}
+	if description := resp.GetOfferDescription(); description != "" {
+		offerInfo.Description = description
+	}
+
+	return offerInfo, nil
+}
+
+// clnOfferSupportsNetwork checks whether a decoded offer's chain list includes
+// the network the node runs on. Offers without a chain restriction work on
+// any network.
+func clnOfferSupportsNetwork(chains []string, nodeNetwork string) bool {
+	if len(chains) == 0 {
+		return true
+	}
+	for _, chain := range chains {
+		if strings.EqualFold(chain, nodeNetwork) {
+			return true
+		}
+	}
+	return false
+}
+
+func (c *CLNService) PayOfferSync(ctx context.Context, offer string, amountMsat *uint64, payerNote string) (*lnclient.PayOfferResponse, error) {
+	offerInfo, err := c.DecodeOffer(ctx, offer)
+	if err != nil {
+		return nil, err
+	}
+	if offerInfo.Expired {
+		return nil, errors.New("offer has expired")
+	}
+
+	getInfoResp, err := c.client.Getinfo(ctx, &clngrpc.GetinfoRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("getinfo failed: %w", err)
+	}
+	if !clnOfferSupportsNetwork(offerInfo.Chains, getInfoResp.GetNetwork()) {
+		return nil, lnclient.ErrOfferWrongNetwork
+	}
+
+	fetchReq := &clngrpc.FetchinvoiceRequest{
+		Offer: offer,
+	}
+	if offerInfo.AmountMsat == nil {
+		// variable-amount offers must be funded with an explicit amount
+		if amountMsat == nil {
+			return nil, errors.New("an amount is required to pay a variable-amount offer")
+		}
+		fetchReq.AmountMsat = &clngrpc.Amount{Msat: *amountMsat}
+	} else if amountMsat != nil && *amountMsat != *offerInfo.AmountMsat {
+		return nil, fmt.Errorf("amount %d does not match the offer amount %d", *amountMsat, *offerInfo.AmountMsat)
+	}
+	if payerNote != "" {
+		fetchReq.PayerNote = &payerNote
+	}
+
+	fetchResp, err := c.client.FetchInvoice(ctx, fetchReq)
+	if err != nil {
+		logger.Logger.WithError(err).Error("fetchinvoice failed")
+		return nil, fmt.Errorf("fetchinvoice failed: %w", err)
+	}
+	if fetchResp == nil || fetchResp.Invoice == "" {
+		return nil, errors.New("fetchinvoice returned an empty invoice")
+	}
+
+	decodedInvoice, err := c.client.Decode(ctx, &clngrpc.DecodeRequest{String_: fetchResp.Invoice})
+	if err != nil {
+		return nil, fmt.Errorf("decode failed: %w", err)
+	}
+	paymentHash := hex.EncodeToString(decodedInvoice.GetInvoicePaymentHash())
+
+	xpayResp, err := c.client.Xpay(ctx, &clngrpc.XpayRequest{
+		Invstring: fetchResp.Invoice,
+	})
+	if err != nil {
+		logger.Logger.WithError(err).Error("xpay failed")
+		return nil, fmt.Errorf("xpay failed: %w", err)
+	}
+
+	feePaidMsat := uint64(0)
+	if xpayResp.AmountSentMsat != nil && xpayResp.AmountMsat != nil {
+		feePaidMsat = xpayResp.AmountSentMsat.Msat - xpayResp.AmountMsat.Msat
+	}
+
+	return &lnclient.PayOfferResponse{
+		Preimage:    hex.EncodeToString(xpayResp.PaymentPreimage),
+		FeeMsat:     feePaidMsat,
+		PaymentHash: paymentHash,
+	}, nil
 }
 
 func (c *CLNService) SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error {

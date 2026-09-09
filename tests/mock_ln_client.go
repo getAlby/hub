@@ -18,11 +18,14 @@ const MockPaymentHash = "23277d5e13fce5534f9752c62fcf9337a2a6b0ebea9d21fa816a4c9
 const MockZeroAmountInvoice = "lntbs1pnkjfgudqjd3hkueeqv4u8q6tj0ynp4qws83mqzuqptu5kfvxeles7qmyhsj6u2s6zyuft26mcr4tdmcupuupp533y9nwnsaktr9zlvyxmv97ta23faerygh3t9xvsfwytsr28lgggssp5mku3023z3kdxlpx6vrwtfxvvrxpffrquy6veex4ndk7rxhdtslhq9qyysgqcqpcxqxfvltyqva6y7k89jwtcljx399jl6wsq4lkq29vnm3rj4jxmapc6vcs358sx8mtpgh93rdc6ccqpxwwfga59zrla5m55zwzck2y2rsrxumu852sqkvpcm7"
 const MockZeroAmountPaymentHash = "8c4859ba70ed96328bec21b6c2f97d5453dc8c88bc56533209711701a8ff4211"
 
+// a signet BOLT-12 offer with no amount
+const MockOffer = "lno1zrxq8pjw7qjlm68mtp7e3yvxee4y5xrgjhhyf2fxhlphpckrvevh50u0qf"
+
 var MockNodeInfo = lnclient.NodeInfo{
 	Alias:       "bob",
 	Color:       "#3399FF",
 	Pubkey:      "123pubkey",
-	Network:     "testnet",
+	Network:     "signet", // MockInvoice etc. are signet ("lntbs") invoices
 	BlockHeight: 12,
 	BlockHash:   "123blockhash",
 }
@@ -83,9 +86,13 @@ type MockLn struct {
 	PayInvoiceErrors           []error
 	PayKeysendResponses        []*lnclient.PayKeysendResponse
 	PayKeysendErrors           []error
+	PayOfferResponses          []*lnclient.PayOfferResponse
+	PayOfferErrors             []error
 	PaymentDelay               *time.Duration
 	Pubkey                     string
 	MockTransaction            *lnclient.Transaction
+	MockOfferInfo              *lnclient.OfferInfo
+	SupportsBolt12             bool
 	LastMinCltvExpiryDelta     *uint64
 	SupportedNotificationTypes *[]string
 }
@@ -125,7 +132,9 @@ func (mln *MockLn) SendKeysend(amountMsat uint64, destination string, custom_rec
 }
 
 func (mln *MockLn) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err error) {
-	return &MockNodeInfo, nil
+	nodeInfo := MockNodeInfo
+	nodeInfo.SupportsBolt12 = mln.SupportsBolt12
+	return &nodeInfo, nil
 }
 
 func (mln *MockLn) MakeInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
@@ -238,7 +247,9 @@ func (mln *MockLn) UpdateChannel(ctx context.Context, updateChannelRequest *lncl
 }
 
 func (mln *MockLn) GetSupportedNIP47Methods() []string {
-	return []string{"pay_invoice", "pay_keysend", "get_balance", "get_budget", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice", "multi_pay_keysend", "sign_message"}
+	// NOTE: string literals because the tests package cannot import
+	// nip47/models without creating an import cycle in test binaries
+	return []string{"pay_invoice", "pay_keysend", "get_balance", "get_budget", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice", "multi_pay_keysend", "sign_message", "pay", "receive"}
 }
 func (mln *MockLn) GetSupportedNIP47NotificationTypes() []string {
 	if mln.SupportedNotificationTypes != nil {
@@ -264,7 +275,34 @@ func (mln *MockLn) ExecuteCustomNodeCommand(ctx context.Context, command *lnclie
 }
 
 func (mln *MockLn) MakeOffer(ctx context.Context, description string) (string, error) {
-	return "", errors.New("not supported")
+	if mln.SupportsBolt12 {
+		return MockOffer, nil
+	}
+	return "", lnclient.ErrBolt12Unsupported
+}
+
+func (mln *MockLn) DecodeOffer(ctx context.Context, offer string) (*lnclient.OfferInfo, error) {
+	if mln.SupportsBolt12 {
+		if mln.MockOfferInfo != nil {
+			return mln.MockOfferInfo, nil
+		}
+		return &lnclient.OfferInfo{}, nil
+	}
+	return nil, lnclient.ErrBolt12Unsupported
+}
+
+func (mln *MockLn) PayOfferSync(ctx context.Context, offer string, amountMsat *uint64, payerNote string) (*lnclient.PayOfferResponse, error) {
+	if len(mln.PayOfferResponses) > 0 {
+		response := mln.PayOfferResponses[0]
+		err := mln.PayOfferErrors[0]
+		mln.PayOfferResponses = mln.PayOfferResponses[1:]
+		mln.PayOfferErrors = mln.PayOfferErrors[1:]
+		return response, err
+	}
+	return &lnclient.PayOfferResponse{
+		Preimage:    "123preimage",
+		PaymentHash: MockPaymentHash,
+	}, nil
 }
 
 func (mln *MockLn) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
