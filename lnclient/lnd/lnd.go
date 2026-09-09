@@ -1493,6 +1493,8 @@ func (svc *LNDService) GetSupportedNIP47Methods() []string {
 		models.MAKE_HOLD_INVOICE_METHOD,
 		models.SETTLE_HOLD_INVOICE_METHOD,
 		models.CANCEL_HOLD_INVOICE_METHOD,
+		models.PAY_METHOD,
+		models.RECEIVE_METHOD,
 	}
 }
 
