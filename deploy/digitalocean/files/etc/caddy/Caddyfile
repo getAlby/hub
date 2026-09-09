@@ -1,0 +1,8 @@
+# Caddy terminates TLS on :443 and proxies to the Alby Hub container on 127.0.0.1:8080.
+# The DOMAIN placeholder is rewritten by /var/lib/cloud/scripts/per-instance/01-albyhub-firstboot.sh
+# based on droplet user-data. If no DOMAIN is set, the firstboot script replaces the whole
+# file with a :80 site block so Hub is reachable over plain HTTP.
+
+{$DOMAIN:localhost} {
+	reverse_proxy 127.0.0.1:8080
+}
