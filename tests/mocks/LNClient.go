@@ -1875,8 +1875,8 @@ func (_c *MockLNClient_SendKeysend_Call) RunAndReturn(run func(amountMsat uint64
 }
 
 // SendPaymentSync provides a mock function for the type MockLNClient
-func (_mock *MockLNClient) SendPaymentSync(payReq string, amountMsat *uint64) (*lnclient.PayInvoiceResponse, error) {
-	ret := _mock.Called(payReq, amountMsat)
+func (_mock *MockLNClient) SendPaymentSync(payReq string, amountMsat *uint64, maxFeeMsat *uint64) (*lnclient.PayInvoiceResponse, error) {
+	ret := _mock.Called(payReq, amountMsat, maxFeeMsat)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SendPaymentSync")
@@ -1884,18 +1884,18 @@ func (_mock *MockLNClient) SendPaymentSync(payReq string, amountMsat *uint64) (*
 
 	var r0 *lnclient.PayInvoiceResponse
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(string, *uint64) (*lnclient.PayInvoiceResponse, error)); ok {
-		return returnFunc(payReq, amountMsat)
+	if returnFunc, ok := ret.Get(0).(func(string, *uint64, *uint64) (*lnclient.PayInvoiceResponse, error)); ok {
+		return returnFunc(payReq, amountMsat, maxFeeMsat)
 	}
-	if returnFunc, ok := ret.Get(0).(func(string, *uint64) *lnclient.PayInvoiceResponse); ok {
-		r0 = returnFunc(payReq, amountMsat)
+	if returnFunc, ok := ret.Get(0).(func(string, *uint64, *uint64) *lnclient.PayInvoiceResponse); ok {
+		r0 = returnFunc(payReq, amountMsat, maxFeeMsat)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*lnclient.PayInvoiceResponse)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(string, *uint64) error); ok {
-		r1 = returnFunc(payReq, amountMsat)
+	if returnFunc, ok := ret.Get(1).(func(string, *uint64, *uint64) error); ok {
+		r1 = returnFunc(payReq, amountMsat, maxFeeMsat)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1910,11 +1910,12 @@ type MockLNClient_SendPaymentSync_Call struct {
 // SendPaymentSync is a helper method to define mock.On call
 //   - payReq string
 //   - amountMsat *uint64
-func (_e *MockLNClient_Expecter) SendPaymentSync(payReq interface{}, amountMsat interface{}) *MockLNClient_SendPaymentSync_Call {
-	return &MockLNClient_SendPaymentSync_Call{Call: _e.mock.On("SendPaymentSync", payReq, amountMsat)}
+//   - maxFeeMsat *uint64
+func (_e *MockLNClient_Expecter) SendPaymentSync(payReq interface{}, amountMsat interface{}, maxFeeMsat interface{}) *MockLNClient_SendPaymentSync_Call {
+	return &MockLNClient_SendPaymentSync_Call{Call: _e.mock.On("SendPaymentSync", payReq, amountMsat, maxFeeMsat)}
 }
 
-func (_c *MockLNClient_SendPaymentSync_Call) Run(run func(payReq string, amountMsat *uint64)) *MockLNClient_SendPaymentSync_Call {
+func (_c *MockLNClient_SendPaymentSync_Call) Run(run func(payReq string, amountMsat *uint64, maxFeeMsat *uint64)) *MockLNClient_SendPaymentSync_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 string
 		if args[0] != nil {
@@ -1924,9 +1925,14 @@ func (_c *MockLNClient_SendPaymentSync_Call) Run(run func(payReq string, amountM
 		if args[1] != nil {
 			arg1 = args[1].(*uint64)
 		}
+		var arg2 *uint64
+		if args[2] != nil {
+			arg2 = args[2].(*uint64)
+		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -1937,7 +1943,7 @@ func (_c *MockLNClient_SendPaymentSync_Call) Return(payInvoiceResponse *lnclient
 	return _c
 }
 
-func (_c *MockLNClient_SendPaymentSync_Call) RunAndReturn(run func(payReq string, amountMsat *uint64) (*lnclient.PayInvoiceResponse, error)) *MockLNClient_SendPaymentSync_Call {
+func (_c *MockLNClient_SendPaymentSync_Call) RunAndReturn(run func(payReq string, amountMsat *uint64, maxFeeMsat *uint64) (*lnclient.PayInvoiceResponse, error)) *MockLNClient_SendPaymentSync_Call {
 	_c.Call.Return(run)
 	return _c
 }

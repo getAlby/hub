@@ -343,10 +343,13 @@ func (svc *PhoenixService) lookupOutgoingPayment(ctx context.Context, paymentHas
 	return outgoingPaymentToTransaction(&paymentRes)
 }
 
-func (svc *PhoenixService) SendPaymentSync(payReq string, amountMsat *uint64) (*lnclient.PayInvoiceResponse, error) {
+func (svc *PhoenixService) SendPaymentSync(payReq string, amountMsat *uint64, maxFeeMsat *uint64) (*lnclient.PayInvoiceResponse, error) {
 	// TODO: support 0-amount invoices
 	if amountMsat != nil {
 		return nil, errors.New("0-amount invoices not supported")
+	}
+	if maxFeeMsat != nil {
+		return nil, errors.New("max fee is not supported by the phoenixd backend")
 	}
 	form := url.Values{}
 	form.Add("invoice", payReq)

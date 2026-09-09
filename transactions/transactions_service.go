@@ -40,7 +40,7 @@ type TransactionsService interface {
 	MakeInvoice(ctx context.Context, amountMsat uint64, description string, descriptionHash string, expiry uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint, throughNodePubkey *string) (*Transaction, error)
 	LookupTransaction(ctx context.Context, paymentHash string, transactionType *string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error)
 	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool, filters *ListTransactionsFilters) (transactions []Transaction, totalCount uint64, err error)
-	SendPaymentSync(payReq string, amountMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
+	SendPaymentSync(payReq string, amountMsat *uint64, maxFeeMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	SendKeysend(amountMsat uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	MakeHoldInvoice(ctx context.Context, amountMsat uint64, description string, descriptionHash string, expiry uint64, paymentHash string, minCltvExpiryDelta *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	SettleHoldInvoice(ctx context.Context, preimage string, lnClient lnclient.LNClient) (*Transaction, error)
@@ -298,7 +298,7 @@ func (svc *transactionsService) MakeHoldInvoice(ctx context.Context, amountMsat 
 	return &dbTransaction, nil
 }
 
-func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
+func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint64, maxFeeMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
 	var metadataBytes []byte
 	if metadata != nil {
 		var err error
@@ -436,7 +436,7 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 	if selfPayment {
 		response, err = svc.interceptSelfPayment(payReq, paymentRequest.PaymentHash, lnClient)
 	} else {
-		response, err = lnClient.SendPaymentSync(payReq, amountMsat)
+		response, err = lnClient.SendPaymentSync(payReq, amountMsat, maxFeeMsat)
 	}
 
 	if err != nil {

@@ -45,7 +45,7 @@ type API interface {
 	GetBalances(ctx context.Context) (*BalancesResponse, error)
 	ListTransactions(ctx context.Context, appId *uint, limit uint64, offset uint64, filters ListTransactionsFilters) (*ListTransactionsResponse, error)
 	ListOnchainTransactions(ctx context.Context) ([]OnchainTransaction, error)
-	SendPayment(ctx context.Context, invoice string, amountMsat *uint64, metadata map[string]interface{}, fromAppId *uint) (*SendPaymentResponse, error)
+	SendPayment(ctx context.Context, invoice string, amountMsat *uint64, maxFeeMsat *uint64, metadata map[string]interface{}, fromAppId *uint) (*SendPaymentResponse, error)
 	CreateInvoice(ctx context.Context, amountMsat uint64, description string, toAppId *uint) (*MakeInvoiceResponse, error)
 	LookupInvoice(ctx context.Context, paymentHash string) (*LookupInvoiceResponse, error)
 	SetTransactionUserLabels(ctx context.Context, id uint, labels map[string]string) error
@@ -583,6 +583,7 @@ type PayInvoiceRequest struct {
 	Amount     *uint64  `json:"amount"` // deprecated
 	AmountSat  *uint64  `json:"amountSat"`
 	AmountMsat *uint64  `json:"amountMsat"`
+	MaxFeeMsat *uint64  `json:"maxFeeMsat"`
 	Metadata   Metadata `json:"metadata"`
 	FromAppID  *uint    `json:"fromAppId"`
 }
