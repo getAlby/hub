@@ -999,9 +999,28 @@ func (svc *transactionsService) markHoldInvoiceAccepted(paymentRequest string, p
 
 	var dbTransaction db.Transaction
 	err := svc.db.Transaction(func(tx *gorm.DB) error {
-		// NOTE: filter by payment hash so the payment hash index is used,
-		// but also match the payment request as wrapped invoices share the same hash
-		result := tx.Where("payment_hash = ? AND payment_request = ? AND type = ? AND state = ?", paymentHash, paymentRequest, constants.TRANSACTION_TYPE_INCOMING, constants.TRANSACTION_STATE_PENDING).First(&dbTransaction)
+		var result *gorm.DB
+		if paymentRequest != "" {
+			// Filter by payment hash so the payment hash index is used, but also match the
+			// payment request as wrapped invoices share the same hash.
+			result = tx.Where("payment_hash = ? AND payment_request = ? AND type = ? AND state = ?", paymentHash, paymentRequest, constants.TRANSACTION_TYPE_INCOMING, constants.TRANSACTION_STATE_PENDING).First(&dbTransaction)
+		} else {
+			// ldk-server's PaymentClaimable event identifies the payment by hash but does not
+			// include the original invoice. Only fall back to the hash when it identifies one
+			// pending hold invoice unambiguously.
+			var candidates []db.Transaction
+			result = tx.Where("payment_hash = ? AND type = ? AND state = ? AND hold = ?", paymentHash, constants.TRANSACTION_TYPE_INCOMING, constants.TRANSACTION_STATE_PENDING, true).Limit(2).Find(&candidates)
+			if result.Error == nil {
+				switch len(candidates) {
+				case 0:
+					result.Error = gorm.ErrRecordNotFound
+				case 1:
+					dbTransaction = candidates[0]
+				default:
+					return fmt.Errorf("multiple pending hold invoices found for payment hash %s", paymentHash)
+				}
+			}
+		}
 		if result.Error != nil {
 			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 				logger.Logger.WithFields(logrus.Fields{

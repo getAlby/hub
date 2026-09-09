@@ -25,6 +25,13 @@ export const backendTypeConfigs: Record<BackendType, BackendTypeConfig> = {
     hasChannelManagement: true,
     hasNodeBackup: true,
   },
+  LDK_SERVER: {
+    title: "LDK Server",
+    icon: <LDKIcon />,
+    hasMnemonic: false,
+    hasChannelManagement: true,
+    hasNodeBackup: false,
+  },
   PHOENIX: {
     title: "phoenixd",
     icon: <PhoenixdIcon />,
