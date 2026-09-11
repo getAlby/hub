@@ -112,12 +112,13 @@ Mocks are generated with `mockery` (config in `.mockery.yaml`); run it after cha
 
 ```bash
 cd frontend
+yarn test:http     # HTTP request utility regression tests
 yarn lint          # ESLint + TypeScript type check + Prettier
 yarn tsc:compile   # TypeScript only
 yarn format        # Prettier only
 ```
 
-No Jest/Vitest tests exist; frontend quality is enforced via linting.
+HTTP request utility tests use Node's built-in test runner; no Jest/Vitest dependency is required.
 
 ## Building
 

@@ -14,6 +14,7 @@
     "lint:js": "eslint src --max-warnings 0",
     "lint:js:fix": "eslint src --fix",
     "tsc:compile": "tsc --noEmit",
+    "test:http": "node --test platform_specific/http/tests/authHeaders.test.ts",
     "format": "prettier --check '**/*.(md|json)' 'src/**/*.(js|ts|tsx)' '!src/assets/**/*.json' 'platform_specific/**/*.ts'",
     "format:fix": "prettier --loglevel silent --write '**/*.(md|json)' 'src/**/*.(js|ts|tsx)' '!src/assets/**/*.json' 'platform_specific/**/*.ts'",
     "preview": "vite preview",

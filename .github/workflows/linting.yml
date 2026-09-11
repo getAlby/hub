@@ -25,6 +25,9 @@ jobs:
       - run: yarn install
       - run: yarn prepare:http
 
+      - name: Tests
+        run: yarn test:http
+
       - name: Linting
         run: yarn lint:js
 
