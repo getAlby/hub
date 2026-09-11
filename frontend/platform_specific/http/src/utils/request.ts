@@ -17,8 +17,14 @@ export const request = async <T>(
     }
     args[1].headers = {
       ...args[1].headers,
-      Authorization: `Bearer ${token}`,
+      // Leave Authorization available for optional HTTP Basic Authentication
+      // at an HTTPS reverse proxy in front of Alby Hub.
+      "X-Alby-Auth": `Bearer ${token}`,
     };
+    // Unlike Authorization, custom headers can be forwarded across origins
+    // when fetch follows a redirect. API calls must never send the Hub token
+    // to a redirect target.
+    args[1].redirect = "error";
   }
 
   try {

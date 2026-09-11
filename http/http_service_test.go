@@ -2,6 +2,7 @@ package http
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -19,6 +20,7 @@ import (
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/tests/db"
 	"github.com/getAlby/hub/tests/mocks"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -169,12 +171,121 @@ func TestStart_CorrectPassword(t *testing.T) {
 	mockConfig.AssertCalled(t, "LoadJWTSecret", "123")
 	mockConfig.AssertCalled(t, "GetJWTSecret")
 
-	// the token grants full access
+	// The token grants full access through the Hub's internal header even when
+	// HTTP Basic Authentication uses the standard Authorization header.
 	req2 := httptest.NewRequest(http.MethodGet, "/api/apps", nil)
-	req2.Header.Set("Authorization", "Bearer "+tokenResponse.Token)
+	req2.Header.Set(internalAuthorizationHeader, "Bearer "+tokenResponse.Token)
+	req2.Header.Set("Authorization", "Basic dXNlcjpwYXNzd29yZA==")
 	rec2 := httptest.NewRecorder()
 	e.ServeHTTP(rec2, req2)
 	assert.Equal(t, http.StatusOK, rec2.Code)
+	assert.Equal(t, "private, no-store", rec2.Header().Get(echo.HeaderCacheControl))
+
+	// Keep the standard Authorization header working for external API clients.
+	req3 := httptest.NewRequest(http.MethodGet, "/api/apps", nil)
+	req3.Header.Set("Authorization", "Bearer "+tokenResponse.Token)
+	rec3 := httptest.NewRecorder()
+	e.ServeHTTP(rec3, req3)
+	assert.Equal(t, http.StatusOK, rec3.Code)
+}
+
+type infoAPIStub struct {
+	api.API
+}
+
+func (infoAPIStub) GetInfo(context.Context) (*api.InfoResponse, error) {
+	return &api.InfoResponse{}, nil
+}
+
+func TestInfo_RecognizesJWTHeaders(t *testing.T) {
+	const jwtSecret = "dummy secret"
+	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"exp": time.Now().Add(time.Hour).Unix(),
+	}).SignedString([]byte(jwtSecret))
+	require.NoError(t, err)
+
+	tests := []struct {
+		name         string
+		headers      http.Header
+		wantUnlocked bool
+	}{
+		{
+			name: "internal header alongside HTTP Basic Auth",
+			headers: http.Header{
+				internalAuthorizationHeader: {"Bearer " + token},
+				"Authorization":             {"Basic dXNlcjpwYXNzd29yZA=="},
+			},
+			wantUnlocked: true,
+		},
+		{
+			name: "case-insensitive Bearer scheme",
+			headers: http.Header{
+				internalAuthorizationHeader: {"bearer " + token},
+			},
+			wantUnlocked: true,
+		},
+		{
+			name: "valid duplicate internal header",
+			headers: http.Header{
+				internalAuthorizationHeader: {"Bearer invalid", "Bearer " + token},
+			},
+			wantUnlocked: true,
+		},
+		{
+			name: "standard Authorization header fallback",
+			headers: http.Header{
+				"Authorization": {"Bearer " + token},
+			},
+			wantUnlocked: true,
+		},
+		{
+			name: "invalid internal token falls back to Authorization",
+			headers: http.Header{
+				internalAuthorizationHeader: {"Bearer invalid"},
+				"Authorization":             {"Bearer " + token},
+			},
+			wantUnlocked: true,
+		},
+		{
+			name: "HTTP Basic Auth alone does not unlock the Hub",
+			headers: http.Header{
+				"Authorization": {"Basic dXNlcjpwYXNzd29yZA=="},
+			},
+			wantUnlocked: false,
+		},
+		{
+			name: "malformed internal Bearer header",
+			headers: http.Header{
+				internalAuthorizationHeader: {"Bearer"},
+				"Authorization":             {"Basic dXNlcjpwYXNzd29yZA=="},
+			},
+			wantUnlocked: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockConfig := mocks.NewMockConfig(t)
+			mockConfig.On("GetJWTSecret").Maybe().Return(jwtSecret, nil)
+			httpSvc := &HttpService{api: infoAPIStub{}, cfg: mockConfig}
+
+			e := echo.New()
+			e.GET("/api/info", httpSvc.infoHandler)
+			req := httptest.NewRequest(http.MethodGet, "/api/info", nil)
+			for name, values := range tt.headers {
+				for _, value := range values {
+					req.Header.Add(name, value)
+				}
+			}
+			rec := httptest.NewRecorder()
+			e.ServeHTTP(rec, req)
+
+			require.Equal(t, http.StatusOK, rec.Code)
+			var response api.InfoResponse
+			require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &response))
+			assert.Equal(t, tt.wantUnlocked, response.Unlocked)
+		})
+	}
 }
 
 var jwtPattern = regexp.MustCompile(`eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+`)
