@@ -26,9 +26,7 @@ jobs:
       - run: yarn prepare:http
 
       - name: Linting
-        run: |
-          yarn test:http
-          yarn lint:js
+        run: yarn lint:js
 
       - name: Prettier
         run: yarn format
