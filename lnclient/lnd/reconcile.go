@@ -108,17 +108,19 @@ func publishSettledInvoices(ctx context.Context, invoices invoicesLister, publis
 		if err := ctx.Err(); err != nil {
 			return err
 		}
+		// lnd has no server-side settlement-time filter: CreationDateStart
+		// filters by creation date, so settled invoices are filtered by
+		// SettleDate here after scanning all invoices.
 		resp, err := invoices.ListInvoices(ctx, &lnrpc.ListInvoiceRequest{
-			IndexOffset:       indexOffset,
-			NumMaxInvoices:    reconcilePageSize,
-			Reversed:          false,
-			CreationDateStart: uint64(since.Unix()),
+			IndexOffset:    indexOffset,
+			NumMaxInvoices: reconcilePageSize,
+			Reversed:       false,
 		})
 		if err != nil {
 			return fmt.Errorf("list invoices for reconciliation: %w", err)
 		}
 		for _, invoice := range resp.Invoices {
-			if invoice.State != lnrpc.Invoice_SETTLED {
+			if invoice.State != lnrpc.Invoice_SETTLED || invoice.SettleDate < since.Unix() {
 				continue
 			}
 			transaction := lndInvoiceToTransaction(invoice)

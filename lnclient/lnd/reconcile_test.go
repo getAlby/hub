@@ -229,3 +229,44 @@ func TestReconcileMissedEvents_RespectsCancellation(t *testing.T) {
 	assert.Zero(t, invoices.calls)
 	assert.Empty(t, publisher.published())
 }
+
+func TestPublishSettledInvoices_OldCreationDateRecentSettle(t *testing.T) {
+	publisher := &stubEventPublisher{}
+	rHash, _ := hex.DecodeString("ee")
+	invoices := &stubInvoicesAPI{
+		pages: []*lnrpc.ListInvoiceResponse{
+			{
+				Invoices: []*lnrpc.Invoice{
+					{
+						RHash:        rHash,
+						RPreimage:    rHash,
+						State:        lnrpc.Invoice_SETTLED,
+						ValueMsat:    6000,
+						CreationDate: time.Now().Add(-72 * time.Hour).Unix(),
+						SettleDate:   time.Now().Add(-30 * time.Minute).Unix(),
+					},
+					{
+						RHash:        rHash,
+						RPreimage:    rHash,
+						State:        lnrpc.Invoice_SETTLED,
+						ValueMsat:    7000,
+						CreationDate: time.Now().Add(-72 * time.Hour).Unix(),
+						SettleDate:   time.Now().Add(-48 * time.Hour).Unix(),
+					},
+				},
+				LastIndexOffset: 2,
+			},
+			{
+				Invoices:         []*lnrpc.Invoice{},
+				FirstIndexOffset: 2,
+			},
+		},
+	}
+
+	err := publishSettledInvoices(context.Background(), invoices, publisher, time.Now().Add(-24*time.Hour))
+	require.NoError(t, err)
+
+	published := publisher.published()
+	require.Len(t, published, 1)
+	assert.Equal(t, "nwc_lnclient_payment_received", published[0].Event)
+}
