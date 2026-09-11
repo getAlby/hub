@@ -1,6 +1,8 @@
 import { getAuthToken } from "src/lib/auth";
 import { ErrorResponse } from "src/types";
 
+import { withAlbyAuthHeader } from "src/lib/authHeaders";
+
 export const request = async <T>(
   ...args: Parameters<typeof fetch>
 ): Promise<T | undefined> => {
@@ -15,10 +17,11 @@ export const request = async <T>(
     if (!args[1]) {
       args[1] = {};
     }
-    args[1].headers = {
-      ...args[1].headers,
-      Authorization: `Bearer ${token}`,
-    };
+    args[1].headers = withAlbyAuthHeader(args[1].headers, token);
+    // Unlike Authorization, custom headers can be forwarded across origins
+    // when fetch follows a redirect. API calls must never send the Hub token
+    // to a redirect target.
+    args[1].redirect = "error";
   }
 
   try {

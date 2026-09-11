@@ -32,6 +32,10 @@ type authTokenResponse struct {
 	Token string `json:"token"`
 }
 
+const internalAuthorizationHeader = "X-Alby-Auth"
+
+const bearerPrefix = "Bearer "
+
 type jwtCustomClaims struct {
 	// we can add extra claims here
 	// Name  string `json:"name"`
@@ -70,6 +74,17 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 		ContentSecurityPolicy: "default-src 'self'; img-src 'self' https://uploads.getalby-assets.com https://cdn.getalby-assets.com https://getalby.com; connect-src 'self' https://api.getalby.com https://getalby.com https://zapplanner.albylabs.com wss://relay.getalby.com wss://relay2.getalby.com; frame-src https://www.youtube-nocookie.com",
 		ReferrerPolicy:        "no-referrer",
 	}))
+	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			path := c.Request().URL.Path
+			if path == "/api" || strings.HasPrefix(path, "/api/") {
+				// The web UI authenticates with a custom header, which does not
+				// receive Authorization's special shared-cache treatment.
+				c.Response().Header().Set(echo.HeaderCacheControl, "private, no-store")
+			}
+			return next(c)
+		}
+	})
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		LogURI:       true,
 		LogStatus:    true,
@@ -119,6 +134,10 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	// restricted routes
 	// Configure middleware with the custom claims type
 	jwtConfig := echojwt.Config{
+		// The web UI uses a dedicated header so Authorization remains available
+		// for optional HTTP Basic Authentication at an HTTPS reverse proxy. Keep
+		// accepting Authorization as a fallback for external API clients.
+		TokenLookup: "header:" + internalAuthorizationHeader + ":" + bearerPrefix + ",header:" + echo.HeaderAuthorization + ":" + bearerPrefix,
 		NewClaimsFunc: func(c echo.Context) jwt.Claims {
 			return new(jwtCustomClaims)
 		},
@@ -217,12 +236,19 @@ func (httpSvc *HttpService) infoHandler(c echo.Context) error {
 		})
 	}
 
-	authHeader := c.Request().Header.Get("Authorization")
-	if authHeader != "" {
-		parts := strings.Split(authHeader, " ")
-		if parts[0] == "Bearer" {
-			tokenString := parts[1]
-			token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	responseBody.Unlocked = httpSvc.requestHasValidJWT(c.Request())
+
+	return c.JSON(http.StatusOK, responseBody)
+}
+
+func (httpSvc *HttpService) requestHasValidJWT(request *http.Request) bool {
+	for _, headerName := range []string{internalAuthorizationHeader, echo.HeaderAuthorization} {
+		for _, authHeader := range request.Header.Values(headerName) {
+			if len(authHeader) <= len(bearerPrefix) || !strings.EqualFold(authHeader[:len(bearerPrefix)], bearerPrefix) {
+				continue
+			}
+
+			token, err := jwt.Parse(authHeader[len(bearerPrefix):], func(token *jwt.Token) (interface{}, error) {
 				secret, err := httpSvc.cfg.GetJWTSecret()
 				if err != nil {
 					return nil, err
@@ -232,12 +258,15 @@ func (httpSvc *HttpService) infoHandler(c echo.Context) error {
 			})
 			if err != nil {
 				logger.Logger.WithError(err).Error("failed to parse token")
+				continue
 			}
-			responseBody.Unlocked = err == nil && token != nil && token.Valid
+			if token != nil && token.Valid {
+				return true
+			}
 		}
 	}
 
-	return c.JSON(http.StatusOK, responseBody)
+	return false
 }
 
 func (httpSvc *HttpService) eventHandler(c echo.Context) error {
