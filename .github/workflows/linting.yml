@@ -25,11 +25,10 @@ jobs:
       - run: yarn install
       - run: yarn prepare:http
 
-      - name: Tests
-        run: yarn test:http
-
       - name: Linting
-        run: yarn lint:js
+        run: |
+          yarn test:http
+          yarn lint:js
 
       - name: Prettier
         run: yarn format
