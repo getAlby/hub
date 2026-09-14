@@ -7,10 +7,64 @@ import (
 
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
+	ldkapi "github.com/getAlby/hub/lnclient/ldk-server/grpc/api"
 	ldkevents "github.com/getAlby/hub/lnclient/ldk-server/grpc/events"
 	ldktypes "github.com/getAlby/hub/lnclient/ldk-server/grpc/types"
 	"github.com/getAlby/hub/nip47/models"
 )
+
+func TestOnchainBalanceExcludesOpenChannels(t *testing.T) {
+	for _, usable := range []bool{true, false} {
+		resp := &ldkapi.GetBalancesResponse{
+			TotalOnchainBalanceSats:        30000,
+			SpendableOnchainBalanceSats:    5000,
+			TotalAnchorChannelsReserveSats: 25000,
+			LightningBalances: []*ldktypes.LightningBalance{{
+				BalanceType: &ldktypes.LightningBalance_ClaimableOnChannelClose{
+					ClaimableOnChannelClose: &ldktypes.ClaimableOnChannelClose{
+						ChannelId: "open", CounterpartyNodeId: "peer", AmountSatoshis: 9756,
+					},
+				},
+			}},
+		}
+		result := onchainBalanceResponse(resp, []*ldktypes.Channel{{ChannelId: "open", IsUsable: usable}})
+		require.EqualValues(t, 30000, result.TotalSat)
+		require.EqualValues(t, 5000, result.SpendableSat)
+		require.EqualValues(t, 25000, result.ReservedSat)
+		require.Zero(t, result.PendingBalancesFromChannelClosuresSat)
+		require.Empty(t, result.PendingBalancesDetails)
+		require.Empty(t, result.PendingSweepBalancesDetails)
+	}
+}
+
+func TestOnchainBalancePreservesClosingChannels(t *testing.T) {
+	resp := &ldkapi.GetBalancesResponse{
+		LightningBalances: []*ldktypes.LightningBalance{
+			{BalanceType: &ldktypes.LightningBalance_ClaimableOnChannelClose{
+				ClaimableOnChannelClose: &ldktypes.ClaimableOnChannelClose{
+					ChannelId: "closing", CounterpartyNodeId: "peer", AmountSatoshis: 9756,
+				},
+			}},
+			{BalanceType: &ldktypes.LightningBalance_ClaimableAwaitingConfirmations{
+				ClaimableAwaitingConfirmations: &ldktypes.ClaimableAwaitingConfirmations{
+					ChannelId: "confirming", CounterpartyNodeId: "peer", AmountSatoshis: 2000,
+				},
+			}},
+			{BalanceType: &ldktypes.LightningBalance_ContentiousClaimable{
+				ContentiousClaimable: &ldktypes.ContentiousClaimable{
+					ChannelId: "contentious", CounterpartyNodeId: "peer", AmountSatoshis: 3000,
+				},
+			}},
+		},
+	}
+	result := onchainBalanceResponse(resp, nil)
+	require.EqualValues(t, 14756, result.PendingBalancesFromChannelClosuresSat)
+	require.Equal(t, []lnclient.PendingBalanceDetails{
+		{ChannelId: "closing", NodeId: "peer", AmountSat: 9756},
+		{ChannelId: "confirming", NodeId: "peer", AmountSat: 2000},
+		{ChannelId: "contentious", NodeId: "peer", AmountSat: 3000},
+	}, result.PendingBalancesDetails)
+}
 
 type recordingEventPublisher struct {
 	published     []*events.Event

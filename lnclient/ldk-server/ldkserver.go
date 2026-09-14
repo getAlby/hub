@@ -593,11 +593,23 @@ func (svc *LDKServerService) ResetRouter(key string) error {
 }
 
 func (svc *LDKServerService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
+	channels := &ldkapi.ListChannelsResponse{}
+	if err := svc.doUnary(ctx, ldkapi.LightningNode_ListChannels_FullMethodName, &ldkapi.ListChannelsRequest{}, channels); err != nil {
+		return nil, err
+	}
 	resp := &ldkapi.GetBalancesResponse{}
 	if err := svc.doUnary(ctx, ldkapi.LightningNode_GetBalances_FullMethodName, &ldkapi.GetBalancesRequest{}, resp); err != nil {
 		return nil, err
 	}
 
+	return onchainBalanceResponse(resp, channels.Channels), nil
+}
+
+func onchainBalanceResponse(resp *ldkapi.GetBalancesResponse, channels []*ldktypes.Channel) *lnclient.OnchainBalanceResponse {
+	openChannels := make(map[string]bool, len(channels))
+	for _, channel := range channels {
+		openChannels[channel.ChannelId] = true
+	}
 	result := &lnclient.OnchainBalanceResponse{
 		SpendableSat:                int64(resp.SpendableOnchainBalanceSats),
 		TotalSat:                    int64(resp.TotalOnchainBalanceSats),
@@ -608,6 +620,10 @@ func (svc *LDKServerService) GetOnchainBalance(ctx context.Context) (*lnclient.O
 	for _, balance := range resp.LightningBalances {
 		switch b := balance.BalanceType.(type) {
 		case *ldktypes.LightningBalance_ClaimableOnChannelClose:
+			// This balance also exists for open channels, including offline ones.
+			if openChannels[b.ClaimableOnChannelClose.ChannelId] {
+				continue
+			}
 			result.PendingBalancesFromChannelClosuresSat += b.ClaimableOnChannelClose.AmountSatoshis
 			result.PendingBalancesDetails = append(result.PendingBalancesDetails, lnclient.PendingBalanceDetails{
 				ChannelId: b.ClaimableOnChannelClose.ChannelId,
@@ -615,6 +631,9 @@ func (svc *LDKServerService) GetOnchainBalance(ctx context.Context) (*lnclient.O
 				AmountSat: b.ClaimableOnChannelClose.AmountSatoshis,
 			})
 		case *ldktypes.LightningBalance_ClaimableAwaitingConfirmations:
+			if openChannels[b.ClaimableAwaitingConfirmations.ChannelId] {
+				continue
+			}
 			result.PendingBalancesFromChannelClosuresSat += b.ClaimableAwaitingConfirmations.AmountSatoshis
 			result.PendingBalancesDetails = append(result.PendingBalancesDetails, lnclient.PendingBalanceDetails{
 				ChannelId: b.ClaimableAwaitingConfirmations.ChannelId,
@@ -622,6 +641,9 @@ func (svc *LDKServerService) GetOnchainBalance(ctx context.Context) (*lnclient.O
 				AmountSat: b.ClaimableAwaitingConfirmations.AmountSatoshis,
 			})
 		case *ldktypes.LightningBalance_ContentiousClaimable:
+			if openChannels[b.ContentiousClaimable.ChannelId] {
+				continue
+			}
 			result.PendingBalancesFromChannelClosuresSat += b.ContentiousClaimable.AmountSatoshis
 			result.PendingBalancesDetails = append(result.PendingBalancesDetails, lnclient.PendingBalanceDetails{
 				ChannelId: b.ContentiousClaimable.ChannelId,
@@ -649,7 +671,7 @@ func (svc *LDKServerService) GetOnchainBalance(ctx context.Context) (*lnclient.O
 			})
 		}
 	}
-	return result, nil
+	return result
 }
 
 func (svc *LDKServerService) GetBalances(ctx context.Context, includeInactiveChannels bool) (*lnclient.BalancesResponse, error) {
