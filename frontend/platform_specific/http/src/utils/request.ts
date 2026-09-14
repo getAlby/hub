@@ -1,4 +1,3 @@
-import { getAuthToken } from "src/lib/auth";
 import { ErrorResponse } from "src/types";
 
 export const request = async <T>(
@@ -10,17 +9,9 @@ export const request = async <T>(
     args[0] = import.meta.env.BASE_URL + args[0];
   }
 
-  const token = getAuthToken();
-  if (token) {
-    if (!args[1]) {
-      args[1] = {};
-    }
-    args[1].headers = {
-      ...args[1].headers,
-      Authorization: `Bearer ${token}`,
-    };
-  }
-
+  // The session is an HttpOnly cookie, which fetch sends along with same-origin
+  // requests by default. This leaves the Authorization header untouched so that
+  // a reverse proxy in front of Alby Hub can use HTTP Basic Authentication.
   try {
     const fetchResponse = await fetch(...args);
 

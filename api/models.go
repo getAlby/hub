@@ -246,6 +246,9 @@ type UnlockRequest struct {
 	UnlockPassword  string  `json:"unlockPassword"`
 	TokenExpiryDays *uint64 `json:"tokenExpiryDays"`
 	Permission      string  `json:"permission,omitempty"` // "full" or "readonly"
+	// CreateApiToken mints a token for an external API client rather than
+	// logging in, so no browser session is started for the request.
+	CreateApiToken bool `json:"createApiToken,omitempty"`
 }
 
 type BackupReminderRequest struct {

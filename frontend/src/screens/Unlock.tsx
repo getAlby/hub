@@ -6,8 +6,6 @@ import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
 
 import { useInfo } from "src/hooks/useInfo";
-import { saveAuthToken } from "src/lib/auth";
-import { AuthTokenResponse } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
@@ -32,22 +30,17 @@ export default function Unlock() {
     try {
       setLoading(true);
 
-      const authTokenResponse = await request<AuthTokenResponse>(
-        "/api/unlock",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            unlockPassword,
-            permission: "full",
-          }),
-        }
-      );
-      if (authTokenResponse) {
-        saveAuthToken(authTokenResponse.token);
-      }
+      // the session is set as a cookie by the server
+      await request("/api/unlock", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          unlockPassword,
+          permission: "full",
+        }),
+      });
       await refetchInfo();
       navigate("/");
     } catch (error) {

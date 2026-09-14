@@ -48,6 +48,9 @@ export default function DeveloperSettings() {
             unlockPassword,
             tokenExpiryDays: +expiryDays,
             permission,
+            // create a token for an external client rather than logging in,
+            // which would replace the current session with this one
+            createApiToken: true,
           }),
         }
       );
