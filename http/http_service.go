@@ -32,6 +32,15 @@ type authTokenResponse struct {
 	Token string `json:"token"`
 }
 
+// sessionCookieName holds the JWT for the web UI. A cookie is used rather than
+// the Authorization header because a browser only ever sends one Authorization
+// header: setting it from JavaScript suppresses the credentials a user has
+// entered for HTTP Basic Authentication at an HTTPS reverse proxy. A cookie is
+// a separate header, so both can be sent on the same request.
+const sessionCookieName = "albyhub_session"
+
+const bearerPrefix = "Bearer "
+
 type jwtCustomClaims struct {
 	// we can add extra claims here
 	// Name  string `json:"name"`
@@ -93,6 +102,21 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
 
+	// Responses to authenticated requests must never end up in a shared cache.
+	// Requests carrying an Authorization header get that protection for free
+	// (RFC 9111 section 3.5), but a session cookie does not, so say it
+	// explicitly for every API response.
+	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			path := c.Request().URL.Path
+			if path == "/api" || strings.HasPrefix(path, "/api/") {
+				c.Response().Header().Set(echo.HeaderCacheControl, "private, no-store")
+				c.Response().Header().Add(echo.HeaderVary, "Cookie")
+			}
+			return next(c)
+		}
+	})
+
 	e.GET("/api/info", httpSvc.infoHandler)
 	e.POST("/api/setup", httpSvc.setupHandler)
 	e.POST("/api/restore", httpSvc.restoreBackupHandler)
@@ -119,6 +143,10 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	// restricted routes
 	// Configure middleware with the custom claims type
 	jwtConfig := echojwt.Config{
+		// The web UI authenticates with the session cookie, which leaves the
+		// Authorization header free for HTTP Basic Authentication at a reverse
+		// proxy. Authorization is still accepted for external API clients.
+		TokenLookup: "cookie:" + sessionCookieName + ",header:" + echo.HeaderAuthorization + ":" + bearerPrefix,
 		NewClaimsFunc: func(c echo.Context) jwt.Claims {
 			return new(jwtCustomClaims)
 		},
@@ -217,27 +245,76 @@ func (httpSvc *HttpService) infoHandler(c echo.Context) error {
 		})
 	}
 
-	authHeader := c.Request().Header.Get("Authorization")
-	if authHeader != "" {
-		parts := strings.Split(authHeader, " ")
-		if parts[0] == "Bearer" {
-			tokenString := parts[1]
-			token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-				secret, err := httpSvc.cfg.GetJWTSecret()
-				if err != nil {
-					return nil, err
-				}
+	responseBody.Unlocked = httpSvc.requestHasValidJWT(c)
 
-				return []byte(secret), nil
-			})
+	return c.JSON(http.StatusOK, responseBody)
+}
+
+// requestHasValidJWT reports whether the request carries a valid JWT, either as
+// the session cookie used by the web UI or as an Authorization bearer token
+// used by external API clients. It mirrors the lookup order of the JWT
+// middleware protecting the restricted routes.
+func (httpSvc *HttpService) requestHasValidJWT(c echo.Context) bool {
+	tokenStrings := make([]string, 0, 2)
+	if cookie, err := c.Cookie(sessionCookieName); err == nil {
+		tokenStrings = append(tokenStrings, cookie.Value)
+	}
+	// Only bearer tokens are ours: an Authorization header holding HTTP Basic
+	// Authentication credentials is meant for a reverse proxy in front of us.
+	if token, found := strings.CutPrefix(c.Request().Header.Get(echo.HeaderAuthorization), bearerPrefix); found {
+		tokenStrings = append(tokenStrings, token)
+	}
+
+	for _, tokenString := range tokenStrings {
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			secret, err := httpSvc.cfg.GetJWTSecret()
 			if err != nil {
-				logger.Logger.WithError(err).Error("failed to parse token")
+				return nil, err
 			}
-			responseBody.Unlocked = err == nil && token != nil && token.Valid
+
+			return []byte(secret), nil
+		})
+		if err != nil {
+			logger.Logger.WithError(err).Error("failed to parse token")
+			continue
+		}
+		if token != nil && token.Valid {
+			return true
 		}
 	}
 
-	return c.JSON(http.StatusOK, responseBody)
+	return false
+}
+
+// setSessionCookie stores the session JWT for the web UI.
+func (httpSvc *HttpService) setSessionCookie(c echo.Context, token string, expiresAt time.Time) {
+	c.SetCookie(&http.Cookie{
+		Name:     sessionCookieName,
+		Value:    token,
+		Path:     "/",
+		Expires:  expiresAt,
+		HttpOnly: true,
+		// Browsers drop Secure cookies on plain HTTP and Alby Hub is commonly
+		// served over HTTP on a local network, so only set the flag when the
+		// request is known to be HTTPS. c.Scheme() takes X-Forwarded-Proto into
+		// account for setups behind a TLS-terminating reverse proxy.
+		Secure:   c.Scheme() == "https",
+		SameSite: http.SameSiteStrictMode,
+	})
+}
+
+// clearSessionCookie expires the session cookie. The attributes must match
+// those used when setting it, otherwise the browser keeps the original cookie.
+func (httpSvc *HttpService) clearSessionCookie(c echo.Context) {
+	c.SetCookie(&http.Cookie{
+		Name:     sessionCookieName,
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+		Secure:   c.Scheme() == "https",
+		SameSite: http.SameSiteStrictMode,
+	})
 }
 
 func (httpSvc *HttpService) eventHandler(c echo.Context) error {
@@ -312,13 +389,15 @@ func (httpSvc *HttpService) startHandler(c echo.Context) error {
 		})
 	}
 
-	token, err := httpSvc.createJWT(nil, "full")
+	token, expiresAt, err := httpSvc.createJWT(nil, "full")
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to save session: %s", err.Error()),
 		})
 	}
+
+	httpSvc.setSessionCookie(c, token, expiresAt)
 
 	go httpSvc.api.Start(&startRequest)
 
@@ -366,11 +445,18 @@ func (httpSvc *HttpService) unlockHandler(c echo.Context) error {
 		})
 	}
 
-	token, err := httpSvc.createJWT(unlockRequest.TokenExpiryDays, unlockRequest.Permission)
+	token, expiresAt, err := httpSvc.createJWT(unlockRequest.TokenExpiryDays, unlockRequest.Permission)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to save session: %s", err.Error()),
 		})
+	}
+
+	// This endpoint doubles as the way to mint a token for external API
+	// clients. Only a login starts a browser session - otherwise creating a
+	// readonly API token would downgrade the session of the user creating it.
+	if !unlockRequest.CreateApiToken {
+		httpSvc.setSessionCookie(c, token, expiresAt)
 	}
 
 	httpSvc.eventPublisher.Publish(&events.Event{
@@ -452,21 +538,24 @@ func (httpSvc *HttpService) autoUnlockHandler(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (httpSvc *HttpService) createJWT(tokenExpiryDays *uint64, permission string) (string, error) {
+// createJWT returns a signed token and the time it expires, so that a session
+// cookie holding it can be given the same lifetime.
+func (httpSvc *HttpService) createJWT(tokenExpiryDays *uint64, permission string) (string, time.Time, error) {
 	if !slices.Contains([]string{"full", "readonly"}, permission) {
-		return "", errors.New("invalid token permission")
+		return "", time.Time{}, errors.New("invalid token permission")
 	}
 
 	expiryDays := uint64(30)
 	if tokenExpiryDays != nil {
 		expiryDays = *tokenExpiryDays
 	}
+	expiresAt := time.Now().Add(time.Hour * 24 * time.Duration(expiryDays))
 
 	// Set custom claims
 	claims := &jwtCustomClaims{
 		Permission: permission,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * time.Duration(expiryDays))),
+			ExpiresAt: jwt.NewNumericDate(expiresAt),
 		},
 	}
 
@@ -474,19 +563,19 @@ func (httpSvc *HttpService) createJWT(tokenExpiryDays *uint64, permission string
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	if token == nil {
-		return "", errors.New("failed to create token")
+		return "", time.Time{}, errors.New("failed to create token")
 	}
 
 	secret, err := httpSvc.cfg.GetJWTSecret()
 	if err != nil {
-		return "", err
+		return "", time.Time{}, err
 	}
 
 	signed, err := token.SignedString([]byte(secret))
 	if err != nil {
-		return "", err
+		return "", time.Time{}, err
 	}
-	return signed, nil
+	return signed, expiresAt, nil
 }
 
 func (httpSvc *HttpService) channelsListHandler(c echo.Context) error {
@@ -1369,6 +1458,8 @@ func (httpSvc *HttpService) execCustomNodeCommandHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) logoutHandler(c echo.Context) error {
+	httpSvc.clearSessionCookie(c)
+
 	redirectUrl := httpSvc.cfg.GetEnv().GetBaseFrontendUrl()
 	if redirectUrl == "" {
 		redirectUrl = "/"

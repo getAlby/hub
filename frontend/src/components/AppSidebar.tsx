@@ -51,7 +51,6 @@ import UserAvatar from "src/components/UserAvatar";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useHealthCheck } from "src/hooks/useHealthCheck";
 import { useInfo } from "src/hooks/useInfo";
-import { deleteAuthToken } from "src/lib/auth";
 import { isHttpMode } from "src/utils/isHttpMode";
 
 function isPathActive(pathname: string, url: string) {
@@ -70,14 +69,14 @@ export function AppSidebar() {
   const _isHttpMode = isHttpMode();
 
   const logout = React.useCallback(async () => {
-    deleteAuthToken();
-    await refetchInfo();
-
     if (_isHttpMode) {
+      // the server clears the session cookie and redirects back to the app
       window.location.href = "/logout";
-    } else {
-      navigate("/", { replace: true });
+      return;
     }
+
+    await refetchInfo();
+    navigate("/", { replace: true });
   }, [_isHttpMode, navigate, refetchInfo]);
 
   const data = {
