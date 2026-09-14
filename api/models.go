@@ -240,12 +240,14 @@ type Swap struct {
 
 type StartRequest struct {
 	UnlockPassword string `json:"unlockPassword"`
+	Session        bool   `json:"session,omitempty"`
 }
 
 type UnlockRequest struct {
 	UnlockPassword  string  `json:"unlockPassword"`
 	TokenExpiryDays *uint64 `json:"tokenExpiryDays"`
 	Permission      string  `json:"permission,omitempty"` // "full" or "readonly"
+	Session         bool    `json:"session,omitempty"`
 }
 
 type BackupReminderRequest struct {

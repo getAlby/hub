@@ -6,7 +6,9 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"net/http/cookiejar"
 	"net/http/httptest"
+	"net/url"
 	"regexp"
 	"strconv"
 	"testing"
@@ -89,7 +91,7 @@ func TestStart_IncorrectPassword(t *testing.T) {
 	httpSvc := NewHttpService(mockSvc, mockEventPublisher)
 	httpSvc.RegisterSharedRoutes(e)
 
-	requestBody := api.StartRequest{UnlockPassword: "123"}
+	requestBody := api.StartRequest{UnlockPassword: "123", Session: true}
 	jsonBody, _ := json.Marshal(requestBody)
 	req := httptest.NewRequest(http.MethodPost, "/api/start", bytes.NewBuffer(jsonBody))
 	req.Header.Set("Content-Type", "application/json")
@@ -113,10 +115,10 @@ func TestStart_IncorrectPassword(t *testing.T) {
 }
 
 // TestStart_CorrectPassword is the counterpart of TestStart_IncorrectPassword:
-// it proves that issuing a token from the start endpoint requires
-// LoadJWTSecret, GetJWTSecret and StartApp, so the AssertNotCalled checks in
-// the negative test cannot silently become vacuous if the implementation
-// changes. It also proves the issued token grants full access.
+// it proves that starting a browser session requires LoadJWTSecret,
+// GetJWTSecret and StartApp, so the AssertNotCalled checks in the negative test
+// cannot silently become vacuous if the implementation changes. It also proves
+// the issued HttpOnly cookie grants full access without exposing the JWT body.
 func TestStart_CorrectPassword(t *testing.T) {
 	e := echo.New()
 	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
@@ -147,14 +149,16 @@ func TestStart_CorrectPassword(t *testing.T) {
 	httpSvc := NewHttpService(mockSvc, mockEventPublisher)
 	httpSvc.RegisterSharedRoutes(e)
 
-	requestBody := api.StartRequest{UnlockPassword: "123"}
+	requestBody := api.StartRequest{UnlockPassword: "123", Session: true}
 	jsonBody, _ := json.Marshal(requestBody)
 	req := httptest.NewRequest(http.MethodPost, "/api/start", bytes.NewBuffer(jsonBody))
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set(echo.HeaderXForwardedProto, "https")
 	rec := httptest.NewRecorder()
 	e.ServeHTTP(rec, req)
 
-	assert.Equal(t, http.StatusOK, rec.Code)
+	assert.Equal(t, http.StatusNoContent, rec.Code)
+	assert.Empty(t, rec.Body.String(), "browser session JWT must not be exposed in the response body")
 
 	select {
 	case <-started:
@@ -162,28 +166,38 @@ func TestStart_CorrectPassword(t *testing.T) {
 		t.Fatal("StartApp was not called")
 	}
 
-	var tokenResponse authTokenResponse
-	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &tokenResponse))
-	require.NotEmpty(t, tokenResponse.Token)
-	// the same detector used by the negative test must recognise a real token
-	assert.Equal(t, []string{tokenResponse.Token}, findJWTs(rec))
-
 	mockConfig.AssertCalled(t, "LoadJWTSecret", "123")
 	mockConfig.AssertCalled(t, "GetJWTSecret")
 
-	// The token grants full access through the Hub's internal header even when
-	// HTTP Basic Authentication uses the standard Authorization header.
+	var sessionCookie *http.Cookie
+	for _, cookie := range rec.Result().Cookies() {
+		if cookie.Name == sessionCookieName {
+			sessionCookie = cookie
+			break
+		}
+	}
+	require.NotNil(t, sessionCookie)
+	assert.Equal(t, []string{sessionCookie.Value}, findJWTs(rec))
+	assert.True(t, sessionCookie.HttpOnly)
+	assert.True(t, sessionCookie.Secure)
+	assert.Equal(t, http.SameSiteStrictMode, sessionCookie.SameSite)
+	assert.Empty(t, sessionCookie.Path)
+	assert.Greater(t, sessionCookie.MaxAge, 0)
+
+	// The cookie grants full access while Authorization remains available for
+	// HTTP Basic Authentication at the reverse proxy.
 	req2 := httptest.NewRequest(http.MethodGet, "/api/apps", nil)
-	req2.Header.Set(internalAuthorizationHeader, "Bearer "+tokenResponse.Token)
+	req2.AddCookie(sessionCookie)
 	req2.Header.Set("Authorization", "Basic dXNlcjpwYXNzd29yZA==")
 	rec2 := httptest.NewRecorder()
 	e.ServeHTTP(rec2, req2)
 	assert.Equal(t, http.StatusOK, rec2.Code)
 	assert.Equal(t, "private, no-store", rec2.Header().Get(echo.HeaderCacheControl))
+	assert.ElementsMatch(t, []string{echo.HeaderCookie, echo.HeaderAuthorization}, rec2.Header().Values(echo.HeaderVary))
 
 	// Keep the standard Authorization header working for external API clients.
 	req3 := httptest.NewRequest(http.MethodGet, "/api/apps", nil)
-	req3.Header.Set("Authorization", "Bearer "+tokenResponse.Token)
+	req3.Header.Set("Authorization", "Bearer "+sessionCookie.Value)
 	rec3 := httptest.NewRecorder()
 	e.ServeHTTP(rec3, req3)
 	assert.Equal(t, http.StatusOK, rec3.Code)
@@ -197,7 +211,7 @@ func (infoAPIStub) GetInfo(context.Context) (*api.InfoResponse, error) {
 	return &api.InfoResponse{}, nil
 }
 
-func TestInfo_RecognizesJWTHeaders(t *testing.T) {
+func TestInfo_RecognizesJWTAuthentication(t *testing.T) {
 	const jwtSecret = "dummy secret"
 	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"exp": time.Now().Add(time.Hour).Unix(),
@@ -206,28 +220,32 @@ func TestInfo_RecognizesJWTHeaders(t *testing.T) {
 
 	tests := []struct {
 		name         string
+		cookies      []*http.Cookie
 		headers      http.Header
 		wantUnlocked bool
 	}{
 		{
-			name: "internal header alongside HTTP Basic Auth",
+			name: "session cookie alongside HTTP Basic Auth",
+			cookies: []*http.Cookie{
+				{Name: sessionCookieName, Value: token},
+			},
 			headers: http.Header{
-				internalAuthorizationHeader: {"Bearer " + token},
-				"Authorization":             {"Basic dXNlcjpwYXNzd29yZA=="},
+				"Authorization": {"Basic dXNlcjpwYXNzd29yZA=="},
+			},
+			wantUnlocked: true,
+		},
+		{
+			name: "valid duplicate session cookie",
+			cookies: []*http.Cookie{
+				{Name: sessionCookieName, Value: "invalid"},
+				{Name: sessionCookieName, Value: token},
 			},
 			wantUnlocked: true,
 		},
 		{
 			name: "case-insensitive Bearer scheme",
 			headers: http.Header{
-				internalAuthorizationHeader: {"bearer " + token},
-			},
-			wantUnlocked: true,
-		},
-		{
-			name: "valid duplicate internal header",
-			headers: http.Header{
-				internalAuthorizationHeader: {"Bearer invalid", "Bearer " + token},
+				"Authorization": {"bearer " + token},
 			},
 			wantUnlocked: true,
 		},
@@ -239,10 +257,12 @@ func TestInfo_RecognizesJWTHeaders(t *testing.T) {
 			wantUnlocked: true,
 		},
 		{
-			name: "invalid internal token falls back to Authorization",
+			name: "invalid session cookie falls back to Authorization",
+			cookies: []*http.Cookie{
+				{Name: sessionCookieName, Value: "invalid"},
+			},
 			headers: http.Header{
-				internalAuthorizationHeader: {"Bearer invalid"},
-				"Authorization":             {"Bearer " + token},
+				"Authorization": {"Bearer " + token},
 			},
 			wantUnlocked: true,
 		},
@@ -254,10 +274,22 @@ func TestInfo_RecognizesJWTHeaders(t *testing.T) {
 			wantUnlocked: false,
 		},
 		{
-			name: "malformed internal Bearer header",
+			name: "malformed Bearer header suppresses session cookie",
+			cookies: []*http.Cookie{
+				{Name: sessionCookieName, Value: token},
+			},
 			headers: http.Header{
-				internalAuthorizationHeader: {"Bearer"},
-				"Authorization":             {"Basic dXNlcjpwYXNzd29yZA=="},
+				"Authorization": {"Bearer"},
+			},
+			wantUnlocked: false,
+		},
+		{
+			name: "invalid Bearer token suppresses session cookie",
+			cookies: []*http.Cookie{
+				{Name: sessionCookieName, Value: token},
+			},
+			headers: http.Header{
+				"Authorization": {"Bearer invalid"},
 			},
 			wantUnlocked: false,
 		},
@@ -270,8 +302,11 @@ func TestInfo_RecognizesJWTHeaders(t *testing.T) {
 			httpSvc := &HttpService{api: infoAPIStub{}, cfg: mockConfig}
 
 			e := echo.New()
-			e.GET("/api/info", httpSvc.infoHandler)
+			e.GET("/api/info", httpSvc.infoHandler, httpSvc.jwtMiddleware(true))
 			req := httptest.NewRequest(http.MethodGet, "/api/info", nil)
+			for _, cookie := range tt.cookies {
+				req.AddCookie(cookie)
+			}
 			for name, values := range tt.headers {
 				for _, value := range values {
 					req.Header.Add(name, value)
@@ -286,6 +321,228 @@ func TestInfo_RecognizesJWTHeaders(t *testing.T) {
 			assert.Equal(t, tt.wantUnlocked, response.Unlocked)
 		})
 	}
+}
+
+func signTestJWT(t *testing.T, secret string, permission string) string {
+	t.Helper()
+
+	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, jwtCustomClaims{
+		Permission: permission,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
+		},
+	}).SignedString([]byte(secret))
+	require.NoError(t, err)
+	return token
+}
+
+func TestBearerTokenTakesPrecedenceOverSessionCookie(t *testing.T) {
+	const jwtSecret = "dummy secret"
+	fullSessionToken := signTestJWT(t, jwtSecret, "full")
+	readonlyAPIToken := signTestJWT(t, jwtSecret, "readonly")
+
+	mockConfig := mocks.NewMockConfig(t)
+	mockConfig.On("GetJWTSecret").Return(jwtSecret, nil)
+	httpSvc := &HttpService{cfg: mockConfig}
+
+	e := echo.New()
+	e.GET("/full", func(c echo.Context) error {
+		return c.NoContent(http.StatusNoContent)
+	}, httpSvc.jwtMiddleware(false), httpSvc.requireSameOriginForSession, httpSvc.requireFullAccess)
+
+	tests := []struct {
+		name           string
+		bearerToken    string
+		expectedStatus int
+	}{
+		{
+			name:           "valid readonly token does not inherit full cookie permissions",
+			bearerToken:    readonlyAPIToken,
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			name:           "invalid token does not fall back to full cookie",
+			bearerToken:    "invalid",
+			expectedStatus: http.StatusUnauthorized,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, "/full", nil)
+			req.AddCookie(&http.Cookie{Name: sessionCookieName, Value: fullSessionToken})
+			req.Header.Set(echo.HeaderAuthorization, bearerPrefix+tt.bearerToken)
+			rec := httptest.NewRecorder()
+			e.ServeHTTP(rec, req)
+
+			assert.Equal(t, tt.expectedStatus, rec.Code)
+		})
+	}
+}
+
+func TestCookieSessionRequiresSameOriginForUnsafeRequests(t *testing.T) {
+	const jwtSecret = "dummy secret"
+	sessionToken := signTestJWT(t, jwtSecret, "full")
+
+	mockConfig := mocks.NewMockConfig(t)
+	mockConfig.On("GetJWTSecret").Return(jwtSecret, nil)
+	httpSvc := &HttpService{cfg: mockConfig}
+
+	e := echo.New()
+	e.POST("/api/action", func(c echo.Context) error {
+		return c.NoContent(http.StatusNoContent)
+	}, httpSvc.jwtMiddleware(false), httpSvc.requireSameOriginForSession)
+
+	tests := []struct {
+		name           string
+		origin         string
+		withCookie     bool
+		authorization  string
+		expectedStatus int
+	}{
+		{
+			name:           "same-origin cookie request behind proxy",
+			origin:         "https://hub.example.com",
+			withCookie:     true,
+			authorization:  "Basic dXNlcjpwYXNzd29yZA==",
+			expectedStatus: http.StatusNoContent,
+		},
+		{
+			name:           "cross-origin cookie request",
+			origin:         "https://attacker.example.com",
+			withCookie:     true,
+			authorization:  "Basic dXNlcjpwYXNzd29yZA==",
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			name:           "cookie request without origin",
+			withCookie:     true,
+			authorization:  "Basic dXNlcjpwYXNzd29yZA==",
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			name:           "explicit Bearer API token does not require origin",
+			withCookie:     true,
+			authorization:  bearerPrefix + sessionToken,
+			expectedStatus: http.StatusNoContent,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodPost, "/api/action", nil)
+			req.Host = "127.0.0.1:8080"
+			req.Header.Set(forwardedHostHeader, "hub.example.com")
+			req.Header.Set(echo.HeaderXForwardedProto, "https")
+			if tt.origin != "" {
+				req.Header.Set(echo.HeaderOrigin, tt.origin)
+			}
+			if tt.authorization != "" {
+				req.Header.Set(echo.HeaderAuthorization, tt.authorization)
+			}
+			if tt.withCookie {
+				req.AddCookie(&http.Cookie{Name: sessionCookieName, Value: sessionToken})
+			}
+
+			rec := httptest.NewRecorder()
+			e.ServeHTTP(rec, req)
+			assert.Equal(t, tt.expectedStatus, rec.Code)
+		})
+	}
+}
+
+func TestSessionCookieAllowsPlainHTTP(t *testing.T) {
+	httpSvc := &HttpService{}
+	e := echo.New()
+	e.GET("/set-cookie", func(c echo.Context) error {
+		httpSvc.setSessionCookie(c, "token")
+		return c.NoContent(http.StatusNoContent)
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/set-cookie", nil)
+	rec := httptest.NewRecorder()
+	e.ServeHTTP(rec, req)
+
+	require.Len(t, rec.Result().Cookies(), 1)
+	assert.False(t, rec.Result().Cookies()[0].Secure)
+}
+
+func TestSessionCookieDefaultsToExternalAPIPath(t *testing.T) {
+	httpSvc := &HttpService{}
+	e := echo.New()
+	e.GET("/hub/api/start", func(c echo.Context) error {
+		httpSvc.setSessionCookie(c, "token")
+		return c.NoContent(http.StatusNoContent)
+	})
+	e.POST("/hub/api/logout", func(c echo.Context) error {
+		httpSvc.clearSessionCookie(c)
+		return c.NoContent(http.StatusNoContent)
+	})
+
+	server := httptest.NewServer(e)
+	defer server.Close()
+
+	jar, err := cookiejar.New(nil)
+	require.NoError(t, err)
+	client := &http.Client{Jar: jar}
+
+	response, err := client.Get(server.URL + "/hub/api/start")
+	require.NoError(t, err)
+	require.NoError(t, response.Body.Close())
+
+	apiURL, err := url.Parse(server.URL + "/hub/api/apps")
+	require.NoError(t, err)
+	otherURL, err := url.Parse(server.URL + "/unrelated-service")
+	require.NoError(t, err)
+	assert.Len(t, jar.Cookies(apiURL), 1)
+	assert.Empty(t, jar.Cookies(otherURL))
+
+	request, err := http.NewRequest(http.MethodPost, server.URL+"/hub/api/logout", nil)
+	require.NoError(t, err)
+	response, err = client.Do(request)
+	require.NoError(t, err)
+	require.NoError(t, response.Body.Close())
+	assert.Empty(t, jar.Cookies(apiURL))
+}
+
+func TestLogoutExpiresSessionCookie(t *testing.T) {
+	httpSvc := &HttpService{}
+
+	e := echo.New()
+	e.POST("/api/logout", httpSvc.logoutHandler, httpSvc.requireSameOrigin)
+	req := httptest.NewRequest(http.MethodPost, "/api/logout", nil)
+	req.Host = "hub.example.com"
+	req.Header.Set(echo.HeaderOrigin, "https://hub.example.com")
+	req.Header.Set(echo.HeaderXForwardedProto, "https")
+	rec := httptest.NewRecorder()
+	e.ServeHTTP(rec, req)
+
+	require.Equal(t, http.StatusNoContent, rec.Code)
+	require.Len(t, rec.Result().Cookies(), 1)
+	cookie := rec.Result().Cookies()[0]
+	assert.Equal(t, sessionCookieName, cookie.Name)
+	assert.Empty(t, cookie.Value)
+	assert.Equal(t, -1, cookie.MaxAge)
+	assert.Empty(t, cookie.Path)
+	assert.True(t, cookie.Secure)
+	assert.True(t, cookie.HttpOnly)
+	assert.Equal(t, http.SameSiteStrictMode, cookie.SameSite)
+}
+
+func TestLogoutRejectsCrossOrigin(t *testing.T) {
+	httpSvc := &HttpService{}
+	e := echo.New()
+	e.POST("/api/logout", httpSvc.logoutHandler, httpSvc.requireSameOrigin)
+
+	req := httptest.NewRequest(http.MethodPost, "/api/logout", nil)
+	req.Host = "hub.example.com"
+	req.Header.Set(echo.HeaderOrigin, "https://attacker.example.com")
+	req.Header.Set(echo.HeaderXForwardedProto, "https")
+	rec := httptest.NewRecorder()
+	e.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusForbidden, rec.Code)
+	assert.Empty(t, rec.Result().Cookies())
 }
 
 var jwtPattern = regexp.MustCompile(`eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+`)
@@ -533,6 +790,7 @@ func TestGetApps_ReadonlyPermission(t *testing.T) {
 	e.ServeHTTP(rec, req)
 
 	assert.Equal(t, http.StatusOK, rec.Code)
+	assert.Empty(t, rec.Result().Cookies(), "API token minting must not replace the browser session")
 
 	body, err := io.ReadAll(rec.Body)
 	require.NoError(t, err)
@@ -581,29 +839,28 @@ func TestGetApps_FullPermission(t *testing.T) {
 	httpSvc := NewHttpService(mockSvc, mockEventPublisher)
 	httpSvc.RegisterSharedRoutes(e)
 
-	requestBody := api.UnlockRequest{UnlockPassword: "123", Permission: "full"}
+	requestBody := api.UnlockRequest{UnlockPassword: "123", Permission: "full", Session: true}
 	jsonBody, _ := json.Marshal(requestBody)
 	req := httptest.NewRequest(http.MethodPost, "/api/unlock", bytes.NewBuffer(jsonBody))
 	req.Header.Set("Content-Type", "application/json") // Set Content-Type header
 	rec := httptest.NewRecorder()
 	e.ServeHTTP(rec, req)
 
-	assert.Equal(t, http.StatusOK, rec.Code)
+	assert.Equal(t, http.StatusNoContent, rec.Code)
+	assert.Empty(t, rec.Body.String(), "browser session JWT must not be exposed in the response body")
 
-	body, err := io.ReadAll(rec.Body)
-	require.NoError(t, err)
-
-	type authTokenResponse struct {
-		Token string `json:"token"`
+	var sessionCookie *http.Cookie
+	for _, cookie := range rec.Result().Cookies() {
+		if cookie.Name == sessionCookieName {
+			sessionCookie = cookie
+			break
+		}
 	}
-
-	var unlockAuthTokenResponse authTokenResponse
-	err = json.Unmarshal(body, &unlockAuthTokenResponse)
-	require.NoError(t, err)
-	assert.NotEmpty(t, unlockAuthTokenResponse.Token)
+	require.NotNil(t, sessionCookie)
 
 	req2 := httptest.NewRequest(http.MethodGet, "/api/apps", nil)
-	req2.Header.Set("Authorization", "Bearer "+unlockAuthTokenResponse.Token)
+	req2.AddCookie(sessionCookie)
+	req2.Header.Set("Authorization", "Basic dXNlcjpwYXNzd29yZA==")
 	rec2 := httptest.NewRecorder()
 	e.ServeHTTP(rec2, req2)
 

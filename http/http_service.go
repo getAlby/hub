@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"slices"
 	"strconv"
 	"strings"
@@ -32,9 +33,16 @@ type authTokenResponse struct {
 	Token string `json:"token"`
 }
 
-const internalAuthorizationHeader = "X-Alby-Auth"
-
-const bearerPrefix = "Bearer "
+const (
+	sessionCookieName      = "albyhub_session"
+	bearerPrefix           = "Bearer "
+	forwardedHostHeader    = "X-Forwarded-Host"
+	jwtAuthSourceKey       = "albyhub_jwt_auth_source"
+	jwtAuthSourceBearer    = "bearer"
+	jwtAuthSourceCookie    = "cookie"
+	maxJWTValues           = 20
+	defaultTokenExpiryDays = uint64(30)
+)
 
 type jwtCustomClaims struct {
 	// we can add extra claims here
@@ -68,8 +76,8 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.HideBanner = true
 
 	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
-		ContentTypeNosniff:    "nosniff",
-		XFrameOptions:         "DENY",
+		ContentTypeNosniff: "nosniff",
+		XFrameOptions:      "DENY",
 		// when making changes here, also update the CSP in frontend/vite.config.ts
 		ContentSecurityPolicy: "default-src 'self'; img-src 'self' https://uploads.getalby-assets.com https://cdn.getalby-assets.com https://getalby.com; connect-src 'self' https://api.getalby.com https://getalby.com https://zapplanner.albylabs.com wss://relay.getalby.com wss://relay2.getalby.com; frame-src https://www.youtube-nocookie.com",
 		ReferrerPolicy:        "no-referrer",
@@ -78,9 +86,11 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 		return func(c echo.Context) error {
 			path := c.Request().URL.Path
 			if path == "/api" || strings.HasPrefix(path, "/api/") {
-				// The web UI authenticates with a custom header, which does not
-				// receive Authorization's special shared-cache treatment.
+				// Browser sessions use a cookie, which does not receive
+				// Authorization's special shared-cache treatment.
 				c.Response().Header().Set(echo.HeaderCacheControl, "private, no-store")
+				c.Response().Header().Add(echo.HeaderVary, echo.HeaderCookie)
+				c.Response().Header().Add(echo.HeaderVary, echo.HeaderAuthorization)
 			}
 			return next(c)
 		}
@@ -108,7 +118,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
 
-	e.GET("/api/info", httpSvc.infoHandler)
+	e.GET("/api/info", httpSvc.infoHandler, httpSvc.jwtMiddleware(true))
 	e.POST("/api/setup", httpSvc.setupHandler)
 	e.POST("/api/restore", httpSvc.restoreBackupHandler)
 
@@ -127,32 +137,14 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.POST("/api/start", httpSvc.startHandler, unlockRateLimiter)
 	e.POST("/api/unlock", httpSvc.unlockHandler, unlockRateLimiter)
 	e.POST("/api/backup", httpSvc.createBackupHandler, unlockRateLimiter)
-	e.GET("/logout", httpSvc.logoutHandler)
+	e.POST("/api/logout", httpSvc.logoutHandler, httpSvc.requireSameOrigin)
 
 	frontend.RegisterHandlers(e)
 
 	// restricted routes
-	// Configure middleware with the custom claims type
-	jwtConfig := echojwt.Config{
-		// The web UI uses a dedicated header so Authorization remains available
-		// for optional HTTP Basic Authentication at an HTTPS reverse proxy. Keep
-		// accepting Authorization as a fallback for external API clients.
-		TokenLookup: "header:" + internalAuthorizationHeader + ":" + bearerPrefix + ",header:" + echo.HeaderAuthorization + ":" + bearerPrefix,
-		NewClaimsFunc: func(c echo.Context) jwt.Claims {
-			return new(jwtCustomClaims)
-		},
-		// use a custom key func as the JWT secret will change if the user changes their unlock password
-		KeyFunc: func(token *jwt.Token) (interface{}, error) {
-			secret, err := httpSvc.cfg.GetJWTSecret()
-			if err != nil {
-				return nil, err
-			}
-			return []byte(secret), nil
-		},
-	}
 	// Read-only API group - accessible to both full and readonly tokens
 	readOnlyApiGroup := e.Group("/api")
-	readOnlyApiGroup.Use(echojwt.WithConfig(jwtConfig))
+	readOnlyApiGroup.Use(httpSvc.jwtMiddleware(false))
 
 	readOnlyApiGroup.GET("/apps", httpSvc.appsListHandler)
 	readOnlyApiGroup.GET("/apps/:pubkey", httpSvc.appsShowByPubkeyHandler)
@@ -182,7 +174,8 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 
 	// Full access API group - requires a token with full permissions
 	fullAccessApiGroup := e.Group("/api")
-	fullAccessApiGroup.Use(echojwt.WithConfig(jwtConfig))
+	fullAccessApiGroup.Use(httpSvc.jwtMiddleware(false))
+	fullAccessApiGroup.Use(httpSvc.requireSameOriginForSession)
 	fullAccessApiGroup.Use(httpSvc.requireFullAccess)
 
 	fullAccessApiGroup.POST("/event", httpSvc.eventHandler)
@@ -228,6 +221,134 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	httpSvc.albyHttpSvc.RegisterSharedRoutes(readOnlyApiGroup, fullAccessApiGroup, e)
 }
 
+// jwtMiddleware keeps browser-cookie and external Bearer-token validation on
+// one parser and extractor configuration. Optional mode is used by /api/info
+// to report authentication state without rejecting anonymous requests.
+func (httpSvc *HttpService) jwtMiddleware(optional bool) echo.MiddlewareFunc {
+	config := echojwt.Config{
+		// Prefer an explicit Bearer token over ambient browser credentials, even
+		// when the Bearer token is invalid. Basic and other proxy Authorization
+		// schemes still fall through to the browser session cookie.
+		TokenLookupFuncs: []middleware.ValuesExtractor{jwtTokenExtractor},
+		NewClaimsFunc: func(c echo.Context) jwt.Claims {
+			return new(jwtCustomClaims)
+		},
+		// The JWT secret changes when the user changes their unlock password.
+		KeyFunc: func(token *jwt.Token) (interface{}, error) {
+			if token.Method.Alg() != jwt.SigningMethodHS256.Alg() {
+				return nil, fmt.Errorf("unexpected JWT signing method: %s", token.Method.Alg())
+			}
+			secret, err := httpSvc.cfg.GetJWTSecret()
+			if err != nil {
+				return nil, err
+			}
+			return []byte(secret), nil
+		},
+	}
+	if optional {
+		config.ErrorHandler = func(c echo.Context, err error) error { return nil }
+		config.ContinueOnIgnoredError = true
+	}
+	return echojwt.WithConfig(config)
+}
+
+func jwtTokenExtractor(c echo.Context) ([]string, error) {
+	bearerValues := make([]string, 0)
+	for _, headerValue := range c.Request().Header.Values(echo.HeaderAuthorization) {
+		value := strings.TrimSpace(headerValue)
+		if len(value) < len("Bearer") || !strings.EqualFold(value[:len("Bearer")], "Bearer") {
+			continue
+		}
+		if len(value) > len("Bearer") && value[len("Bearer")] != ' ' && value[len("Bearer")] != '	' {
+			continue
+		}
+
+		bearerValues = append(bearerValues, strings.TrimSpace(value[len("Bearer"):]))
+		if len(bearerValues) == maxJWTValues {
+			break
+		}
+	}
+	if len(bearerValues) > 0 {
+		c.Set(jwtAuthSourceKey, jwtAuthSourceBearer)
+		return bearerValues, nil
+	}
+
+	cookieValues := make([]string, 0)
+	for _, cookie := range c.Cookies() {
+		if cookie.Name == sessionCookieName {
+			cookieValues = append(cookieValues, cookie.Value)
+			if len(cookieValues) == maxJWTValues {
+				break
+			}
+		}
+	}
+	if len(cookieValues) > 0 {
+		c.Set(jwtAuthSourceKey, jwtAuthSourceCookie)
+		return cookieValues, nil
+	}
+
+	return nil, errors.New("missing JWT")
+}
+
+// requireSameOriginForSession prevents cookie-authenticated state changes
+// from being triggered by another origin. Bearer-token API clients are not
+// affected because Authorization credentials are explicit rather than ambient.
+func (httpSvc *HttpService) requireSameOriginForSession(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		if isSafeMethod(c.Request().Method) || !requestAuthenticatedWithSessionCookie(c) {
+			return next(c)
+		}
+
+		return httpSvc.requireSameOrigin(next)(c)
+	}
+}
+
+func (httpSvc *HttpService) requireSameOrigin(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		if !requestHasSameOrigin(c) {
+			return c.JSON(http.StatusForbidden, ErrorResponse{
+				Message: "Cross-origin session request is not allowed",
+			})
+		}
+
+		return next(c)
+	}
+}
+
+func isSafeMethod(method string) bool {
+	switch method {
+	case http.MethodGet, http.MethodHead, http.MethodOptions, http.MethodTrace:
+		return true
+	default:
+		return false
+	}
+}
+
+func requestAuthenticatedWithSessionCookie(c echo.Context) bool {
+	_, authenticated := c.Get("user").(*jwt.Token)
+	return authenticated && c.Get(jwtAuthSourceKey) == jwtAuthSourceCookie
+}
+
+func requestHasSameOrigin(c echo.Context) bool {
+	origin := c.Request().Header.Get(echo.HeaderOrigin)
+	if origin == "" {
+		return false
+	}
+
+	originURL, err := url.Parse(origin)
+	if err != nil || originURL.Scheme == "" || originURL.Host == "" ||
+		originURL.User != nil || originURL.Path != "" || originURL.RawQuery != "" || originURL.Fragment != "" {
+		return false
+	}
+
+	host := c.Request().Host
+	if forwardedHost := c.Request().Header.Get(forwardedHostHeader); forwardedHost != "" {
+		host = strings.TrimSpace(strings.SplitN(forwardedHost, ",", 2)[0])
+	}
+
+	return strings.EqualFold(originURL.Scheme, c.Scheme()) && strings.EqualFold(originURL.Host, host)
+}
+
 func (httpSvc *HttpService) infoHandler(c echo.Context) error {
 	responseBody, err := httpSvc.api.GetInfo(c.Request().Context())
 	if err != nil {
@@ -236,37 +357,9 @@ func (httpSvc *HttpService) infoHandler(c echo.Context) error {
 		})
 	}
 
-	responseBody.Unlocked = httpSvc.requestHasValidJWT(c.Request())
+	responseBody.Unlocked = c.Get("user") != nil
 
 	return c.JSON(http.StatusOK, responseBody)
-}
-
-func (httpSvc *HttpService) requestHasValidJWT(request *http.Request) bool {
-	for _, headerName := range []string{internalAuthorizationHeader, echo.HeaderAuthorization} {
-		for _, authHeader := range request.Header.Values(headerName) {
-			if len(authHeader) <= len(bearerPrefix) || !strings.EqualFold(authHeader[:len(bearerPrefix)], bearerPrefix) {
-				continue
-			}
-
-			token, err := jwt.Parse(authHeader[len(bearerPrefix):], func(token *jwt.Token) (interface{}, error) {
-				secret, err := httpSvc.cfg.GetJWTSecret()
-				if err != nil {
-					return nil, err
-				}
-
-				return []byte(secret), nil
-			})
-			if err != nil {
-				logger.Logger.WithError(err).Error("failed to parse token")
-				continue
-			}
-			if token != nil && token.Valid {
-				return true
-			}
-		}
-	}
-
-	return false
 }
 
 func (httpSvc *HttpService) eventHandler(c echo.Context) error {
@@ -348,8 +441,14 @@ func (httpSvc *HttpService) startHandler(c echo.Context) error {
 			Message: fmt.Sprintf("Failed to save session: %s", err.Error()),
 		})
 	}
+	if startRequest.Session {
+		httpSvc.setSessionCookie(c, token)
+	}
 
 	go httpSvc.api.Start(&startRequest)
+	if startRequest.Session {
+		return c.NoContent(http.StatusNoContent)
+	}
 
 	return c.JSON(http.StatusOK, &authTokenResponse{
 		Token: token,
@@ -395,16 +494,28 @@ func (httpSvc *HttpService) unlockHandler(c echo.Context) error {
 		})
 	}
 
+	if unlockRequest.Session && (unlockRequest.Permission != "full" || unlockRequest.TokenExpiryDays != nil) {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "Session tokens must use full permission and the default expiry",
+		})
+	}
+
 	token, err := httpSvc.createJWT(unlockRequest.TokenExpiryDays, unlockRequest.Permission)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to save session: %s", err.Error()),
 		})
 	}
+	if unlockRequest.Session {
+		httpSvc.setSessionCookie(c, token)
+	}
 
 	httpSvc.eventPublisher.Publish(&events.Event{
 		Event: "nwc_unlocked",
 	})
+	if unlockRequest.Session {
+		return c.NoContent(http.StatusNoContent)
+	}
 
 	return c.JSON(http.StatusOK, &authTokenResponse{
 		Token: token,
@@ -486,7 +597,7 @@ func (httpSvc *HttpService) createJWT(tokenExpiryDays *uint64, permission string
 		return "", errors.New("invalid token permission")
 	}
 
-	expiryDays := uint64(30)
+	expiryDays := defaultTokenExpiryDays
 	if tokenExpiryDays != nil {
 		expiryDays = *tokenExpiryDays
 	}
@@ -516,6 +627,35 @@ func (httpSvc *HttpService) createJWT(tokenExpiryDays *uint64, permission string
 		return "", err
 	}
 	return signed, nil
+}
+
+func (httpSvc *HttpService) setSessionCookie(c echo.Context, token string) {
+	maxAge := int(defaultTokenExpiryDays * 24 * 60 * 60)
+	c.SetCookie(&http.Cookie{
+		Name:  sessionCookieName,
+		Value: token,
+		// Leave Path unset so browsers scope the cookie to the externally
+		// visible /api directory. This also works when a reverse proxy strips a
+		// Hub subpath before forwarding the request.
+		Expires:  time.Now().Add(time.Duration(defaultTokenExpiryDays) * 24 * time.Hour),
+		MaxAge:   maxAge,
+		Secure:   strings.EqualFold(c.Scheme(), "https"),
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+	})
+}
+
+func (httpSvc *HttpService) clearSessionCookie(c echo.Context) {
+	c.SetCookie(&http.Cookie{
+		Name: sessionCookieName,
+		// /api/logout shares the same browser-derived default path as the
+		// /api/start and /api/unlock responses that create the cookie.
+		Expires:  time.Unix(1, 0),
+		MaxAge:   -1,
+		Secure:   strings.EqualFold(c.Scheme(), "https"),
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+	})
 }
 
 func (httpSvc *HttpService) channelsListHandler(c echo.Context) error {
@@ -1398,12 +1538,8 @@ func (httpSvc *HttpService) execCustomNodeCommandHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) logoutHandler(c echo.Context) error {
-	redirectUrl := httpSvc.cfg.GetEnv().GetBaseFrontendUrl()
-	if redirectUrl == "" {
-		redirectUrl = "/"
-	}
-
-	return c.Redirect(http.StatusFound, redirectUrl)
+	httpSvc.clearSessionCookie(c)
+	return c.NoContent(http.StatusNoContent)
 }
 
 func (httpSvc *HttpService) createBackupHandler(c echo.Context) error {

@@ -5,9 +5,8 @@ import Container from "src/components/Container";
 import LottieLoading from "src/components/LottieLoading";
 import { Button } from "src/components/ui/button";
 import { useInfo } from "src/hooks/useInfo";
-import { saveAuthToken } from "src/lib/auth";
 import useSetupStore from "src/state/SetupStore";
-import { AuthTokenResponse, SetupNodeInfo } from "src/types";
+import { SetupNodeInfo } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
@@ -135,18 +134,16 @@ const finishSetup = async (
       }),
     });
 
-    const authTokenResponse = await request<AuthTokenResponse>("/api/start", {
+    await request("/api/start", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         unlockPassword,
+        session: true,
       }),
     });
-    if (authTokenResponse) {
-      saveAuthToken(authTokenResponse.token);
-    }
     return true;
   } catch (error) {
     handleRequestError("Failed to connect", error);
