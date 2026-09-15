@@ -269,15 +269,33 @@ func (svc *LDKServerService) SettleHoldInvoice(ctx context.Context, preimage str
 	if len(preimage) != 64 {
 		return errors.New("preimage must be a 32-byte hex string")
 	}
-	_, err := svc.doUnaryEmpty(ctx, ldkapi.LightningNode_Bolt11ClaimForHash_FullMethodName, &ldkapi.Bolt11ClaimForHashRequest{
-		Preimage: preimage,
+	preimageBytes, err := hex.DecodeString(preimage)
+	if err != nil {
+		return fmt.Errorf("decode preimage: %w", err)
+	}
+	paymentHash := sha256.Sum256(preimageBytes)
+	payment, err := svc.findPayment(ctx, func(payment *ldktypes.Payment) bool {
+		return paymentHashMatches(payment, hex.EncodeToString(paymentHash[:]))
+	})
+	if err != nil {
+		return err
+	}
+	_, err = svc.doUnaryEmpty(ctx, ldkapi.LightningNode_Bolt11ClaimForId_FullMethodName, &ldkapi.Bolt11ClaimForIdRequest{
+		PaymentId: payment.PaymentId,
+		Preimage:  preimage,
 	})
 	return err
 }
 
 func (svc *LDKServerService) CancelHoldInvoice(ctx context.Context, paymentHash string) error {
-	_, err := svc.doUnaryEmpty(ctx, ldkapi.LightningNode_Bolt11FailForHash_FullMethodName, &ldkapi.Bolt11FailForHashRequest{
-		PaymentHash: paymentHash,
+	payment, err := svc.findPayment(ctx, func(payment *ldktypes.Payment) bool {
+		return paymentHashMatches(payment, paymentHash)
+	})
+	if err != nil {
+		return err
+	}
+	_, err = svc.doUnaryEmpty(ctx, ldkapi.LightningNode_Bolt11FailForId_FullMethodName, &ldkapi.Bolt11FailForIdRequest{
+		PaymentId: payment.PaymentId,
 	})
 	return err
 }
@@ -444,10 +462,12 @@ func (svc *LDKServerService) OpenChannel(ctx context.Context, openChannelRequest
 	}
 	resp := &ldkapi.OpenChannelResponse{}
 	if err := svc.doUnary(ctx, ldkapi.LightningNode_OpenChannel_FullMethodName, &ldkapi.OpenChannelRequest{
-		NodePubkey:        openChannelRequest.Pubkey,
-		Address:           peer.Address,
-		ChannelAmountSats: uint64(openChannelRequest.AmountSats),
-		AnnounceChannel:   openChannelRequest.Public,
+		NodePubkey: openChannelRequest.Pubkey,
+		Address:    peer.Address,
+		Amount: &ldkapi.OpenChannelRequest_ChannelAmountSats{
+			ChannelAmountSats: uint64(openChannelRequest.AmountSats),
+		},
+		AnnounceChannel: openChannelRequest.Public,
 	}, resp); err != nil {
 		return nil, err
 	}
@@ -708,9 +728,9 @@ func (svc *LDKServerService) RedeemOnchainFunds(ctx context.Context, toAddress s
 		Address: toAddress,
 	}
 	if sendAll {
-		req.SendAll = boolPtr(true)
+		req.Amount = &ldkapi.OnchainSendRequest_AllFunds{AllFunds: &ldkapi.AllFunds{}}
 	} else {
-		req.AmountSats = uint64Ptr(amountSat)
+		req.Amount = &ldkapi.OnchainSendRequest_AmountSats{AmountSats: amountSat}
 	}
 	if feeRate != nil {
 		req.FeeRateSatPerVb = feeRate
@@ -1112,7 +1132,7 @@ func (svc *LDKServerService) waitForFundingTxID(userChannelID string) (string, e
 }
 
 func (svc *LDKServerService) listAllPayments(ctx context.Context) ([]*ldktypes.Payment, error) {
-	var token *ldktypes.PageToken
+	var token *string
 	var payments []*ldktypes.Payment
 	for {
 		resp := &ldkapi.ListPaymentsResponse{}
@@ -1402,10 +1422,6 @@ func splitHostPort(address string) (string, int, error) {
 }
 
 func uint64Ptr(v uint64) *uint64 {
-	return &v
-}
-
-func boolPtr(v bool) *bool {
 	return &v
 }
 
