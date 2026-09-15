@@ -23,7 +23,9 @@ func ToNip47Transaction(transaction *transactions.Transaction) *Transaction {
 	if transaction.SettledAt != nil {
 		settledAtUnix := transaction.SettledAt.Unix()
 		settledAt = &settledAtUnix
-		preimage = *transaction.Preimage
+		if transaction.Preimage != nil {
+			preimage = *transaction.Preimage
+		}
 	}
 
 	state := strings.ToLower(transaction.State)

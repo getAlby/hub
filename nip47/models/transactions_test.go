@@ -34,3 +34,17 @@ func TestToNip47TransactionExpiresPendingState(t *testing.T) {
 
 	require.Equal(t, "expired", result.State)
 }
+
+func TestToNip47TransactionAllowsSettledIncomingWithoutPreimage(t *testing.T) {
+	settledAt := time.Now()
+
+	result := ToNip47Transaction(&transactions.Transaction{
+		State:     constants.TRANSACTION_STATE_SETTLED,
+		Type:      constants.TRANSACTION_TYPE_INCOMING,
+		SettledAt: &settledAt,
+	})
+
+	require.Equal(t, "settled", result.State)
+	require.Equal(t, settledAt.Unix(), *result.SettledAt)
+	require.Empty(t, result.Preimage)
+}
