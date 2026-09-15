@@ -21,13 +21,25 @@ Run the installation script on your server:
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/getAlby/hub/master/scripts/linux-x86_64/install.sh)"
 
 The install script will prompt you for an installation folder and will install Alby Hub.
-Optionally it can also create a systemd service for you.
+Optionally it can also create a systemd service for you, and set up a [Caddy password gate](#extra-password-prompt-caddy-password-gate).
 
 You can also do these quite simple steps manually, have a look in the install script for details.
 
 Alby Hub listens on port 8080 (standalone) or port 8029 (when run with a systemd service) on **all network interfaces**, so it is reachable from any machine that can reach the server, for example at `http://<server-ip>:8029`. Restrict access with a firewall so that only your local network or VPN can reach it. The port is configurable using the `PORT` environment variable or by editing `Environment="PORT=8029"` in the albyhub.service systemd config file - See "Editing The Service" below)
 
 Alby Hub is not designed to be exposed on the public internet. If you need remote access, prefer a VPN such as WireGuard or Tailscale. If you nevertheless run it on a public domain, you do so at your own risk: put it behind an HTTPS reverse proxy such as [Caddy](https://caddyserver.com/) and restrict who can reach it (for example by IP allowlist or client certificates).
+
+### Extra password prompt (Caddy password gate)
+
+For an additional layer in front of Alby Hub's own unlock password, you can put a password prompt on the web server itself, so that nobody even reaches the Alby Hub login screen without it. The install script offers to set this up, or run it directly with a domain:
+
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/getAlby/hub/master/scripts/linux-x86_64/install.sh)" -- -s --domain hub.example.com
+
+This installs Caddy, obtains an HTTPS certificate, and puts an HTTP Basic Auth prompt in front of Alby Hub.
+
+Note that a naive `basic_auth` block does **not** work here: Alby Hub authenticates its own API with an `Authorization: Bearer <JWT>` header, and the frontend sets that header explicitly - which replaces the `Authorization: Basic ...` header the browser sends. Pages would load, but every API call would be rejected with a 401. The generated config works around this by using Basic Auth for the first request only and issuing a gate cookie for the rest.
+
+See [`scripts/caddy-gate`](../caddy-gate) for the full explanation, the manual setup, and how to rotate the gate secret.
 
 ### Running the services
 

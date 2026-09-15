@@ -1,0 +1,127 @@
+# ---------------------------------------------------------------------------
+# Alby Hub behind Caddy with an extra password gate
+# ---------------------------------------------------------------------------
+#
+# WHY A PLAIN `basic_auth` DOES NOT WORK
+#
+# Alby Hub authenticates its own API with `Authorization: Bearer <JWT>`. The
+# frontend sets that header explicitly on every request, which replaces the
+# `Authorization: Basic ...` header the browser would otherwise send after an
+# HTTP Basic login. So with a plain `basic_auth` in front of Alby Hub every API
+# call arrives at Caddy without Basic credentials, Caddy answers 401, and the
+# web UI stops working.
+#
+# This config avoids the clash by using Basic Auth only for the *first*
+# request. On success Caddy hands out a random, HttpOnly gate cookie, and from
+# then on requests are let through based on that cookie - which leaves the
+# Authorization header free for Alby Hub's own JWT.
+#
+#   browser --(no cookie)-------------------------> Caddy --(401 Basic)--> browser
+#   browser --(username + password)---------------> Caddy --(Set-Cookie)-> Alby Hub
+#   browser --(cookie + Authorization: Bearer ...)-> Caddy ---------------> Alby Hub
+#
+# This is an *additional* layer in front of Alby Hub's own unlock password, not
+# a replacement for it, and not a replacement for a VPN. Alby Hub is not
+# designed to be exposed to the public internet - prefer WireGuard or Tailscale
+# when you can.
+#
+# SETUP (see README.md in this folder for the long version)
+#
+#   1. Let systemd pass the gate secrets to Caddy:
+#        sudo mkdir -p /etc/systemd/system/caddy.service.d
+#        sudo cp caddy-gate.conf /etc/systemd/system/caddy.service.d/
+#        sudo systemctl daemon-reload
+#
+#   2. Generate the gate secrets into /etc/caddy/gate.env:
+#        sudo ./rotate-gate-secret.sh
+#
+#   3. Generate a password hash and paste it into the basic_auth block below:
+#        caddy hash-password
+#
+#   4. Replace your-domain.com below, then:
+#        sudo caddy validate --config /etc/caddy/Caddyfile --envfile /etc/caddy/gate.env
+#        sudo systemctl restart caddy
+#
+# Requires Caddy v2.8 or newer (before that `basic_auth` was called `basicauth`).
+# ---------------------------------------------------------------------------
+
+your-domain.com {
+	# HTTPS is required. The gate cookie is marked Secure and uses the __Host-
+	# prefix, so browsers refuse to store it over plain HTTP. Caddy obtains and
+	# renews a Let's Encrypt certificate for this domain automatically, and
+	# redirects http:// to https:// for you.
+
+	# A gate cookie holding the current *or* the previous secret is accepted.
+	# Honouring the previous one gives a grace period on rotation so that
+	# rotating the secret does not lock everyone out at once.
+	#
+	# The `!= ""` check is not cosmetic: if /etc/caddy/gate.env is missing or
+	# was not loaded, both {env.*} placeholders expand to an empty string, and
+	# without this check a request carrying no cookie at all would compare
+	# "" == "" and sail straight through.
+	@gated expression `{http.request.cookie.__Host-albyhub_gate} != "" && ({http.request.cookie.__Host-albyhub_gate} == {env.GATE_SECRET} || {http.request.cookie.__Host-albyhub_gate} == {env.GATE_SECRET_OLD})`
+
+	# Once a browser has been through a Basic Auth challenge it keeps attaching
+	# its cached `Authorization: Basic ...` header to every request to this
+	# origin. Alby Hub has no use for it, so it is dropped - but only when it
+	# really is a Basic credential, never when it is Alby Hub's Bearer token.
+	@basic_credentials header Authorization Basic*
+
+	# --- Valid gate cookie: pass through, Authorization: Bearer untouched ---
+	handle @gated {
+		# `route` keeps these directives in the order written instead of
+		# Caddy's default directive order.
+		route {
+			# Sliding expiry: every request extends the cookie, and a cookie
+			# still holding the previous secret is quietly upgraded to the
+			# current one. Rotating the secret therefore never signs out
+			# anybody who is actively using Alby Hub.
+			header +Set-Cookie "__Host-albyhub_gate={env.GATE_SECRET}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800"
+
+			request_header @basic_credentials -Authorization
+			# Alby Hub does not use cookies (its JWT lives in localStorage), so
+			# the gate cookie is not forwarded upstream.
+			request_header -Cookie
+
+			# Alby Hub listens on 8029 when installed as a systemd service,
+			# and on 8080 when started with start.sh. Adjust if needed.
+			reverse_proxy 127.0.0.1:8029
+		}
+	}
+
+	# --- No or invalid gate cookie: Basic Auth challenge, then issue a cookie ---
+	handle {
+		route {
+			basic_auth {
+				# REPLACE THIS. Generate the hash with: caddy hash-password
+				# The example below is username "bob", password "hiccup".
+				bob $2a$14$Zkx19XLiW6VYouLHR5NmfOFU0z2GTNmpkT/5qqR7hx4IjWJPDhjvG
+			}
+
+			header +Set-Cookie "__Host-albyhub_gate={env.GATE_SECRET}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800"
+
+			# Never forward the Basic credentials to Alby Hub.
+			request_header -Authorization
+			request_header -Cookie
+
+			reverse_proxy 127.0.0.1:8029
+		}
+	}
+}
+
+# ---------------------------------------------------------------------------
+# Optional hardening
+# ---------------------------------------------------------------------------
+#
+# Bind the gate cookie to a known client range, so that a stolen cookie is
+# useless from anywhere else. Add a `remote_ip` matcher to the @gated set -
+# note that matchers inside a named matcher block are AND-ed:
+#
+#   @gated {
+#           expression `...the expression above...`
+#           remote_ip 192.168.0.0/16
+#   }
+#
+# Caddy has no built-in rate limiting, so a Basic Auth password can be guessed
+# as fast as the server answers. Use a long random password, and consider
+# fail2ban on Caddy's access log if the server is reachable from the internet.
