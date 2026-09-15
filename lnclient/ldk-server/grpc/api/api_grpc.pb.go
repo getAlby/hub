@@ -26,13 +26,17 @@ const (
 	LightningNode_OnchainSend_FullMethodName                              = "/api.LightningNode/OnchainSend"
 	LightningNode_Bolt11Receive_FullMethodName                            = "/api.LightningNode/Bolt11Receive"
 	LightningNode_Bolt11ReceiveForHash_FullMethodName                     = "/api.LightningNode/Bolt11ReceiveForHash"
-	LightningNode_Bolt11ClaimForHash_FullMethodName                       = "/api.LightningNode/Bolt11ClaimForHash"
-	LightningNode_Bolt11FailForHash_FullMethodName                        = "/api.LightningNode/Bolt11FailForHash"
+	LightningNode_Bolt11ClaimForId_FullMethodName                         = "/api.LightningNode/Bolt11ClaimForId"
+	LightningNode_Bolt11FailForId_FullMethodName                          = "/api.LightningNode/Bolt11FailForId"
 	LightningNode_Bolt11ReceiveViaJitChannel_FullMethodName               = "/api.LightningNode/Bolt11ReceiveViaJitChannel"
 	LightningNode_Bolt11ReceiveVariableAmountViaJitChannel_FullMethodName = "/api.LightningNode/Bolt11ReceiveVariableAmountViaJitChannel"
 	LightningNode_Bolt11Send_FullMethodName                               = "/api.LightningNode/Bolt11Send"
+	LightningNode_Bolt11SendUnderpaying_FullMethodName                    = "/api.LightningNode/Bolt11SendUnderpaying"
 	LightningNode_Bolt12Receive_FullMethodName                            = "/api.LightningNode/Bolt12Receive"
 	LightningNode_Bolt12Send_FullMethodName                               = "/api.LightningNode/Bolt12Send"
+	LightningNode_Bolt12SendRefund_FullMethodName                         = "/api.LightningNode/Bolt12SendRefund"
+	LightningNode_Bolt12ReceiveRefund_FullMethodName                      = "/api.LightningNode/Bolt12ReceiveRefund"
+	LightningNode_Bolt12CreatePayerProof_FullMethodName                   = "/api.LightningNode/Bolt12CreatePayerProof"
 	LightningNode_SpontaneousSend_FullMethodName                          = "/api.LightningNode/SpontaneousSend"
 	LightningNode_OpenChannel_FullMethodName                              = "/api.LightningNode/OpenChannel"
 	LightningNode_SpliceIn_FullMethodName                                 = "/api.LightningNode/SpliceIn"
@@ -76,20 +80,29 @@ type LightningNodeClient interface {
 	Bolt11Receive(ctx context.Context, in *Bolt11ReceiveRequest, opts ...grpc.CallOption) (*Bolt11ReceiveResponse, error)
 	// Return a BOLT11 payable invoice for a given payment hash.
 	Bolt11ReceiveForHash(ctx context.Context, in *Bolt11ReceiveForHashRequest, opts ...grpc.CallOption) (*Bolt11ReceiveForHashResponse, error)
-	// Manually claim a payment for a given payment hash.
-	Bolt11ClaimForHash(ctx context.Context, in *Bolt11ClaimForHashRequest, opts ...grpc.CallOption) (*Bolt11ClaimForHashResponse, error)
-	// Manually fail a payment for a given payment hash.
-	Bolt11FailForHash(ctx context.Context, in *Bolt11FailForHashRequest, opts ...grpc.CallOption) (*Bolt11FailForHashResponse, error)
+	// Manually claim a payment for a given payment ID.
+	Bolt11ClaimForId(ctx context.Context, in *Bolt11ClaimForIdRequest, opts ...grpc.CallOption) (*Bolt11ClaimForIdResponse, error)
+	// Manually fail a payment for a given payment ID.
+	Bolt11FailForId(ctx context.Context, in *Bolt11FailForIdRequest, opts ...grpc.CallOption) (*Bolt11FailForIdResponse, error)
 	// Return a BOLT11 invoice for receiving via a JIT channel.
 	Bolt11ReceiveViaJitChannel(ctx context.Context, in *Bolt11ReceiveViaJitChannelRequest, opts ...grpc.CallOption) (*Bolt11ReceiveViaJitChannelResponse, error)
 	// Return a variable-amount BOLT11 invoice for receiving via a JIT channel.
 	Bolt11ReceiveVariableAmountViaJitChannel(ctx context.Context, in *Bolt11ReceiveVariableAmountViaJitChannelRequest, opts ...grpc.CallOption) (*Bolt11ReceiveVariableAmountViaJitChannelResponse, error)
 	// Send a payment for a BOLT11 invoice.
 	Bolt11Send(ctx context.Context, in *Bolt11SendRequest, opts ...grpc.CallOption) (*Bolt11SendResponse, error)
+	// Send part of the amount for a fixed-amount BOLT11 invoice.
+	// Other nodes must send partial payments for the same invoice until the combined amount equals the invoice amount.
+	Bolt11SendUnderpaying(ctx context.Context, in *Bolt11SendUnderpayingRequest, opts ...grpc.CallOption) (*Bolt11SendUnderpayingResponse, error)
 	// Return a BOLT12 offer.
 	Bolt12Receive(ctx context.Context, in *Bolt12ReceiveRequest, opts ...grpc.CallOption) (*Bolt12ReceiveResponse, error)
 	// Send a payment for a BOLT12 offer.
 	Bolt12Send(ctx context.Context, in *Bolt12SendRequest, opts ...grpc.CallOption) (*Bolt12SendResponse, error)
+	// Return a BOLT12 refund that this node will pay.
+	Bolt12SendRefund(ctx context.Context, in *Bolt12SendRefundRequest, opts ...grpc.CallOption) (*Bolt12SendRefundResponse, error)
+	// Request an incoming payment for a BOLT12 refund.
+	Bolt12ReceiveRefund(ctx context.Context, in *Bolt12ReceiveRefundRequest, opts ...grpc.CallOption) (*Bolt12ReceiveRefundResponse, error)
+	// Create a BOLT 12 payer proof for a payment this node made.
+	Bolt12CreatePayerProof(ctx context.Context, in *Bolt12CreatePayerProofRequest, opts ...grpc.CallOption) (*Bolt12CreatePayerProofResponse, error)
 	// Send a spontaneous payment (keysend).
 	SpontaneousSend(ctx context.Context, in *SpontaneousSendRequest, opts ...grpc.CallOption) (*SpontaneousSendResponse, error)
 	// Create a new outbound channel.
@@ -210,20 +223,20 @@ func (c *lightningNodeClient) Bolt11ReceiveForHash(ctx context.Context, in *Bolt
 	return out, nil
 }
 
-func (c *lightningNodeClient) Bolt11ClaimForHash(ctx context.Context, in *Bolt11ClaimForHashRequest, opts ...grpc.CallOption) (*Bolt11ClaimForHashResponse, error) {
+func (c *lightningNodeClient) Bolt11ClaimForId(ctx context.Context, in *Bolt11ClaimForIdRequest, opts ...grpc.CallOption) (*Bolt11ClaimForIdResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Bolt11ClaimForHashResponse)
-	err := c.cc.Invoke(ctx, LightningNode_Bolt11ClaimForHash_FullMethodName, in, out, cOpts...)
+	out := new(Bolt11ClaimForIdResponse)
+	err := c.cc.Invoke(ctx, LightningNode_Bolt11ClaimForId_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *lightningNodeClient) Bolt11FailForHash(ctx context.Context, in *Bolt11FailForHashRequest, opts ...grpc.CallOption) (*Bolt11FailForHashResponse, error) {
+func (c *lightningNodeClient) Bolt11FailForId(ctx context.Context, in *Bolt11FailForIdRequest, opts ...grpc.CallOption) (*Bolt11FailForIdResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Bolt11FailForHashResponse)
-	err := c.cc.Invoke(ctx, LightningNode_Bolt11FailForHash_FullMethodName, in, out, cOpts...)
+	out := new(Bolt11FailForIdResponse)
+	err := c.cc.Invoke(ctx, LightningNode_Bolt11FailForId_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -260,6 +273,16 @@ func (c *lightningNodeClient) Bolt11Send(ctx context.Context, in *Bolt11SendRequ
 	return out, nil
 }
 
+func (c *lightningNodeClient) Bolt11SendUnderpaying(ctx context.Context, in *Bolt11SendUnderpayingRequest, opts ...grpc.CallOption) (*Bolt11SendUnderpayingResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Bolt11SendUnderpayingResponse)
+	err := c.cc.Invoke(ctx, LightningNode_Bolt11SendUnderpaying_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *lightningNodeClient) Bolt12Receive(ctx context.Context, in *Bolt12ReceiveRequest, opts ...grpc.CallOption) (*Bolt12ReceiveResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Bolt12ReceiveResponse)
@@ -274,6 +297,36 @@ func (c *lightningNodeClient) Bolt12Send(ctx context.Context, in *Bolt12SendRequ
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Bolt12SendResponse)
 	err := c.cc.Invoke(ctx, LightningNode_Bolt12Send_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *lightningNodeClient) Bolt12SendRefund(ctx context.Context, in *Bolt12SendRefundRequest, opts ...grpc.CallOption) (*Bolt12SendRefundResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Bolt12SendRefundResponse)
+	err := c.cc.Invoke(ctx, LightningNode_Bolt12SendRefund_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *lightningNodeClient) Bolt12ReceiveRefund(ctx context.Context, in *Bolt12ReceiveRefundRequest, opts ...grpc.CallOption) (*Bolt12ReceiveRefundResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Bolt12ReceiveRefundResponse)
+	err := c.cc.Invoke(ctx, LightningNode_Bolt12ReceiveRefund_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *lightningNodeClient) Bolt12CreatePayerProof(ctx context.Context, in *Bolt12CreatePayerProofRequest, opts ...grpc.CallOption) (*Bolt12CreatePayerProofResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Bolt12CreatePayerProofResponse)
+	err := c.cc.Invoke(ctx, LightningNode_Bolt12CreatePayerProof_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -555,20 +608,29 @@ type LightningNodeServer interface {
 	Bolt11Receive(context.Context, *Bolt11ReceiveRequest) (*Bolt11ReceiveResponse, error)
 	// Return a BOLT11 payable invoice for a given payment hash.
 	Bolt11ReceiveForHash(context.Context, *Bolt11ReceiveForHashRequest) (*Bolt11ReceiveForHashResponse, error)
-	// Manually claim a payment for a given payment hash.
-	Bolt11ClaimForHash(context.Context, *Bolt11ClaimForHashRequest) (*Bolt11ClaimForHashResponse, error)
-	// Manually fail a payment for a given payment hash.
-	Bolt11FailForHash(context.Context, *Bolt11FailForHashRequest) (*Bolt11FailForHashResponse, error)
+	// Manually claim a payment for a given payment ID.
+	Bolt11ClaimForId(context.Context, *Bolt11ClaimForIdRequest) (*Bolt11ClaimForIdResponse, error)
+	// Manually fail a payment for a given payment ID.
+	Bolt11FailForId(context.Context, *Bolt11FailForIdRequest) (*Bolt11FailForIdResponse, error)
 	// Return a BOLT11 invoice for receiving via a JIT channel.
 	Bolt11ReceiveViaJitChannel(context.Context, *Bolt11ReceiveViaJitChannelRequest) (*Bolt11ReceiveViaJitChannelResponse, error)
 	// Return a variable-amount BOLT11 invoice for receiving via a JIT channel.
 	Bolt11ReceiveVariableAmountViaJitChannel(context.Context, *Bolt11ReceiveVariableAmountViaJitChannelRequest) (*Bolt11ReceiveVariableAmountViaJitChannelResponse, error)
 	// Send a payment for a BOLT11 invoice.
 	Bolt11Send(context.Context, *Bolt11SendRequest) (*Bolt11SendResponse, error)
+	// Send part of the amount for a fixed-amount BOLT11 invoice.
+	// Other nodes must send partial payments for the same invoice until the combined amount equals the invoice amount.
+	Bolt11SendUnderpaying(context.Context, *Bolt11SendUnderpayingRequest) (*Bolt11SendUnderpayingResponse, error)
 	// Return a BOLT12 offer.
 	Bolt12Receive(context.Context, *Bolt12ReceiveRequest) (*Bolt12ReceiveResponse, error)
 	// Send a payment for a BOLT12 offer.
 	Bolt12Send(context.Context, *Bolt12SendRequest) (*Bolt12SendResponse, error)
+	// Return a BOLT12 refund that this node will pay.
+	Bolt12SendRefund(context.Context, *Bolt12SendRefundRequest) (*Bolt12SendRefundResponse, error)
+	// Request an incoming payment for a BOLT12 refund.
+	Bolt12ReceiveRefund(context.Context, *Bolt12ReceiveRefundRequest) (*Bolt12ReceiveRefundResponse, error)
+	// Create a BOLT 12 payer proof for a payment this node made.
+	Bolt12CreatePayerProof(context.Context, *Bolt12CreatePayerProofRequest) (*Bolt12CreatePayerProofResponse, error)
 	// Send a spontaneous payment (keysend).
 	SpontaneousSend(context.Context, *SpontaneousSendRequest) (*SpontaneousSendResponse, error)
 	// Create a new outbound channel.
@@ -647,11 +709,11 @@ func (UnimplementedLightningNodeServer) Bolt11Receive(context.Context, *Bolt11Re
 func (UnimplementedLightningNodeServer) Bolt11ReceiveForHash(context.Context, *Bolt11ReceiveForHashRequest) (*Bolt11ReceiveForHashResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Bolt11ReceiveForHash not implemented")
 }
-func (UnimplementedLightningNodeServer) Bolt11ClaimForHash(context.Context, *Bolt11ClaimForHashRequest) (*Bolt11ClaimForHashResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Bolt11ClaimForHash not implemented")
+func (UnimplementedLightningNodeServer) Bolt11ClaimForId(context.Context, *Bolt11ClaimForIdRequest) (*Bolt11ClaimForIdResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Bolt11ClaimForId not implemented")
 }
-func (UnimplementedLightningNodeServer) Bolt11FailForHash(context.Context, *Bolt11FailForHashRequest) (*Bolt11FailForHashResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Bolt11FailForHash not implemented")
+func (UnimplementedLightningNodeServer) Bolt11FailForId(context.Context, *Bolt11FailForIdRequest) (*Bolt11FailForIdResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Bolt11FailForId not implemented")
 }
 func (UnimplementedLightningNodeServer) Bolt11ReceiveViaJitChannel(context.Context, *Bolt11ReceiveViaJitChannelRequest) (*Bolt11ReceiveViaJitChannelResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Bolt11ReceiveViaJitChannel not implemented")
@@ -662,11 +724,23 @@ func (UnimplementedLightningNodeServer) Bolt11ReceiveVariableAmountViaJitChannel
 func (UnimplementedLightningNodeServer) Bolt11Send(context.Context, *Bolt11SendRequest) (*Bolt11SendResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Bolt11Send not implemented")
 }
+func (UnimplementedLightningNodeServer) Bolt11SendUnderpaying(context.Context, *Bolt11SendUnderpayingRequest) (*Bolt11SendUnderpayingResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Bolt11SendUnderpaying not implemented")
+}
 func (UnimplementedLightningNodeServer) Bolt12Receive(context.Context, *Bolt12ReceiveRequest) (*Bolt12ReceiveResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Bolt12Receive not implemented")
 }
 func (UnimplementedLightningNodeServer) Bolt12Send(context.Context, *Bolt12SendRequest) (*Bolt12SendResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Bolt12Send not implemented")
+}
+func (UnimplementedLightningNodeServer) Bolt12SendRefund(context.Context, *Bolt12SendRefundRequest) (*Bolt12SendRefundResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Bolt12SendRefund not implemented")
+}
+func (UnimplementedLightningNodeServer) Bolt12ReceiveRefund(context.Context, *Bolt12ReceiveRefundRequest) (*Bolt12ReceiveRefundResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Bolt12ReceiveRefund not implemented")
+}
+func (UnimplementedLightningNodeServer) Bolt12CreatePayerProof(context.Context, *Bolt12CreatePayerProofRequest) (*Bolt12CreatePayerProofResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Bolt12CreatePayerProof not implemented")
 }
 func (UnimplementedLightningNodeServer) SpontaneousSend(context.Context, *SpontaneousSendRequest) (*SpontaneousSendResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SpontaneousSend not implemented")
@@ -872,38 +946,38 @@ func _LightningNode_Bolt11ReceiveForHash_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
-func _LightningNode_Bolt11ClaimForHash_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Bolt11ClaimForHashRequest)
+func _LightningNode_Bolt11ClaimForId_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Bolt11ClaimForIdRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(LightningNodeServer).Bolt11ClaimForHash(ctx, in)
+		return srv.(LightningNodeServer).Bolt11ClaimForId(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: LightningNode_Bolt11ClaimForHash_FullMethodName,
+		FullMethod: LightningNode_Bolt11ClaimForId_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LightningNodeServer).Bolt11ClaimForHash(ctx, req.(*Bolt11ClaimForHashRequest))
+		return srv.(LightningNodeServer).Bolt11ClaimForId(ctx, req.(*Bolt11ClaimForIdRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _LightningNode_Bolt11FailForHash_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Bolt11FailForHashRequest)
+func _LightningNode_Bolt11FailForId_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Bolt11FailForIdRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(LightningNodeServer).Bolt11FailForHash(ctx, in)
+		return srv.(LightningNodeServer).Bolt11FailForId(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: LightningNode_Bolt11FailForHash_FullMethodName,
+		FullMethod: LightningNode_Bolt11FailForId_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LightningNodeServer).Bolt11FailForHash(ctx, req.(*Bolt11FailForHashRequest))
+		return srv.(LightningNodeServer).Bolt11FailForId(ctx, req.(*Bolt11FailForIdRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -962,6 +1036,24 @@ func _LightningNode_Bolt11Send_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LightningNode_Bolt11SendUnderpaying_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Bolt11SendUnderpayingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LightningNodeServer).Bolt11SendUnderpaying(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LightningNode_Bolt11SendUnderpaying_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LightningNodeServer).Bolt11SendUnderpaying(ctx, req.(*Bolt11SendUnderpayingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _LightningNode_Bolt12Receive_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Bolt12ReceiveRequest)
 	if err := dec(in); err != nil {
@@ -994,6 +1086,60 @@ func _LightningNode_Bolt12Send_Handler(srv interface{}, ctx context.Context, dec
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(LightningNodeServer).Bolt12Send(ctx, req.(*Bolt12SendRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LightningNode_Bolt12SendRefund_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Bolt12SendRefundRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LightningNodeServer).Bolt12SendRefund(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LightningNode_Bolt12SendRefund_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LightningNodeServer).Bolt12SendRefund(ctx, req.(*Bolt12SendRefundRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LightningNode_Bolt12ReceiveRefund_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Bolt12ReceiveRefundRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LightningNodeServer).Bolt12ReceiveRefund(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LightningNode_Bolt12ReceiveRefund_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LightningNodeServer).Bolt12ReceiveRefund(ctx, req.(*Bolt12ReceiveRefundRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LightningNode_Bolt12CreatePayerProof_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Bolt12CreatePayerProofRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LightningNodeServer).Bolt12CreatePayerProof(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LightningNode_Bolt12CreatePayerProof_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LightningNodeServer).Bolt12CreatePayerProof(ctx, req.(*Bolt12CreatePayerProofRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1473,12 +1619,12 @@ var LightningNode_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _LightningNode_Bolt11ReceiveForHash_Handler,
 		},
 		{
-			MethodName: "Bolt11ClaimForHash",
-			Handler:    _LightningNode_Bolt11ClaimForHash_Handler,
+			MethodName: "Bolt11ClaimForId",
+			Handler:    _LightningNode_Bolt11ClaimForId_Handler,
 		},
 		{
-			MethodName: "Bolt11FailForHash",
-			Handler:    _LightningNode_Bolt11FailForHash_Handler,
+			MethodName: "Bolt11FailForId",
+			Handler:    _LightningNode_Bolt11FailForId_Handler,
 		},
 		{
 			MethodName: "Bolt11ReceiveViaJitChannel",
@@ -1493,12 +1639,28 @@ var LightningNode_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _LightningNode_Bolt11Send_Handler,
 		},
 		{
+			MethodName: "Bolt11SendUnderpaying",
+			Handler:    _LightningNode_Bolt11SendUnderpaying_Handler,
+		},
+		{
 			MethodName: "Bolt12Receive",
 			Handler:    _LightningNode_Bolt12Receive_Handler,
 		},
 		{
 			MethodName: "Bolt12Send",
 			Handler:    _LightningNode_Bolt12Send_Handler,
+		},
+		{
+			MethodName: "Bolt12SendRefund",
+			Handler:    _LightningNode_Bolt12SendRefund_Handler,
+		},
+		{
+			MethodName: "Bolt12ReceiveRefund",
+			Handler:    _LightningNode_Bolt12ReceiveRefund_Handler,
+		},
+		{
+			MethodName: "Bolt12CreatePayerProof",
+			Handler:    _LightningNode_Bolt12CreatePayerProof_Handler,
 		},
 		{
 			MethodName: "SpontaneousSend",

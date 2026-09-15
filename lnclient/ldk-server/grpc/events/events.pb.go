@@ -129,6 +129,93 @@ func (ChannelClosureInitiator) EnumDescriptor() ([]byte, []int) {
 	return file_events_proto_rawDescGZIP(), []int{1}
 }
 
+// PaymentFailureReason mirrors LDK's `lightning::events::PaymentFailureReason`,
+// indicating why a sent payment failed.
+type PaymentFailureReason int32
+
+const (
+	PaymentFailureReason_PAYMENT_FAILURE_REASON_UNSPECIFIED PaymentFailureReason = 0
+	// The intended recipient rejected our payment.
+	PaymentFailureReason_PAYMENT_FAILURE_REASON_RECIPIENT_REJECTED PaymentFailureReason = 1
+	// The user chose to abandon this payment by calling `abandon_payment`.
+	PaymentFailureReason_PAYMENT_FAILURE_REASON_USER_ABANDONED PaymentFailureReason = 2
+	// We exhausted all of our retry attempts while trying to send the payment,
+	// or we exhausted the configured retry timeout.
+	PaymentFailureReason_PAYMENT_FAILURE_REASON_RETRIES_EXHAUSTED PaymentFailureReason = 3
+	// Either the BOLT12 invoice was expired by the time we received it or the
+	// payment expired while retrying.
+	PaymentFailureReason_PAYMENT_FAILURE_REASON_PAYMENT_EXPIRED PaymentFailureReason = 4
+	// We failed to find a route while sending or retrying the payment.
+	PaymentFailureReason_PAYMENT_FAILURE_REASON_ROUTE_NOT_FOUND PaymentFailureReason = 5
+	// An unexpected error occurred, generally indicating a problem with the router.
+	PaymentFailureReason_PAYMENT_FAILURE_REASON_UNEXPECTED_ERROR PaymentFailureReason = 6
+	// An invoice was received that required unknown features.
+	PaymentFailureReason_PAYMENT_FAILURE_REASON_UNKNOWN_REQUIRED_FEATURES PaymentFailureReason = 7
+	// A BOLT12 invoice was not received in a reasonable amount of time.
+	PaymentFailureReason_PAYMENT_FAILURE_REASON_INVOICE_REQUEST_EXPIRED PaymentFailureReason = 8
+	// An invoice request for the payment was rejected by the recipient.
+	PaymentFailureReason_PAYMENT_FAILURE_REASON_INVOICE_REQUEST_REJECTED PaymentFailureReason = 9
+	// Failed to create a blinded path back to ourselves.
+	PaymentFailureReason_PAYMENT_FAILURE_REASON_BLINDED_PATH_CREATION_FAILED PaymentFailureReason = 10
+)
+
+// Enum value maps for PaymentFailureReason.
+var (
+	PaymentFailureReason_name = map[int32]string{
+		0:  "PAYMENT_FAILURE_REASON_UNSPECIFIED",
+		1:  "PAYMENT_FAILURE_REASON_RECIPIENT_REJECTED",
+		2:  "PAYMENT_FAILURE_REASON_USER_ABANDONED",
+		3:  "PAYMENT_FAILURE_REASON_RETRIES_EXHAUSTED",
+		4:  "PAYMENT_FAILURE_REASON_PAYMENT_EXPIRED",
+		5:  "PAYMENT_FAILURE_REASON_ROUTE_NOT_FOUND",
+		6:  "PAYMENT_FAILURE_REASON_UNEXPECTED_ERROR",
+		7:  "PAYMENT_FAILURE_REASON_UNKNOWN_REQUIRED_FEATURES",
+		8:  "PAYMENT_FAILURE_REASON_INVOICE_REQUEST_EXPIRED",
+		9:  "PAYMENT_FAILURE_REASON_INVOICE_REQUEST_REJECTED",
+		10: "PAYMENT_FAILURE_REASON_BLINDED_PATH_CREATION_FAILED",
+	}
+	PaymentFailureReason_value = map[string]int32{
+		"PAYMENT_FAILURE_REASON_UNSPECIFIED":                  0,
+		"PAYMENT_FAILURE_REASON_RECIPIENT_REJECTED":           1,
+		"PAYMENT_FAILURE_REASON_USER_ABANDONED":               2,
+		"PAYMENT_FAILURE_REASON_RETRIES_EXHAUSTED":            3,
+		"PAYMENT_FAILURE_REASON_PAYMENT_EXPIRED":              4,
+		"PAYMENT_FAILURE_REASON_ROUTE_NOT_FOUND":              5,
+		"PAYMENT_FAILURE_REASON_UNEXPECTED_ERROR":             6,
+		"PAYMENT_FAILURE_REASON_UNKNOWN_REQUIRED_FEATURES":    7,
+		"PAYMENT_FAILURE_REASON_INVOICE_REQUEST_EXPIRED":      8,
+		"PAYMENT_FAILURE_REASON_INVOICE_REQUEST_REJECTED":     9,
+		"PAYMENT_FAILURE_REASON_BLINDED_PATH_CREATION_FAILED": 10,
+	}
+)
+
+func (x PaymentFailureReason) Enum() *PaymentFailureReason {
+	p := new(PaymentFailureReason)
+	*p = x
+	return p
+}
+
+func (x PaymentFailureReason) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (PaymentFailureReason) Descriptor() protoreflect.EnumDescriptor {
+	return file_events_proto_enumTypes[2].Descriptor()
+}
+
+func (PaymentFailureReason) Type() protoreflect.EnumType {
+	return &file_events_proto_enumTypes[2]
+}
+
+func (x PaymentFailureReason) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use PaymentFailureReason.Descriptor instead.
+func (PaymentFailureReason) EnumDescriptor() ([]byte, []int) {
+	return file_events_proto_rawDescGZIP(), []int{2}
+}
+
 type ChannelStateChangeReasonKind int32
 
 const (
@@ -201,11 +288,11 @@ func (x ChannelStateChangeReasonKind) String() string {
 }
 
 func (ChannelStateChangeReasonKind) Descriptor() protoreflect.EnumDescriptor {
-	return file_events_proto_enumTypes[2].Descriptor()
+	return file_events_proto_enumTypes[3].Descriptor()
 }
 
 func (ChannelStateChangeReasonKind) Type() protoreflect.EnumType {
-	return &file_events_proto_enumTypes[2]
+	return &file_events_proto_enumTypes[3]
 }
 
 func (x ChannelStateChangeReasonKind) Number() protoreflect.EnumNumber {
@@ -214,7 +301,7 @@ func (x ChannelStateChangeReasonKind) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ChannelStateChangeReasonKind.Descriptor instead.
 func (ChannelStateChangeReasonKind) EnumDescriptor() ([]byte, []int) {
-	return file_events_proto_rawDescGZIP(), []int{2}
+	return file_events_proto_rawDescGZIP(), []int{3}
 }
 
 // EventEnvelope wraps different event types in a single message to be used by EventPublisher.
@@ -228,6 +315,8 @@ type EventEnvelope struct {
 	//	*EventEnvelope_PaymentForwarded
 	//	*EventEnvelope_PaymentClaimable
 	//	*EventEnvelope_ChannelStateChanged
+	//	*EventEnvelope_SpliceNegotiated
+	//	*EventEnvelope_SpliceNegotiationFailed
 	Event         isEventEnvelope_Event `protobuf_oneof:"event"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -324,6 +413,24 @@ func (x *EventEnvelope) GetChannelStateChanged() *ChannelStateChanged {
 	return nil
 }
 
+func (x *EventEnvelope) GetSpliceNegotiated() *SpliceNegotiated {
+	if x != nil {
+		if x, ok := x.Event.(*EventEnvelope_SpliceNegotiated); ok {
+			return x.SpliceNegotiated
+		}
+	}
+	return nil
+}
+
+func (x *EventEnvelope) GetSpliceNegotiationFailed() *SpliceNegotiationFailed {
+	if x != nil {
+		if x, ok := x.Event.(*EventEnvelope_SpliceNegotiationFailed); ok {
+			return x.SpliceNegotiationFailed
+		}
+	}
+	return nil
+}
+
 type isEventEnvelope_Event interface {
 	isEventEnvelope_Event()
 }
@@ -352,6 +459,14 @@ type EventEnvelope_ChannelStateChanged struct {
 	ChannelStateChanged *ChannelStateChanged `protobuf:"bytes,8,opt,name=channel_state_changed,json=channelStateChanged,proto3,oneof"`
 }
 
+type EventEnvelope_SpliceNegotiated struct {
+	SpliceNegotiated *SpliceNegotiated `protobuf:"bytes,9,opt,name=splice_negotiated,json=spliceNegotiated,proto3,oneof"`
+}
+
+type EventEnvelope_SpliceNegotiationFailed struct {
+	SpliceNegotiationFailed *SpliceNegotiationFailed `protobuf:"bytes,10,opt,name=splice_negotiation_failed,json=spliceNegotiationFailed,proto3,oneof"`
+}
+
 func (*EventEnvelope_PaymentReceived) isEventEnvelope_Event() {}
 
 func (*EventEnvelope_PaymentSuccessful) isEventEnvelope_Event() {}
@@ -363,6 +478,10 @@ func (*EventEnvelope_PaymentForwarded) isEventEnvelope_Event() {}
 func (*EventEnvelope_PaymentClaimable) isEventEnvelope_Event() {}
 
 func (*EventEnvelope_ChannelStateChanged) isEventEnvelope_Event() {}
+
+func (*EventEnvelope_SpliceNegotiated) isEventEnvelope_Event() {}
+
+func (*EventEnvelope_SpliceNegotiationFailed) isEventEnvelope_Event() {}
 
 type CounterpartyForceClosedDetails struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -755,8 +874,12 @@ type ChannelStateChanged struct {
 	FundingTxo         *string                   `protobuf:"bytes,5,opt,name=funding_txo,json=fundingTxo,proto3,oneof" json:"funding_txo,omitempty"`
 	Reason             *ChannelStateChangeReason `protobuf:"bytes,6,opt,name=reason,proto3,oneof" json:"reason,omitempty"`
 	ClosureInitiator   ChannelClosureInitiator   `protobuf:"varint,7,opt,name=closure_initiator,json=closureInitiator,proto3,enum=events.ChannelClosureInitiator" json:"closure_initiator,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	// The `temporary_channel_id` this channel used to be known by during channel establishment.
+	//
+	// Only set when `state` is `CHANNEL_STATE_PENDING`.
+	FormerTemporaryChannelId *string `protobuf:"bytes,8,opt,name=former_temporary_channel_id,json=formerTemporaryChannelId,proto3,oneof" json:"former_temporary_channel_id,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
 }
 
 func (x *ChannelStateChanged) Reset() {
@@ -838,20 +961,161 @@ func (x *ChannelStateChanged) GetClosureInitiator() ChannelClosureInitiator {
 	return ChannelClosureInitiator_CHANNEL_CLOSURE_INITIATOR_UNSPECIFIED
 }
 
+func (x *ChannelStateChanged) GetFormerTemporaryChannelId() string {
+	if x != nil && x.FormerTemporaryChannelId != nil {
+		return *x.FormerTemporaryChannelId
+	}
+	return ""
+}
+
+// SpliceNegotiated indicates a channel splice has been negotiated and the funding
+// transaction is pending confirmation on-chain.
+type SpliceNegotiated struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	ChannelId          string                 `protobuf:"bytes,1,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
+	UserChannelId      string                 `protobuf:"bytes,2,opt,name=user_channel_id,json=userChannelId,proto3" json:"user_channel_id,omitempty"`
+	CounterpartyNodeId string                 `protobuf:"bytes,3,opt,name=counterparty_node_id,json=counterpartyNodeId,proto3" json:"counterparty_node_id,omitempty"`
+	// The outpoint of the channel's splice funding transaction.
+	NewFundingTxo string `protobuf:"bytes,4,opt,name=new_funding_txo,json=newFundingTxo,proto3" json:"new_funding_txo,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SpliceNegotiated) Reset() {
+	*x = SpliceNegotiated{}
+	mi := &file_events_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SpliceNegotiated) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SpliceNegotiated) ProtoMessage() {}
+
+func (x *SpliceNegotiated) ProtoReflect() protoreflect.Message {
+	mi := &file_events_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SpliceNegotiated.ProtoReflect.Descriptor instead.
+func (*SpliceNegotiated) Descriptor() ([]byte, []int) {
+	return file_events_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *SpliceNegotiated) GetChannelId() string {
+	if x != nil {
+		return x.ChannelId
+	}
+	return ""
+}
+
+func (x *SpliceNegotiated) GetUserChannelId() string {
+	if x != nil {
+		return x.UserChannelId
+	}
+	return ""
+}
+
+func (x *SpliceNegotiated) GetCounterpartyNodeId() string {
+	if x != nil {
+		return x.CounterpartyNodeId
+	}
+	return ""
+}
+
+func (x *SpliceNegotiated) GetNewFundingTxo() string {
+	if x != nil {
+		return x.NewFundingTxo
+	}
+	return ""
+}
+
+// SpliceNegotiationFailed indicates a channel splice negotiation round has failed.
+type SpliceNegotiationFailed struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	ChannelId          string                 `protobuf:"bytes,1,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
+	UserChannelId      string                 `protobuf:"bytes,2,opt,name=user_channel_id,json=userChannelId,proto3" json:"user_channel_id,omitempty"`
+	CounterpartyNodeId string                 `protobuf:"bytes,3,opt,name=counterparty_node_id,json=counterpartyNodeId,proto3" json:"counterparty_node_id,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *SpliceNegotiationFailed) Reset() {
+	*x = SpliceNegotiationFailed{}
+	mi := &file_events_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SpliceNegotiationFailed) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SpliceNegotiationFailed) ProtoMessage() {}
+
+func (x *SpliceNegotiationFailed) ProtoReflect() protoreflect.Message {
+	mi := &file_events_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SpliceNegotiationFailed.ProtoReflect.Descriptor instead.
+func (*SpliceNegotiationFailed) Descriptor() ([]byte, []int) {
+	return file_events_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *SpliceNegotiationFailed) GetChannelId() string {
+	if x != nil {
+		return x.ChannelId
+	}
+	return ""
+}
+
+func (x *SpliceNegotiationFailed) GetUserChannelId() string {
+	if x != nil {
+		return x.UserChannelId
+	}
+	return ""
+}
+
+func (x *SpliceNegotiationFailed) GetCounterpartyNodeId() string {
+	if x != nil {
+		return x.CounterpartyNodeId
+	}
+	return ""
+}
+
 // PaymentReceived indicates a payment has been received.
 type PaymentReceived struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
+	// The local identifier used to track the payment, in hex-encoded form.
+	PaymentId string `protobuf:"bytes,1,opt,name=payment_id,json=paymentId,proto3" json:"payment_id,omitempty"`
 	// The payment details for the payment in event.
-	Payment *types.Payment `protobuf:"bytes,1,opt,name=payment,proto3" json:"payment,omitempty"`
+	Payment *types.Payment `protobuf:"bytes,2,opt,name=payment,proto3" json:"payment,omitempty"`
 	// Custom TLV records attached to the incoming payment, if any.
-	CustomRecords []*types.CustomTlvRecord `protobuf:"bytes,2,rep,name=custom_records,json=customRecords,proto3" json:"custom_records,omitempty"`
+	CustomRecords []*types.CustomTlvRecord `protobuf:"bytes,3,rep,name=custom_records,json=customRecords,proto3" json:"custom_records,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *PaymentReceived) Reset() {
 	*x = PaymentReceived{}
-	mi := &file_events_proto_msgTypes[8]
+	mi := &file_events_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -863,7 +1127,7 @@ func (x *PaymentReceived) String() string {
 func (*PaymentReceived) ProtoMessage() {}
 
 func (x *PaymentReceived) ProtoReflect() protoreflect.Message {
-	mi := &file_events_proto_msgTypes[8]
+	mi := &file_events_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -876,7 +1140,14 @@ func (x *PaymentReceived) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PaymentReceived.ProtoReflect.Descriptor instead.
 func (*PaymentReceived) Descriptor() ([]byte, []int) {
-	return file_events_proto_rawDescGZIP(), []int{8}
+	return file_events_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *PaymentReceived) GetPaymentId() string {
+	if x != nil {
+		return x.PaymentId
+	}
+	return ""
 }
 
 func (x *PaymentReceived) GetPayment() *types.Payment {
@@ -896,15 +1167,22 @@ func (x *PaymentReceived) GetCustomRecords() []*types.CustomTlvRecord {
 // PaymentSuccessful indicates a sent payment was successful.
 type PaymentSuccessful struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
+	// The local identifier used to track the payment, in hex-encoded form.
+	PaymentId string `protobuf:"bytes,1,opt,name=payment_id,json=paymentId,proto3" json:"payment_id,omitempty"`
 	// The payment details for the payment in event.
-	Payment       *types.Payment `protobuf:"bytes,1,opt,name=payment,proto3" json:"payment,omitempty"`
+	Payment *types.Payment `protobuf:"bytes,2,opt,name=payment,proto3" json:"payment,omitempty"`
+	// The hex-encoded payment preimage. Needed to build a BOLT 12 payer proof.
+	PaymentPreimage *string `protobuf:"bytes,3,opt,name=payment_preimage,json=paymentPreimage,proto3,oneof" json:"payment_preimage,omitempty"`
+	// The hex-encoded paid BOLT 12 invoice, when the payment was for a standard BOLT 12 invoice.
+	// Unset for non-BOLT12 payments and for static invoices used in async payments.
+	Bolt12Invoice *string `protobuf:"bytes,4,opt,name=bolt12_invoice,json=bolt12Invoice,proto3,oneof" json:"bolt12_invoice,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *PaymentSuccessful) Reset() {
 	*x = PaymentSuccessful{}
-	mi := &file_events_proto_msgTypes[9]
+	mi := &file_events_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -916,7 +1194,7 @@ func (x *PaymentSuccessful) String() string {
 func (*PaymentSuccessful) ProtoMessage() {}
 
 func (x *PaymentSuccessful) ProtoReflect() protoreflect.Message {
-	mi := &file_events_proto_msgTypes[9]
+	mi := &file_events_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -929,7 +1207,14 @@ func (x *PaymentSuccessful) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PaymentSuccessful.ProtoReflect.Descriptor instead.
 func (*PaymentSuccessful) Descriptor() ([]byte, []int) {
-	return file_events_proto_rawDescGZIP(), []int{9}
+	return file_events_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *PaymentSuccessful) GetPaymentId() string {
+	if x != nil {
+		return x.PaymentId
+	}
+	return ""
 }
 
 func (x *PaymentSuccessful) GetPayment() *types.Payment {
@@ -939,18 +1224,40 @@ func (x *PaymentSuccessful) GetPayment() *types.Payment {
 	return nil
 }
 
+func (x *PaymentSuccessful) GetPaymentPreimage() string {
+	if x != nil && x.PaymentPreimage != nil {
+		return *x.PaymentPreimage
+	}
+	return ""
+}
+
+func (x *PaymentSuccessful) GetBolt12Invoice() string {
+	if x != nil && x.Bolt12Invoice != nil {
+		return *x.Bolt12Invoice
+	}
+	return ""
+}
+
 // PaymentFailed indicates a sent payment has failed.
 type PaymentFailed struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
+	// The local identifier used to track the payment, in hex-encoded form.
+	PaymentId string `protobuf:"bytes,1,opt,name=payment_id,json=paymentId,proto3" json:"payment_id,omitempty"`
 	// The payment details for the payment in event.
-	Payment       *types.Payment `protobuf:"bytes,1,opt,name=payment,proto3" json:"payment,omitempty"`
+	Payment *types.Payment `protobuf:"bytes,2,opt,name=payment,proto3" json:"payment,omitempty"`
+	// The reason the payment failed, if known.
+	//
+	// This is only available on the emitted event; `GetPaymentDetails` cannot
+	// recover it as LDK Node does not currently persist the failure reason in
+	// `PaymentDetails`.
+	Reason        *PaymentFailureReason `protobuf:"varint,3,opt,name=reason,proto3,enum=events.PaymentFailureReason,oneof" json:"reason,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *PaymentFailed) Reset() {
 	*x = PaymentFailed{}
-	mi := &file_events_proto_msgTypes[10]
+	mi := &file_events_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -962,7 +1269,7 @@ func (x *PaymentFailed) String() string {
 func (*PaymentFailed) ProtoMessage() {}
 
 func (x *PaymentFailed) ProtoReflect() protoreflect.Message {
-	mi := &file_events_proto_msgTypes[10]
+	mi := &file_events_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -975,7 +1282,14 @@ func (x *PaymentFailed) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PaymentFailed.ProtoReflect.Descriptor instead.
 func (*PaymentFailed) Descriptor() ([]byte, []int) {
-	return file_events_proto_rawDescGZIP(), []int{10}
+	return file_events_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *PaymentFailed) GetPaymentId() string {
+	if x != nil {
+		return x.PaymentId
+	}
+	return ""
 }
 
 func (x *PaymentFailed) GetPayment() *types.Payment {
@@ -985,23 +1299,40 @@ func (x *PaymentFailed) GetPayment() *types.Payment {
 	return nil
 }
 
+func (x *PaymentFailed) GetReason() PaymentFailureReason {
+	if x != nil && x.Reason != nil {
+		return *x.Reason
+	}
+	return PaymentFailureReason_PAYMENT_FAILURE_REASON_UNSPECIFIED
+}
+
 // PaymentClaimable indicates a payment has arrived and is waiting to be manually claimed or failed.
 // This event is only emitted for payments created via `Bolt11ReceiveForHash`.
+// Handle every event by its payment ID before `claim_deadline`.
+// The same invoice can produce more than one event. Fail unexpected duplicate or late payments.
+// Delivery through SubscribeEvents is best-effort and is not replayed. If the event is missed and
+// the payment is not otherwise claimed or failed, LDK Node automatically fails the HTLC backward at
+// claim_deadline.
 type PaymentClaimable struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
+	// The local identifier used to track the payment, in hex-encoded form.
+	PaymentId string `protobuf:"bytes,1,opt,name=payment_id,json=paymentId,proto3" json:"payment_id,omitempty"`
 	// The payment details for the claimable payment.
-	Payment *types.Payment `protobuf:"bytes,1,opt,name=payment,proto3" json:"payment,omitempty"`
+	Payment *types.Payment `protobuf:"bytes,2,opt,name=payment,proto3" json:"payment,omitempty"`
 	// Custom TLV records attached to the claimable payment, if any.
-	CustomRecords []*types.CustomTlvRecord `protobuf:"bytes,2,rep,name=custom_records,json=customRecords,proto3" json:"custom_records,omitempty"`
+	CustomRecords []*types.CustomTlvRecord `protobuf:"bytes,3,rep,name=custom_records,json=customRecords,proto3" json:"custom_records,omitempty"`
 	// The block height by which this payment must be claimed before it is failed back.
-	ClaimDeadline *uint32 `protobuf:"varint,3,opt,name=claim_deadline,json=claimDeadline,proto3,oneof" json:"claim_deadline,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	ClaimDeadline *uint32 `protobuf:"varint,4,opt,name=claim_deadline,json=claimDeadline,proto3,oneof" json:"claim_deadline,omitempty"`
+	// The amount in millisatoshis that is claimable. Validate this against the amount you expect
+	// before calling Bolt11ClaimForId, and pass this value as its claimable_amount_msat.
+	ClaimableAmountMsat uint64 `protobuf:"varint,5,opt,name=claimable_amount_msat,json=claimableAmountMsat,proto3" json:"claimable_amount_msat,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *PaymentClaimable) Reset() {
 	*x = PaymentClaimable{}
-	mi := &file_events_proto_msgTypes[11]
+	mi := &file_events_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1013,7 +1344,7 @@ func (x *PaymentClaimable) String() string {
 func (*PaymentClaimable) ProtoMessage() {}
 
 func (x *PaymentClaimable) ProtoReflect() protoreflect.Message {
-	mi := &file_events_proto_msgTypes[11]
+	mi := &file_events_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1026,7 +1357,14 @@ func (x *PaymentClaimable) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PaymentClaimable.ProtoReflect.Descriptor instead.
 func (*PaymentClaimable) Descriptor() ([]byte, []int) {
-	return file_events_proto_rawDescGZIP(), []int{11}
+	return file_events_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *PaymentClaimable) GetPaymentId() string {
+	if x != nil {
+		return x.PaymentId
+	}
+	return ""
 }
 
 func (x *PaymentClaimable) GetPayment() *types.Payment {
@@ -1050,6 +1388,13 @@ func (x *PaymentClaimable) GetClaimDeadline() uint32 {
 	return 0
 }
 
+func (x *PaymentClaimable) GetClaimableAmountMsat() uint64 {
+	if x != nil {
+		return x.ClaimableAmountMsat
+	}
+	return 0
+}
+
 // PaymentForwarded indicates a payment was forwarded through the node.
 type PaymentForwarded struct {
 	state            protoimpl.MessageState  `protogen:"open.v1"`
@@ -1060,7 +1405,7 @@ type PaymentForwarded struct {
 
 func (x *PaymentForwarded) Reset() {
 	*x = PaymentForwarded{}
-	mi := &file_events_proto_msgTypes[12]
+	mi := &file_events_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1072,7 +1417,7 @@ func (x *PaymentForwarded) String() string {
 func (*PaymentForwarded) ProtoMessage() {}
 
 func (x *PaymentForwarded) ProtoReflect() protoreflect.Message {
-	mi := &file_events_proto_msgTypes[12]
+	mi := &file_events_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1085,7 +1430,7 @@ func (x *PaymentForwarded) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PaymentForwarded.ProtoReflect.Descriptor instead.
 func (*PaymentForwarded) Descriptor() ([]byte, []int) {
-	return file_events_proto_rawDescGZIP(), []int{12}
+	return file_events_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *PaymentForwarded) GetForwardedPayment() *types.ForwardedPayment {
@@ -1099,14 +1444,17 @@ var File_events_proto protoreflect.FileDescriptor
 
 const file_events_proto_rawDesc = "" +
 	"\n" +
-	"\fevents.proto\x12\x06events\x1a\vtypes.proto\"\xcf\x03\n" +
+	"\fevents.proto\x12\x06events\x1a\vtypes.proto\"\xf7\x04\n" +
 	"\rEventEnvelope\x12D\n" +
 	"\x10payment_received\x18\x02 \x01(\v2\x17.events.PaymentReceivedH\x00R\x0fpaymentReceived\x12J\n" +
 	"\x12payment_successful\x18\x03 \x01(\v2\x19.events.PaymentSuccessfulH\x00R\x11paymentSuccessful\x12>\n" +
 	"\x0epayment_failed\x18\x04 \x01(\v2\x15.events.PaymentFailedH\x00R\rpaymentFailed\x12G\n" +
 	"\x11payment_forwarded\x18\x06 \x01(\v2\x18.events.PaymentForwardedH\x00R\x10paymentForwarded\x12G\n" +
 	"\x11payment_claimable\x18\a \x01(\v2\x18.events.PaymentClaimableH\x00R\x10paymentClaimable\x12Q\n" +
-	"\x15channel_state_changed\x18\b \x01(\v2\x1b.events.ChannelStateChangedH\x00R\x13channelStateChangedB\a\n" +
+	"\x15channel_state_changed\x18\b \x01(\v2\x1b.events.ChannelStateChangedH\x00R\x13channelStateChanged\x12G\n" +
+	"\x11splice_negotiated\x18\t \x01(\v2\x18.events.SpliceNegotiatedH\x00R\x10spliceNegotiated\x12]\n" +
+	"\x19splice_negotiation_failed\x18\n" +
+	" \x01(\v2\x1f.events.SpliceNegotiationFailedH\x00R\x17spliceNegotiationFailedB\a\n" +
 	"\x05event\";\n" +
 	"\x1eCounterpartyForceClosedDetails\x12\x19\n" +
 	"\bpeer_msg\x18\x01 \x01(\tR\apeerMsg\"\x8a\x01\n" +
@@ -1130,7 +1478,7 @@ const file_events_proto_rawDesc = "" +
 	"\x10processing_error\x18\x05 \x01(\v2\x1e.events.ProcessingErrorDetailsH\x00R\x0fprocessingError\x12F\n" +
 	"\x0fhtlcs_timed_out\x18\x06 \x01(\v2\x1c.events.HtlcsTimedOutDetailsH\x00R\rhtlcsTimedOut\x12S\n" +
 	"\x14peer_feerate_too_low\x18\a \x01(\v2 .events.PeerFeerateTooLowDetailsH\x00R\x11peerFeerateTooLowB\t\n" +
-	"\adetails\"\xa6\x03\n" +
+	"\adetails\"\x8a\x04\n" +
 	"\x13ChannelStateChanged\x12\x1d\n" +
 	"\n" +
 	"channel_id\x18\x01 \x01(\tR\tchannelId\x12&\n" +
@@ -1140,21 +1488,49 @@ const file_events_proto_rawDesc = "" +
 	"\vfunding_txo\x18\x05 \x01(\tH\x01R\n" +
 	"fundingTxo\x88\x01\x01\x12=\n" +
 	"\x06reason\x18\x06 \x01(\v2 .events.ChannelStateChangeReasonH\x02R\x06reason\x88\x01\x01\x12L\n" +
-	"\x11closure_initiator\x18\a \x01(\x0e2\x1f.events.ChannelClosureInitiatorR\x10closureInitiatorB\x17\n" +
+	"\x11closure_initiator\x18\a \x01(\x0e2\x1f.events.ChannelClosureInitiatorR\x10closureInitiator\x12B\n" +
+	"\x1bformer_temporary_channel_id\x18\b \x01(\tH\x03R\x18formerTemporaryChannelId\x88\x01\x01B\x17\n" +
 	"\x15_counterparty_node_idB\x0e\n" +
 	"\f_funding_txoB\t\n" +
-	"\a_reason\"z\n" +
-	"\x0fPaymentReceived\x12(\n" +
-	"\apayment\x18\x01 \x01(\v2\x0e.types.PaymentR\apayment\x12=\n" +
-	"\x0ecustom_records\x18\x02 \x03(\v2\x16.types.CustomTlvRecordR\rcustomRecords\"=\n" +
-	"\x11PaymentSuccessful\x12(\n" +
-	"\apayment\x18\x01 \x01(\v2\x0e.types.PaymentR\apayment\"9\n" +
-	"\rPaymentFailed\x12(\n" +
-	"\apayment\x18\x01 \x01(\v2\x0e.types.PaymentR\apayment\"\xba\x01\n" +
-	"\x10PaymentClaimable\x12(\n" +
-	"\apayment\x18\x01 \x01(\v2\x0e.types.PaymentR\apayment\x12=\n" +
-	"\x0ecustom_records\x18\x02 \x03(\v2\x16.types.CustomTlvRecordR\rcustomRecords\x12*\n" +
-	"\x0eclaim_deadline\x18\x03 \x01(\rH\x00R\rclaimDeadline\x88\x01\x01B\x11\n" +
+	"\a_reasonB\x1e\n" +
+	"\x1c_former_temporary_channel_id\"\xb3\x01\n" +
+	"\x10SpliceNegotiated\x12\x1d\n" +
+	"\n" +
+	"channel_id\x18\x01 \x01(\tR\tchannelId\x12&\n" +
+	"\x0fuser_channel_id\x18\x02 \x01(\tR\ruserChannelId\x120\n" +
+	"\x14counterparty_node_id\x18\x03 \x01(\tR\x12counterpartyNodeId\x12&\n" +
+	"\x0fnew_funding_txo\x18\x04 \x01(\tR\rnewFundingTxo\"\x92\x01\n" +
+	"\x17SpliceNegotiationFailed\x12\x1d\n" +
+	"\n" +
+	"channel_id\x18\x01 \x01(\tR\tchannelId\x12&\n" +
+	"\x0fuser_channel_id\x18\x02 \x01(\tR\ruserChannelId\x120\n" +
+	"\x14counterparty_node_id\x18\x03 \x01(\tR\x12counterpartyNodeId\"\x99\x01\n" +
+	"\x0fPaymentReceived\x12\x1d\n" +
+	"\n" +
+	"payment_id\x18\x01 \x01(\tR\tpaymentId\x12(\n" +
+	"\apayment\x18\x02 \x01(\v2\x0e.types.PaymentR\apayment\x12=\n" +
+	"\x0ecustom_records\x18\x03 \x03(\v2\x16.types.CustomTlvRecordR\rcustomRecords\"\xe0\x01\n" +
+	"\x11PaymentSuccessful\x12\x1d\n" +
+	"\n" +
+	"payment_id\x18\x01 \x01(\tR\tpaymentId\x12(\n" +
+	"\apayment\x18\x02 \x01(\v2\x0e.types.PaymentR\apayment\x12.\n" +
+	"\x10payment_preimage\x18\x03 \x01(\tH\x00R\x0fpaymentPreimage\x88\x01\x01\x12*\n" +
+	"\x0ebolt12_invoice\x18\x04 \x01(\tH\x01R\rbolt12Invoice\x88\x01\x01B\x13\n" +
+	"\x11_payment_preimageB\x11\n" +
+	"\x0f_bolt12_invoice\"\x9e\x01\n" +
+	"\rPaymentFailed\x12\x1d\n" +
+	"\n" +
+	"payment_id\x18\x01 \x01(\tR\tpaymentId\x12(\n" +
+	"\apayment\x18\x02 \x01(\v2\x0e.types.PaymentR\apayment\x129\n" +
+	"\x06reason\x18\x03 \x01(\x0e2\x1c.events.PaymentFailureReasonH\x00R\x06reason\x88\x01\x01B\t\n" +
+	"\a_reason\"\x8d\x02\n" +
+	"\x10PaymentClaimable\x12\x1d\n" +
+	"\n" +
+	"payment_id\x18\x01 \x01(\tR\tpaymentId\x12(\n" +
+	"\apayment\x18\x02 \x01(\v2\x0e.types.PaymentR\apayment\x12=\n" +
+	"\x0ecustom_records\x18\x03 \x03(\v2\x16.types.CustomTlvRecordR\rcustomRecords\x12*\n" +
+	"\x0eclaim_deadline\x18\x04 \x01(\rH\x00R\rclaimDeadline\x88\x01\x01\x122\n" +
+	"\x15claimable_amount_msat\x18\x05 \x01(\x04R\x13claimableAmountMsatB\x11\n" +
 	"\x0f_claim_deadline\"X\n" +
 	"\x10PaymentForwarded\x12D\n" +
 	"\x11forwarded_payment\x18\x01 \x01(\v2\x17.types.ForwardedPaymentR\x10forwardedPayment*\x9a\x01\n" +
@@ -1168,7 +1544,20 @@ const file_events_proto_rawDesc = "" +
 	"%CHANNEL_CLOSURE_INITIATOR_UNSPECIFIED\x10\x00\x12#\n" +
 	"\x1fCHANNEL_CLOSURE_INITIATOR_LOCAL\x10\x01\x12$\n" +
 	" CHANNEL_CLOSURE_INITIATOR_REMOTE\x10\x02\x12%\n" +
-	"!CHANNEL_CLOSURE_INITIATOR_UNKNOWN\x10\x03*\x94\b\n" +
+	"!CHANNEL_CLOSURE_INITIATOR_UNKNOWN\x10\x03*\xa3\x04\n" +
+	"\x14PaymentFailureReason\x12&\n" +
+	"\"PAYMENT_FAILURE_REASON_UNSPECIFIED\x10\x00\x12-\n" +
+	")PAYMENT_FAILURE_REASON_RECIPIENT_REJECTED\x10\x01\x12)\n" +
+	"%PAYMENT_FAILURE_REASON_USER_ABANDONED\x10\x02\x12,\n" +
+	"(PAYMENT_FAILURE_REASON_RETRIES_EXHAUSTED\x10\x03\x12*\n" +
+	"&PAYMENT_FAILURE_REASON_PAYMENT_EXPIRED\x10\x04\x12*\n" +
+	"&PAYMENT_FAILURE_REASON_ROUTE_NOT_FOUND\x10\x05\x12+\n" +
+	"'PAYMENT_FAILURE_REASON_UNEXPECTED_ERROR\x10\x06\x124\n" +
+	"0PAYMENT_FAILURE_REASON_UNKNOWN_REQUIRED_FEATURES\x10\a\x122\n" +
+	".PAYMENT_FAILURE_REASON_INVOICE_REQUEST_EXPIRED\x10\b\x123\n" +
+	"/PAYMENT_FAILURE_REASON_INVOICE_REQUEST_REJECTED\x10\t\x127\n" +
+	"3PAYMENT_FAILURE_REASON_BLINDED_PATH_CREATION_FAILED\x10\n" +
+	"*\x94\b\n" +
 	"\x1cChannelStateChangeReasonKind\x120\n" +
 	",CHANNEL_STATE_CHANGE_REASON_KIND_UNSPECIFIED\x10\x00\x12>\n" +
 	":CHANNEL_STATE_CHANGE_REASON_KIND_COUNTERPARTY_FORCE_CLOSED\x10\x01\x128\n" +
@@ -1200,57 +1589,63 @@ func file_events_proto_rawDescGZIP() []byte {
 	return file_events_proto_rawDescData
 }
 
-var file_events_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_events_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_events_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
+var file_events_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_events_proto_goTypes = []any{
 	(ChannelState)(0),                      // 0: events.ChannelState
 	(ChannelClosureInitiator)(0),           // 1: events.ChannelClosureInitiator
-	(ChannelStateChangeReasonKind)(0),      // 2: events.ChannelStateChangeReasonKind
-	(*EventEnvelope)(nil),                  // 3: events.EventEnvelope
-	(*CounterpartyForceClosedDetails)(nil), // 4: events.CounterpartyForceClosedDetails
-	(*HolderForceClosedDetails)(nil),       // 5: events.HolderForceClosedDetails
-	(*ProcessingErrorDetails)(nil),         // 6: events.ProcessingErrorDetails
-	(*HtlcsTimedOutDetails)(nil),           // 7: events.HtlcsTimedOutDetails
-	(*PeerFeerateTooLowDetails)(nil),       // 8: events.PeerFeerateTooLowDetails
-	(*ChannelStateChangeReason)(nil),       // 9: events.ChannelStateChangeReason
-	(*ChannelStateChanged)(nil),            // 10: events.ChannelStateChanged
-	(*PaymentReceived)(nil),                // 11: events.PaymentReceived
-	(*PaymentSuccessful)(nil),              // 12: events.PaymentSuccessful
-	(*PaymentFailed)(nil),                  // 13: events.PaymentFailed
-	(*PaymentClaimable)(nil),               // 14: events.PaymentClaimable
-	(*PaymentForwarded)(nil),               // 15: events.PaymentForwarded
-	(*types.Payment)(nil),                  // 16: types.Payment
-	(*types.CustomTlvRecord)(nil),          // 17: types.CustomTlvRecord
-	(*types.ForwardedPayment)(nil),         // 18: types.ForwardedPayment
+	(PaymentFailureReason)(0),              // 2: events.PaymentFailureReason
+	(ChannelStateChangeReasonKind)(0),      // 3: events.ChannelStateChangeReasonKind
+	(*EventEnvelope)(nil),                  // 4: events.EventEnvelope
+	(*CounterpartyForceClosedDetails)(nil), // 5: events.CounterpartyForceClosedDetails
+	(*HolderForceClosedDetails)(nil),       // 6: events.HolderForceClosedDetails
+	(*ProcessingErrorDetails)(nil),         // 7: events.ProcessingErrorDetails
+	(*HtlcsTimedOutDetails)(nil),           // 8: events.HtlcsTimedOutDetails
+	(*PeerFeerateTooLowDetails)(nil),       // 9: events.PeerFeerateTooLowDetails
+	(*ChannelStateChangeReason)(nil),       // 10: events.ChannelStateChangeReason
+	(*ChannelStateChanged)(nil),            // 11: events.ChannelStateChanged
+	(*SpliceNegotiated)(nil),               // 12: events.SpliceNegotiated
+	(*SpliceNegotiationFailed)(nil),        // 13: events.SpliceNegotiationFailed
+	(*PaymentReceived)(nil),                // 14: events.PaymentReceived
+	(*PaymentSuccessful)(nil),              // 15: events.PaymentSuccessful
+	(*PaymentFailed)(nil),                  // 16: events.PaymentFailed
+	(*PaymentClaimable)(nil),               // 17: events.PaymentClaimable
+	(*PaymentForwarded)(nil),               // 18: events.PaymentForwarded
+	(*types.Payment)(nil),                  // 19: types.Payment
+	(*types.CustomTlvRecord)(nil),          // 20: types.CustomTlvRecord
+	(*types.ForwardedPayment)(nil),         // 21: types.ForwardedPayment
 }
 var file_events_proto_depIdxs = []int32{
-	11, // 0: events.EventEnvelope.payment_received:type_name -> events.PaymentReceived
-	12, // 1: events.EventEnvelope.payment_successful:type_name -> events.PaymentSuccessful
-	13, // 2: events.EventEnvelope.payment_failed:type_name -> events.PaymentFailed
-	15, // 3: events.EventEnvelope.payment_forwarded:type_name -> events.PaymentForwarded
-	14, // 4: events.EventEnvelope.payment_claimable:type_name -> events.PaymentClaimable
-	10, // 5: events.EventEnvelope.channel_state_changed:type_name -> events.ChannelStateChanged
-	2,  // 6: events.ChannelStateChangeReason.kind:type_name -> events.ChannelStateChangeReasonKind
-	4,  // 7: events.ChannelStateChangeReason.counterparty_force_closed:type_name -> events.CounterpartyForceClosedDetails
-	5,  // 8: events.ChannelStateChangeReason.holder_force_closed:type_name -> events.HolderForceClosedDetails
-	6,  // 9: events.ChannelStateChangeReason.processing_error:type_name -> events.ProcessingErrorDetails
-	7,  // 10: events.ChannelStateChangeReason.htlcs_timed_out:type_name -> events.HtlcsTimedOutDetails
-	8,  // 11: events.ChannelStateChangeReason.peer_feerate_too_low:type_name -> events.PeerFeerateTooLowDetails
-	0,  // 12: events.ChannelStateChanged.state:type_name -> events.ChannelState
-	9,  // 13: events.ChannelStateChanged.reason:type_name -> events.ChannelStateChangeReason
-	1,  // 14: events.ChannelStateChanged.closure_initiator:type_name -> events.ChannelClosureInitiator
-	16, // 15: events.PaymentReceived.payment:type_name -> types.Payment
-	17, // 16: events.PaymentReceived.custom_records:type_name -> types.CustomTlvRecord
-	16, // 17: events.PaymentSuccessful.payment:type_name -> types.Payment
-	16, // 18: events.PaymentFailed.payment:type_name -> types.Payment
-	16, // 19: events.PaymentClaimable.payment:type_name -> types.Payment
-	17, // 20: events.PaymentClaimable.custom_records:type_name -> types.CustomTlvRecord
-	18, // 21: events.PaymentForwarded.forwarded_payment:type_name -> types.ForwardedPayment
-	22, // [22:22] is the sub-list for method output_type
-	22, // [22:22] is the sub-list for method input_type
-	22, // [22:22] is the sub-list for extension type_name
-	22, // [22:22] is the sub-list for extension extendee
-	0,  // [0:22] is the sub-list for field type_name
+	14, // 0: events.EventEnvelope.payment_received:type_name -> events.PaymentReceived
+	15, // 1: events.EventEnvelope.payment_successful:type_name -> events.PaymentSuccessful
+	16, // 2: events.EventEnvelope.payment_failed:type_name -> events.PaymentFailed
+	18, // 3: events.EventEnvelope.payment_forwarded:type_name -> events.PaymentForwarded
+	17, // 4: events.EventEnvelope.payment_claimable:type_name -> events.PaymentClaimable
+	11, // 5: events.EventEnvelope.channel_state_changed:type_name -> events.ChannelStateChanged
+	12, // 6: events.EventEnvelope.splice_negotiated:type_name -> events.SpliceNegotiated
+	13, // 7: events.EventEnvelope.splice_negotiation_failed:type_name -> events.SpliceNegotiationFailed
+	3,  // 8: events.ChannelStateChangeReason.kind:type_name -> events.ChannelStateChangeReasonKind
+	5,  // 9: events.ChannelStateChangeReason.counterparty_force_closed:type_name -> events.CounterpartyForceClosedDetails
+	6,  // 10: events.ChannelStateChangeReason.holder_force_closed:type_name -> events.HolderForceClosedDetails
+	7,  // 11: events.ChannelStateChangeReason.processing_error:type_name -> events.ProcessingErrorDetails
+	8,  // 12: events.ChannelStateChangeReason.htlcs_timed_out:type_name -> events.HtlcsTimedOutDetails
+	9,  // 13: events.ChannelStateChangeReason.peer_feerate_too_low:type_name -> events.PeerFeerateTooLowDetails
+	0,  // 14: events.ChannelStateChanged.state:type_name -> events.ChannelState
+	10, // 15: events.ChannelStateChanged.reason:type_name -> events.ChannelStateChangeReason
+	1,  // 16: events.ChannelStateChanged.closure_initiator:type_name -> events.ChannelClosureInitiator
+	19, // 17: events.PaymentReceived.payment:type_name -> types.Payment
+	20, // 18: events.PaymentReceived.custom_records:type_name -> types.CustomTlvRecord
+	19, // 19: events.PaymentSuccessful.payment:type_name -> types.Payment
+	19, // 20: events.PaymentFailed.payment:type_name -> types.Payment
+	2,  // 21: events.PaymentFailed.reason:type_name -> events.PaymentFailureReason
+	19, // 22: events.PaymentClaimable.payment:type_name -> types.Payment
+	20, // 23: events.PaymentClaimable.custom_records:type_name -> types.CustomTlvRecord
+	21, // 24: events.PaymentForwarded.forwarded_payment:type_name -> types.ForwardedPayment
+	25, // [25:25] is the sub-list for method output_type
+	25, // [25:25] is the sub-list for method input_type
+	25, // [25:25] is the sub-list for extension type_name
+	25, // [25:25] is the sub-list for extension extendee
+	0,  // [0:25] is the sub-list for field type_name
 }
 
 func init() { file_events_proto_init() }
@@ -1265,6 +1660,8 @@ func file_events_proto_init() {
 		(*EventEnvelope_PaymentForwarded)(nil),
 		(*EventEnvelope_PaymentClaimable)(nil),
 		(*EventEnvelope_ChannelStateChanged)(nil),
+		(*EventEnvelope_SpliceNegotiated)(nil),
+		(*EventEnvelope_SpliceNegotiationFailed)(nil),
 	}
 	file_events_proto_msgTypes[2].OneofWrappers = []any{}
 	file_events_proto_msgTypes[4].OneofWrappers = []any{}
@@ -1277,13 +1674,15 @@ func file_events_proto_init() {
 	}
 	file_events_proto_msgTypes[7].OneofWrappers = []any{}
 	file_events_proto_msgTypes[11].OneofWrappers = []any{}
+	file_events_proto_msgTypes[12].OneofWrappers = []any{}
+	file_events_proto_msgTypes[13].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_events_proto_rawDesc), len(file_events_proto_rawDesc)),
-			NumEnums:      3,
-			NumMessages:   13,
+			NumEnums:      4,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

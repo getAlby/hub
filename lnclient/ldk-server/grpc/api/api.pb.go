@@ -113,9 +113,17 @@ type GetNodeInfoResponse struct {
 	// Will be empty if no announcement addresses are configured.
 	NodeUris []string `protobuf:"bytes,12,rep,name=node_uris,json=nodeUris,proto3" json:"node_uris,omitempty"`
 	// The Bitcoin network the node is running on (e.g., "bitcoin", "testnet", "signet", "regtest").
-	Network       types.Network `protobuf:"varint,13,opt,name=network,proto3,enum=types.Network" json:"network,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Network types.Network `protobuf:"varint,13,opt,name=network,proto3,enum=types.Network" json:"network,omitempty"`
+	// Features advertised by this node, keyed by the signaled BOLT feature bit.
+	Features map[uint32]*types.Feature `protobuf:"bytes,14,rep,name=features,proto3" json:"features,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// The timestamp, in seconds since start of the UNIX epoch, when we last successfully merged
+	// external pathfinding scores.
+	//
+	// Will be `None` if background pathfinding score syncing isn't configured, or no scores have
+	// been merged since the node was initialized.
+	LatestPathfindingScoresSyncTimestamp *uint64 `protobuf:"varint,15,opt,name=latest_pathfinding_scores_sync_timestamp,json=latestPathfindingScoresSyncTimestamp,proto3,oneof" json:"latest_pathfinding_scores_sync_timestamp,omitempty"`
+	unknownFields                        protoimpl.UnknownFields
+	sizeCache                            protoimpl.SizeCache
 }
 
 func (x *GetNodeInfoResponse) Reset() {
@@ -232,6 +240,20 @@ func (x *GetNodeInfoResponse) GetNetwork() types.Network {
 	return types.Network(0)
 }
 
+func (x *GetNodeInfoResponse) GetFeatures() map[uint32]*types.Feature {
+	if x != nil {
+		return x.Features
+	}
+	return nil
+}
+
+func (x *GetNodeInfoResponse) GetLatestPathfindingScoresSyncTimestamp() uint64 {
+	if x != nil && x.LatestPathfindingScoresSyncTimestamp != nil {
+		return *x.LatestPathfindingScoresSyncTimestamp
+	}
+	return 0
+}
+
 // Retrieve a new on-chain funding address.
 // See more: https://docs.rs/ldk-node/latest/ldk_node/payment/struct.OnchainPayment.html#method.new_address
 type OnchainReceiveRequest struct {
@@ -317,23 +339,18 @@ func (x *OnchainReceiveResponse) GetAddress() string {
 }
 
 // Send an on-chain payment to the given address.
+// See more: https://docs.rs/ldk-node/latest/ldk_node/payment/struct.OnchainPayment.html#method.send_to_address
 type OnchainSendRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The address to send coins to.
 	Address string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
-	// The amount in satoshis to send.
-	// While sending the specified amount, we will respect any on-chain reserve we need to keep,
-	// i.e., won't allow to cut into `total_anchor_channels_reserve_sats`.
-	// See more: https://docs.rs/ldk-node/latest/ldk_node/payment/struct.OnchainPayment.html#method.send_to_address
-	AmountSats *uint64 `protobuf:"varint,2,opt,name=amount_sats,json=amountSats,proto3,oneof" json:"amount_sats,omitempty"`
-	// If set, the amount_sats field should be unset.
-	// It indicates that node will send full balance to the specified address.
+	// Required. The amount to send.
 	//
-	// Please note that when send_all is used this operation will **not** retain any on-chain reserves,
-	// which might be potentially dangerous if you have open Anchor channels for which you can't trust
-	// the counterparty to spend the Anchor output after channel closure.
-	// See more: https://docs.rs/ldk-node/latest/ldk_node/payment/struct.OnchainPayment.html#method.send_all_to_address
-	SendAll *bool `protobuf:"varint,3,opt,name=send_all,json=sendAll,proto3,oneof" json:"send_all,omitempty"`
+	// Types that are valid to be assigned to Amount:
+	//
+	//	*OnchainSendRequest_AmountSats
+	//	*OnchainSendRequest_AllFunds
+	Amount isOnchainSendRequest_Amount `protobuf_oneof:"amount"`
 	// If `fee_rate_sat_per_vb` is set it will be used on the resulting transaction. Otherwise we'll retrieve
 	// a reasonable estimate from BitcoinD.
 	FeeRateSatPerVb *uint64 `protobuf:"varint,4,opt,name=fee_rate_sat_per_vb,json=feeRateSatPerVb,proto3,oneof" json:"fee_rate_sat_per_vb,omitempty"`
@@ -378,18 +395,29 @@ func (x *OnchainSendRequest) GetAddress() string {
 	return ""
 }
 
+func (x *OnchainSendRequest) GetAmount() isOnchainSendRequest_Amount {
+	if x != nil {
+		return x.Amount
+	}
+	return nil
+}
+
 func (x *OnchainSendRequest) GetAmountSats() uint64 {
-	if x != nil && x.AmountSats != nil {
-		return *x.AmountSats
+	if x != nil {
+		if x, ok := x.Amount.(*OnchainSendRequest_AmountSats); ok {
+			return x.AmountSats
+		}
 	}
 	return 0
 }
 
-func (x *OnchainSendRequest) GetSendAll() bool {
-	if x != nil && x.SendAll != nil {
-		return *x.SendAll
+func (x *OnchainSendRequest) GetAllFunds() *AllFunds {
+	if x != nil {
+		if x, ok := x.Amount.(*OnchainSendRequest_AllFunds); ok {
+			return x.AllFunds
+		}
 	}
-	return false
+	return nil
 }
 
 func (x *OnchainSendRequest) GetFeeRateSatPerVb() uint64 {
@@ -398,6 +426,24 @@ func (x *OnchainSendRequest) GetFeeRateSatPerVb() uint64 {
 	}
 	return 0
 }
+
+type isOnchainSendRequest_Amount interface {
+	isOnchainSendRequest_Amount()
+}
+
+type OnchainSendRequest_AmountSats struct {
+	// Send the given amount of satoshis while retaining any required Anchor channel reserves.
+	AmountSats uint64 `protobuf:"varint,2,opt,name=amount_sats,json=amountSats,proto3,oneof"`
+}
+
+type OnchainSendRequest_AllFunds struct {
+	// Send all available on-chain funds, minus fees and any required Anchor channel reserves.
+	AllFunds *AllFunds `protobuf:"bytes,3,opt,name=all_funds,json=allFunds,proto3,oneof"`
+}
+
+func (*OnchainSendRequest_AmountSats) isOnchainSendRequest_Amount() {}
+
+func (*OnchainSendRequest_AllFunds) isOnchainSendRequest_Amount() {}
 
 // The response for the `OnchainSend` RPC. On failure, a gRPC error status is returned.
 type OnchainSendResponse struct {
@@ -583,8 +629,8 @@ func (x *Bolt11ReceiveResponse) GetPaymentSecret() string {
 
 // Return a BOLT11 payable invoice for a given payment hash.
 // The inbound payment will NOT be automatically claimed upon arrival.
-// Instead, the payment will need to be manually claimed by calling `Bolt11ClaimForHash`
-// or manually failed by calling `Bolt11FailForHash`.
+// Instead, the payment will need to be manually claimed by calling `Bolt11ClaimForId`
+// or manually failed by calling `Bolt11FailForId`.
 // See more:
 // - https://docs.rs/ldk-node/latest/ldk_node/payment/struct.Bolt11Payment.html#method.receive_for_hash
 // - https://docs.rs/ldk-node/latest/ldk_node/payment/struct.Bolt11Payment.html#method.receive_variable_amount_for_hash
@@ -598,6 +644,7 @@ type Bolt11ReceiveForHashRequest struct {
 	// Invoice expiry time in seconds.
 	ExpirySecs uint32 `protobuf:"varint,3,opt,name=expiry_secs,json=expirySecs,proto3" json:"expiry_secs,omitempty"`
 	// The hex-encoded 32-byte payment hash to use for the invoice.
+	// Use a new payment hash for each invoice. Reuse is unsafe and can cause loss of funds.
 	PaymentHash   string `protobuf:"bytes,4,opt,name=payment_hash,json=paymentHash,proto3" json:"payment_hash,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -709,16 +756,18 @@ func (x *Bolt11ReceiveForHashResponse) GetInvoice() string {
 	return ""
 }
 
-// Manually claim a payment for a given payment hash with the corresponding preimage.
+// Manually claim a payment for a given payment ID with the corresponding preimage.
 // This should be used to claim payments created via `Bolt11ReceiveForHash`.
-// See more: https://docs.rs/ldk-node/latest/ldk_node/payment/struct.Bolt11Payment.html#method.claim_for_hash
-type Bolt11ClaimForHashRequest struct {
+// See more: https://docs.rs/ldk-node/latest/ldk_node/payment/struct.Bolt11Payment.html#method.claim_for_id
+type Bolt11ClaimForIdRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The hex-encoded 32-byte payment hash.
-	// If provided, it will be used to verify that the preimage matches.
-	PaymentHash *string `protobuf:"bytes,1,opt,name=payment_hash,json=paymentHash,proto3,oneof" json:"payment_hash,omitempty"`
-	// The amount in millisatoshi that is claimable.
-	// If not provided, skips amount verification.
+	// The hex-encoded 32-byte payment ID from `PaymentClaimable`.
+	PaymentId string `protobuf:"bytes,1,opt,name=payment_id,json=paymentId,proto3" json:"payment_id,omitempty"`
+	// The claimable amount in millisatoshis from the PaymentClaimable event.
+	// LDK Node rejects a value below its stored payment amount, less any skimmed fee.
+	// A larger value passes this check. This is not an exact amount check or a request
+	// to claim that many millisatoshis. Validate the event's amount before claiming.
+	// If not provided, skips this amount check.
 	ClaimableAmountMsat *uint64 `protobuf:"varint,2,opt,name=claimable_amount_msat,json=claimableAmountMsat,proto3,oneof" json:"claimable_amount_msat,omitempty"`
 	// The hex-encoded 32-byte payment preimage.
 	Preimage      string `protobuf:"bytes,3,opt,name=preimage,proto3" json:"preimage,omitempty"`
@@ -726,20 +775,20 @@ type Bolt11ClaimForHashRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *Bolt11ClaimForHashRequest) Reset() {
-	*x = Bolt11ClaimForHashRequest{}
+func (x *Bolt11ClaimForIdRequest) Reset() {
+	*x = Bolt11ClaimForIdRequest{}
 	mi := &file_api_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *Bolt11ClaimForHashRequest) String() string {
+func (x *Bolt11ClaimForIdRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Bolt11ClaimForHashRequest) ProtoMessage() {}
+func (*Bolt11ClaimForIdRequest) ProtoMessage() {}
 
-func (x *Bolt11ClaimForHashRequest) ProtoReflect() protoreflect.Message {
+func (x *Bolt11ClaimForIdRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_api_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -751,53 +800,53 @@ func (x *Bolt11ClaimForHashRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Bolt11ClaimForHashRequest.ProtoReflect.Descriptor instead.
-func (*Bolt11ClaimForHashRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use Bolt11ClaimForIdRequest.ProtoReflect.Descriptor instead.
+func (*Bolt11ClaimForIdRequest) Descriptor() ([]byte, []int) {
 	return file_api_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *Bolt11ClaimForHashRequest) GetPaymentHash() string {
-	if x != nil && x.PaymentHash != nil {
-		return *x.PaymentHash
+func (x *Bolt11ClaimForIdRequest) GetPaymentId() string {
+	if x != nil {
+		return x.PaymentId
 	}
 	return ""
 }
 
-func (x *Bolt11ClaimForHashRequest) GetClaimableAmountMsat() uint64 {
+func (x *Bolt11ClaimForIdRequest) GetClaimableAmountMsat() uint64 {
 	if x != nil && x.ClaimableAmountMsat != nil {
 		return *x.ClaimableAmountMsat
 	}
 	return 0
 }
 
-func (x *Bolt11ClaimForHashRequest) GetPreimage() string {
+func (x *Bolt11ClaimForIdRequest) GetPreimage() string {
 	if x != nil {
 		return x.Preimage
 	}
 	return ""
 }
 
-// The response for the `Bolt11ClaimForHash` RPC. On failure, a gRPC error status is returned.
-type Bolt11ClaimForHashResponse struct {
+// The response for the `Bolt11ClaimForId` RPC. On failure, a gRPC error status is returned.
+type Bolt11ClaimForIdResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *Bolt11ClaimForHashResponse) Reset() {
-	*x = Bolt11ClaimForHashResponse{}
+func (x *Bolt11ClaimForIdResponse) Reset() {
+	*x = Bolt11ClaimForIdResponse{}
 	mi := &file_api_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *Bolt11ClaimForHashResponse) String() string {
+func (x *Bolt11ClaimForIdResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Bolt11ClaimForHashResponse) ProtoMessage() {}
+func (*Bolt11ClaimForIdResponse) ProtoMessage() {}
 
-func (x *Bolt11ClaimForHashResponse) ProtoReflect() protoreflect.Message {
+func (x *Bolt11ClaimForIdResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_api_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -809,36 +858,36 @@ func (x *Bolt11ClaimForHashResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Bolt11ClaimForHashResponse.ProtoReflect.Descriptor instead.
-func (*Bolt11ClaimForHashResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use Bolt11ClaimForIdResponse.ProtoReflect.Descriptor instead.
+func (*Bolt11ClaimForIdResponse) Descriptor() ([]byte, []int) {
 	return file_api_proto_rawDescGZIP(), []int{11}
 }
 
-// Manually fail a payment for a given payment hash.
+// Manually fail a payment for a given payment ID.
 // This should be used to reject payments created via `Bolt11ReceiveForHash`.
-// See more: https://docs.rs/ldk-node/latest/ldk_node/payment/struct.Bolt11Payment.html#method.fail_for_hash
-type Bolt11FailForHashRequest struct {
+// See more: https://docs.rs/ldk-node/latest/ldk_node/payment/struct.Bolt11Payment.html#method.fail_for_id
+type Bolt11FailForIdRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The hex-encoded 32-byte payment hash.
-	PaymentHash   string `protobuf:"bytes,1,opt,name=payment_hash,json=paymentHash,proto3" json:"payment_hash,omitempty"`
+	// The hex-encoded 32-byte payment ID from `PaymentClaimable`.
+	PaymentId     string `protobuf:"bytes,1,opt,name=payment_id,json=paymentId,proto3" json:"payment_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *Bolt11FailForHashRequest) Reset() {
-	*x = Bolt11FailForHashRequest{}
+func (x *Bolt11FailForIdRequest) Reset() {
+	*x = Bolt11FailForIdRequest{}
 	mi := &file_api_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *Bolt11FailForHashRequest) String() string {
+func (x *Bolt11FailForIdRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Bolt11FailForHashRequest) ProtoMessage() {}
+func (*Bolt11FailForIdRequest) ProtoMessage() {}
 
-func (x *Bolt11FailForHashRequest) ProtoReflect() protoreflect.Message {
+func (x *Bolt11FailForIdRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_api_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -850,39 +899,39 @@ func (x *Bolt11FailForHashRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Bolt11FailForHashRequest.ProtoReflect.Descriptor instead.
-func (*Bolt11FailForHashRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use Bolt11FailForIdRequest.ProtoReflect.Descriptor instead.
+func (*Bolt11FailForIdRequest) Descriptor() ([]byte, []int) {
 	return file_api_proto_rawDescGZIP(), []int{12}
 }
 
-func (x *Bolt11FailForHashRequest) GetPaymentHash() string {
+func (x *Bolt11FailForIdRequest) GetPaymentId() string {
 	if x != nil {
-		return x.PaymentHash
+		return x.PaymentId
 	}
 	return ""
 }
 
-// The response for the `Bolt11FailForHash` RPC. On failure, a gRPC error status is returned.
-type Bolt11FailForHashResponse struct {
+// The response for the `Bolt11FailForId` RPC. On failure, a gRPC error status is returned.
+type Bolt11FailForIdResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *Bolt11FailForHashResponse) Reset() {
-	*x = Bolt11FailForHashResponse{}
+func (x *Bolt11FailForIdResponse) Reset() {
+	*x = Bolt11FailForIdResponse{}
 	mi := &file_api_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *Bolt11FailForHashResponse) String() string {
+func (x *Bolt11FailForIdResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Bolt11FailForHashResponse) ProtoMessage() {}
+func (*Bolt11FailForIdResponse) ProtoMessage() {}
 
-func (x *Bolt11FailForHashResponse) ProtoReflect() protoreflect.Message {
+func (x *Bolt11FailForIdResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_api_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -894,8 +943,8 @@ func (x *Bolt11FailForHashResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Bolt11FailForHashResponse.ProtoReflect.Descriptor instead.
-func (*Bolt11FailForHashResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use Bolt11FailForIdResponse.ProtoReflect.Descriptor instead.
+func (*Bolt11FailForIdResponse) Descriptor() ([]byte, []int) {
 	return file_api_proto_rawDescGZIP(), []int{13}
 }
 
@@ -1248,6 +1297,119 @@ func (x *Bolt11SendResponse) GetPaymentId() string {
 	return ""
 }
 
+// Send part of the amount for a fixed-amount BOLT11 invoice.
+// Other nodes must send partial payments for the same invoice until the combined amount equals the invoice amount.
+// Without those payments, the receiver holds the incomplete MPP payment and eventually fails it.
+// See more: https://docs.rs/ldk-node/latest/ldk_node/payment/struct.Bolt11Payment.html#method.send_using_amount_underpaying
+type Bolt11SendUnderpayingRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// A fixed-amount BOLT11 invoice for a payment within the Lightning Network.
+	Invoice string `protobuf:"bytes,1,opt,name=invoice,proto3" json:"invoice,omitempty"`
+	// Amount in millisatoshis from this payer. Must be less than the amount required by the invoice.
+	AmountMsat uint64 `protobuf:"varint,2,opt,name=amount_msat,json=amountMsat,proto3" json:"amount_msat,omitempty"`
+	// Configuration options for payment routing and pathfinding.
+	RouteParameters *types.RouteParametersConfig `protobuf:"bytes,3,opt,name=route_parameters,json=routeParameters,proto3,oneof" json:"route_parameters,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *Bolt11SendUnderpayingRequest) Reset() {
+	*x = Bolt11SendUnderpayingRequest{}
+	mi := &file_api_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Bolt11SendUnderpayingRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Bolt11SendUnderpayingRequest) ProtoMessage() {}
+
+func (x *Bolt11SendUnderpayingRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Bolt11SendUnderpayingRequest.ProtoReflect.Descriptor instead.
+func (*Bolt11SendUnderpayingRequest) Descriptor() ([]byte, []int) {
+	return file_api_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *Bolt11SendUnderpayingRequest) GetInvoice() string {
+	if x != nil {
+		return x.Invoice
+	}
+	return ""
+}
+
+func (x *Bolt11SendUnderpayingRequest) GetAmountMsat() uint64 {
+	if x != nil {
+		return x.AmountMsat
+	}
+	return 0
+}
+
+func (x *Bolt11SendUnderpayingRequest) GetRouteParameters() *types.RouteParametersConfig {
+	if x != nil {
+		return x.RouteParameters
+	}
+	return nil
+}
+
+// The response for the `Bolt11SendUnderpaying` RPC. On failure, a gRPC error status is returned.
+type Bolt11SendUnderpayingResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// An identifier used to uniquely identify a payment in hex-encoded form.
+	PaymentId     string `protobuf:"bytes,1,opt,name=payment_id,json=paymentId,proto3" json:"payment_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Bolt11SendUnderpayingResponse) Reset() {
+	*x = Bolt11SendUnderpayingResponse{}
+	mi := &file_api_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Bolt11SendUnderpayingResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Bolt11SendUnderpayingResponse) ProtoMessage() {}
+
+func (x *Bolt11SendUnderpayingResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Bolt11SendUnderpayingResponse.ProtoReflect.Descriptor instead.
+func (*Bolt11SendUnderpayingResponse) Descriptor() ([]byte, []int) {
+	return file_api_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *Bolt11SendUnderpayingResponse) GetPaymentId() string {
+	if x != nil {
+		return x.PaymentId
+	}
+	return ""
+}
+
 // Returns a BOLT12 offer for the given amount, if specified.
 //
 // See more:
@@ -1270,7 +1432,7 @@ type Bolt12ReceiveRequest struct {
 
 func (x *Bolt12ReceiveRequest) Reset() {
 	*x = Bolt12ReceiveRequest{}
-	mi := &file_api_proto_msgTypes[20]
+	mi := &file_api_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1282,7 +1444,7 @@ func (x *Bolt12ReceiveRequest) String() string {
 func (*Bolt12ReceiveRequest) ProtoMessage() {}
 
 func (x *Bolt12ReceiveRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[20]
+	mi := &file_api_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1295,7 +1457,7 @@ func (x *Bolt12ReceiveRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Bolt12ReceiveRequest.ProtoReflect.Descriptor instead.
 func (*Bolt12ReceiveRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{20}
+	return file_api_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *Bolt12ReceiveRequest) GetDescription() string {
@@ -1341,7 +1503,7 @@ type Bolt12ReceiveResponse struct {
 
 func (x *Bolt12ReceiveResponse) Reset() {
 	*x = Bolt12ReceiveResponse{}
-	mi := &file_api_proto_msgTypes[21]
+	mi := &file_api_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1353,7 +1515,7 @@ func (x *Bolt12ReceiveResponse) String() string {
 func (*Bolt12ReceiveResponse) ProtoMessage() {}
 
 func (x *Bolt12ReceiveResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[21]
+	mi := &file_api_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1366,7 +1528,7 @@ func (x *Bolt12ReceiveResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Bolt12ReceiveResponse.ProtoReflect.Descriptor instead.
 func (*Bolt12ReceiveResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{21}
+	return file_api_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *Bolt12ReceiveResponse) GetOffer() string {
@@ -1407,7 +1569,7 @@ type Bolt12SendRequest struct {
 
 func (x *Bolt12SendRequest) Reset() {
 	*x = Bolt12SendRequest{}
-	mi := &file_api_proto_msgTypes[22]
+	mi := &file_api_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1419,7 +1581,7 @@ func (x *Bolt12SendRequest) String() string {
 func (*Bolt12SendRequest) ProtoMessage() {}
 
 func (x *Bolt12SendRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[22]
+	mi := &file_api_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1432,7 +1594,7 @@ func (x *Bolt12SendRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Bolt12SendRequest.ProtoReflect.Descriptor instead.
 func (*Bolt12SendRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{22}
+	return file_api_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *Bolt12SendRequest) GetOffer() string {
@@ -1481,7 +1643,7 @@ type Bolt12SendResponse struct {
 
 func (x *Bolt12SendResponse) Reset() {
 	*x = Bolt12SendResponse{}
-	mi := &file_api_proto_msgTypes[23]
+	mi := &file_api_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1493,7 +1655,7 @@ func (x *Bolt12SendResponse) String() string {
 func (*Bolt12SendResponse) ProtoMessage() {}
 
 func (x *Bolt12SendResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[23]
+	mi := &file_api_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1506,12 +1668,359 @@ func (x *Bolt12SendResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Bolt12SendResponse.ProtoReflect.Descriptor instead.
 func (*Bolt12SendResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{23}
+	return file_api_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *Bolt12SendResponse) GetPaymentId() string {
 	if x != nil {
 		return x.PaymentId
+	}
+	return ""
+}
+
+// Returns a BOLT12 refund for the given amount. The refund recipient can use it to request
+// payment from this node.
+// See more:
+// - https://docs.rs/ldk-node/latest/ldk_node/payment/struct.Bolt12Payment.html#method.initiate_refund
+type Bolt12SendRefundRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The amount in millisatoshis to refund.
+	AmountMsat uint64 `protobuf:"varint,1,opt,name=amount_msat,json=amountMsat,proto3" json:"amount_msat,omitempty"`
+	// Refund expiry time in seconds. A value of zero is rejected.
+	ExpirySecs uint32 `protobuf:"varint,2,opt,name=expiry_secs,json=expirySecs,proto3" json:"expiry_secs,omitempty"`
+	// If set, it represents the number of items being refunded.
+	Quantity *uint64 `protobuf:"varint,3,opt,name=quantity,proto3,oneof" json:"quantity,omitempty"`
+	// If set, it will be seen by the recipient and reflected back in the invoice.
+	PayerNote *string `protobuf:"bytes,4,opt,name=payer_note,json=payerNote,proto3,oneof" json:"payer_note,omitempty"`
+	// Configuration options for payment routing and pathfinding.
+	RouteParameters *types.RouteParametersConfig `protobuf:"bytes,5,opt,name=route_parameters,json=routeParameters,proto3,oneof" json:"route_parameters,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *Bolt12SendRefundRequest) Reset() {
+	*x = Bolt12SendRefundRequest{}
+	mi := &file_api_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Bolt12SendRefundRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Bolt12SendRefundRequest) ProtoMessage() {}
+
+func (x *Bolt12SendRefundRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Bolt12SendRefundRequest.ProtoReflect.Descriptor instead.
+func (*Bolt12SendRefundRequest) Descriptor() ([]byte, []int) {
+	return file_api_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *Bolt12SendRefundRequest) GetAmountMsat() uint64 {
+	if x != nil {
+		return x.AmountMsat
+	}
+	return 0
+}
+
+func (x *Bolt12SendRefundRequest) GetExpirySecs() uint32 {
+	if x != nil {
+		return x.ExpirySecs
+	}
+	return 0
+}
+
+func (x *Bolt12SendRefundRequest) GetQuantity() uint64 {
+	if x != nil && x.Quantity != nil {
+		return *x.Quantity
+	}
+	return 0
+}
+
+func (x *Bolt12SendRefundRequest) GetPayerNote() string {
+	if x != nil && x.PayerNote != nil {
+		return *x.PayerNote
+	}
+	return ""
+}
+
+func (x *Bolt12SendRefundRequest) GetRouteParameters() *types.RouteParametersConfig {
+	if x != nil {
+		return x.RouteParameters
+	}
+	return nil
+}
+
+// The response for the `Bolt12SendRefund` RPC. On failure, a gRPC error status is returned.
+type Bolt12SendRefundResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// A BOLT12 refund that the recipient can use to request the refund payment.
+	Refund        string `protobuf:"bytes,1,opt,name=refund,proto3" json:"refund,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Bolt12SendRefundResponse) Reset() {
+	*x = Bolt12SendRefundResponse{}
+	mi := &file_api_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Bolt12SendRefundResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Bolt12SendRefundResponse) ProtoMessage() {}
+
+func (x *Bolt12SendRefundResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Bolt12SendRefundResponse.ProtoReflect.Descriptor instead.
+func (*Bolt12SendRefundResponse) Descriptor() ([]byte, []int) {
+	return file_api_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *Bolt12SendRefundResponse) GetRefund() string {
+	if x != nil {
+		return x.Refund
+	}
+	return ""
+}
+
+// Requests payment for a BOLT12 refund from another node.
+// See more:
+// - https://docs.rs/ldk-node/latest/ldk_node/payment/struct.Bolt12Payment.html#method.request_refund_payment
+type Bolt12ReceiveRefundRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// A BOLT12 refund from the node that will send the payment.
+	Refund        string `protobuf:"bytes,1,opt,name=refund,proto3" json:"refund,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Bolt12ReceiveRefundRequest) Reset() {
+	*x = Bolt12ReceiveRefundRequest{}
+	mi := &file_api_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Bolt12ReceiveRefundRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Bolt12ReceiveRefundRequest) ProtoMessage() {}
+
+func (x *Bolt12ReceiveRefundRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Bolt12ReceiveRefundRequest.ProtoReflect.Descriptor instead.
+func (*Bolt12ReceiveRefundRequest) Descriptor() ([]byte, []int) {
+	return file_api_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *Bolt12ReceiveRefundRequest) GetRefund() string {
+	if x != nil {
+		return x.Refund
+	}
+	return ""
+}
+
+// The response for the `Bolt12ReceiveRefund` RPC. On failure, a gRPC error status is returned.
+type Bolt12ReceiveRefundResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The payment hash for the incoming refund payment in hex-encoded form.
+	PaymentHash   string `protobuf:"bytes,1,opt,name=payment_hash,json=paymentHash,proto3" json:"payment_hash,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Bolt12ReceiveRefundResponse) Reset() {
+	*x = Bolt12ReceiveRefundResponse{}
+	mi := &file_api_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Bolt12ReceiveRefundResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Bolt12ReceiveRefundResponse) ProtoMessage() {}
+
+func (x *Bolt12ReceiveRefundResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Bolt12ReceiveRefundResponse.ProtoReflect.Descriptor instead.
+func (*Bolt12ReceiveRefundResponse) Descriptor() ([]byte, []int) {
+	return file_api_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *Bolt12ReceiveRefundResponse) GetPaymentHash() string {
+	if x != nil {
+		return x.PaymentHash
+	}
+	return ""
+}
+
+// Create a BOLT 12 payer proof for a payment this node made.
+// Inputs come from `PaymentSuccessful`: `payment_id`, `payment_preimage`, and `bolt12_invoice`.
+// See more: https://docs.rs/ldk-node/latest/ldk_node/payment/struct.Bolt12Payment.html#method.create_payer_proof
+type Bolt12CreatePayerProofRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The local identifier used to track the payment, in hex-encoded form.
+	PaymentId string `protobuf:"bytes,1,opt,name=payment_id,json=paymentId,proto3" json:"payment_id,omitempty"`
+	// The hex-encoded 32-byte payment preimage from `PaymentSuccessful`.
+	PaymentPreimage string `protobuf:"bytes,2,opt,name=payment_preimage,json=paymentPreimage,proto3" json:"payment_preimage,omitempty"`
+	// The hex-encoded BOLT 12 invoice from `PaymentSuccessful.bolt12_invoice`.
+	// Static invoices used for async payments cannot be proven.
+	Invoice string `protobuf:"bytes,3,opt,name=invoice,proto3" json:"invoice,omitempty"`
+	// Controls which optional invoice fields the proof discloses.
+	Options       *types.PayerProofOptions `protobuf:"bytes,4,opt,name=options,proto3,oneof" json:"options,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Bolt12CreatePayerProofRequest) Reset() {
+	*x = Bolt12CreatePayerProofRequest{}
+	mi := &file_api_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Bolt12CreatePayerProofRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Bolt12CreatePayerProofRequest) ProtoMessage() {}
+
+func (x *Bolt12CreatePayerProofRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Bolt12CreatePayerProofRequest.ProtoReflect.Descriptor instead.
+func (*Bolt12CreatePayerProofRequest) Descriptor() ([]byte, []int) {
+	return file_api_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *Bolt12CreatePayerProofRequest) GetPaymentId() string {
+	if x != nil {
+		return x.PaymentId
+	}
+	return ""
+}
+
+func (x *Bolt12CreatePayerProofRequest) GetPaymentPreimage() string {
+	if x != nil {
+		return x.PaymentPreimage
+	}
+	return ""
+}
+
+func (x *Bolt12CreatePayerProofRequest) GetInvoice() string {
+	if x != nil {
+		return x.Invoice
+	}
+	return ""
+}
+
+func (x *Bolt12CreatePayerProofRequest) GetOptions() *types.PayerProofOptions {
+	if x != nil {
+		return x.Options
+	}
+	return nil
+}
+
+// The response for the `Bolt12CreatePayerProof` RPC. On failure, a gRPC error status is returned.
+type Bolt12CreatePayerProofResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The bech32-encoded payer proof.
+	PayerProof    string `protobuf:"bytes,1,opt,name=payer_proof,json=payerProof,proto3" json:"payer_proof,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Bolt12CreatePayerProofResponse) Reset() {
+	*x = Bolt12CreatePayerProofResponse{}
+	mi := &file_api_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Bolt12CreatePayerProofResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Bolt12CreatePayerProofResponse) ProtoMessage() {}
+
+func (x *Bolt12CreatePayerProofResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Bolt12CreatePayerProofResponse.ProtoReflect.Descriptor instead.
+func (*Bolt12CreatePayerProofResponse) Descriptor() ([]byte, []int) {
+	return file_api_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *Bolt12CreatePayerProofResponse) GetPayerProof() string {
+	if x != nil {
+		return x.PayerProof
 	}
 	return ""
 }
@@ -1527,14 +2036,17 @@ type SpontaneousSendRequest struct {
 	// Configuration options for payment routing and pathfinding.
 	RouteParameters *types.RouteParametersConfig `protobuf:"bytes,3,opt,name=route_parameters,json=routeParameters,proto3,oneof" json:"route_parameters,omitempty"`
 	// Custom TLV records to attach to the outgoing payment.
-	CustomTlvs    []*types.CustomTlvRecord `protobuf:"bytes,4,rep,name=custom_tlvs,json=customTlvs,proto3" json:"custom_tlvs,omitempty"`
+	CustomTlvs []*types.CustomTlvRecord `protobuf:"bytes,4,rep,name=custom_tlvs,json=customTlvs,proto3" json:"custom_tlvs,omitempty"`
+	// An optional hex-encoded 32-byte payment preimage. If provided, it will be used instead of
+	// generating a random one. The payment hash will be the SHA256 of this value.
+	Preimage      *string `protobuf:"bytes,5,opt,name=preimage,proto3,oneof" json:"preimage,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SpontaneousSendRequest) Reset() {
 	*x = SpontaneousSendRequest{}
-	mi := &file_api_proto_msgTypes[24]
+	mi := &file_api_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1546,7 +2058,7 @@ func (x *SpontaneousSendRequest) String() string {
 func (*SpontaneousSendRequest) ProtoMessage() {}
 
 func (x *SpontaneousSendRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[24]
+	mi := &file_api_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1559,7 +2071,7 @@ func (x *SpontaneousSendRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SpontaneousSendRequest.ProtoReflect.Descriptor instead.
 func (*SpontaneousSendRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{24}
+	return file_api_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *SpontaneousSendRequest) GetAmountMsat() uint64 {
@@ -1590,6 +2102,13 @@ func (x *SpontaneousSendRequest) GetCustomTlvs() []*types.CustomTlvRecord {
 	return nil
 }
 
+func (x *SpontaneousSendRequest) GetPreimage() string {
+	if x != nil && x.Preimage != nil {
+		return *x.Preimage
+	}
+	return ""
+}
+
 // The response for the `SpontaneousSend` RPC. On failure, a gRPC error status is returned.
 type SpontaneousSendResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -1601,7 +2120,7 @@ type SpontaneousSendResponse struct {
 
 func (x *SpontaneousSendResponse) Reset() {
 	*x = SpontaneousSendResponse{}
-	mi := &file_api_proto_msgTypes[25]
+	mi := &file_api_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1613,7 +2132,7 @@ func (x *SpontaneousSendResponse) String() string {
 func (*SpontaneousSendResponse) ProtoMessage() {}
 
 func (x *SpontaneousSendResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[25]
+	mi := &file_api_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1626,7 +2145,7 @@ func (x *SpontaneousSendResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SpontaneousSendResponse.ProtoReflect.Descriptor instead.
 func (*SpontaneousSendResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{25}
+	return file_api_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *SpontaneousSendResponse) GetPaymentId() string {
@@ -1634,6 +2153,43 @@ func (x *SpontaneousSendResponse) GetPaymentId() string {
 		return x.PaymentId
 	}
 	return ""
+}
+
+// Selects all available on-chain funds.
+type AllFunds struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AllFunds) Reset() {
+	*x = AllFunds{}
+	mi := &file_api_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AllFunds) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AllFunds) ProtoMessage() {}
+
+func (x *AllFunds) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AllFunds.ProtoReflect.Descriptor instead.
+func (*AllFunds) Descriptor() ([]byte, []int) {
+	return file_api_proto_rawDescGZIP(), []int{34}
 }
 
 // Creates a new outbound channel to the given remote node.
@@ -1645,8 +2201,13 @@ type OpenChannelRequest struct {
 	// An address which can be used to connect to a remote peer.
 	// It can be of type IPv4:port, IPv6:port, OnionV3:port or hostname:port
 	Address string `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
-	// The amount of satoshis the caller is willing to commit to the channel.
-	ChannelAmountSats uint64 `protobuf:"varint,3,opt,name=channel_amount_sats,json=channelAmountSats,proto3" json:"channel_amount_sats,omitempty"`
+	// Required. The funds to commit to the channel.
+	//
+	// Types that are valid to be assigned to Amount:
+	//
+	//	*OpenChannelRequest_ChannelAmountSats
+	//	*OpenChannelRequest_AllFunds
+	Amount isOpenChannelRequest_Amount `protobuf_oneof:"amount"`
 	// The amount of satoshis to push to the remote side as part of the initial commitment state.
 	PushToCounterpartyMsat *uint64 `protobuf:"varint,4,opt,name=push_to_counterparty_msat,json=pushToCounterpartyMsat,proto3,oneof" json:"push_to_counterparty_msat,omitempty"`
 	// The channel configuration to be used for opening this channel. If unset, default ChannelConfig is used.
@@ -1661,7 +2222,7 @@ type OpenChannelRequest struct {
 
 func (x *OpenChannelRequest) Reset() {
 	*x = OpenChannelRequest{}
-	mi := &file_api_proto_msgTypes[26]
+	mi := &file_api_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1673,7 +2234,7 @@ func (x *OpenChannelRequest) String() string {
 func (*OpenChannelRequest) ProtoMessage() {}
 
 func (x *OpenChannelRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[26]
+	mi := &file_api_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1686,7 +2247,7 @@ func (x *OpenChannelRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OpenChannelRequest.ProtoReflect.Descriptor instead.
 func (*OpenChannelRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{26}
+	return file_api_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *OpenChannelRequest) GetNodePubkey() string {
@@ -1703,11 +2264,29 @@ func (x *OpenChannelRequest) GetAddress() string {
 	return ""
 }
 
+func (x *OpenChannelRequest) GetAmount() isOpenChannelRequest_Amount {
+	if x != nil {
+		return x.Amount
+	}
+	return nil
+}
+
 func (x *OpenChannelRequest) GetChannelAmountSats() uint64 {
 	if x != nil {
-		return x.ChannelAmountSats
+		if x, ok := x.Amount.(*OpenChannelRequest_ChannelAmountSats); ok {
+			return x.ChannelAmountSats
+		}
 	}
 	return 0
+}
+
+func (x *OpenChannelRequest) GetAllFunds() *AllFunds {
+	if x != nil {
+		if x, ok := x.Amount.(*OpenChannelRequest_AllFunds); ok {
+			return x.AllFunds
+		}
+	}
+	return nil
 }
 
 func (x *OpenChannelRequest) GetPushToCounterpartyMsat() uint64 {
@@ -1738,6 +2317,24 @@ func (x *OpenChannelRequest) GetDisableCounterpartyReserve() bool {
 	return false
 }
 
+type isOpenChannelRequest_Amount interface {
+	isOpenChannelRequest_Amount()
+}
+
+type OpenChannelRequest_ChannelAmountSats struct {
+	// Commit the given amount of satoshis while retaining any required Anchor channel reserves.
+	ChannelAmountSats uint64 `protobuf:"varint,3,opt,name=channel_amount_sats,json=channelAmountSats,proto3,oneof"`
+}
+
+type OpenChannelRequest_AllFunds struct {
+	// Commit all available on-chain funds, minus fees and any required Anchor channel reserves.
+	AllFunds *AllFunds `protobuf:"bytes,8,opt,name=all_funds,json=allFunds,proto3,oneof"`
+}
+
+func (*OpenChannelRequest_ChannelAmountSats) isOpenChannelRequest_Amount() {}
+
+func (*OpenChannelRequest_AllFunds) isOpenChannelRequest_Amount() {}
+
 // The response for the `OpenChannel` RPC. On failure, a gRPC error status is returned.
 type OpenChannelResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -1749,7 +2346,7 @@ type OpenChannelResponse struct {
 
 func (x *OpenChannelResponse) Reset() {
 	*x = OpenChannelResponse{}
-	mi := &file_api_proto_msgTypes[27]
+	mi := &file_api_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1761,7 +2358,7 @@ func (x *OpenChannelResponse) String() string {
 func (*OpenChannelResponse) ProtoMessage() {}
 
 func (x *OpenChannelResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[27]
+	mi := &file_api_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1774,7 +2371,7 @@ func (x *OpenChannelResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OpenChannelResponse.ProtoReflect.Descriptor instead.
 func (*OpenChannelResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{27}
+	return file_api_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *OpenChannelResponse) GetUserChannelId() string {
@@ -1792,15 +2389,20 @@ type SpliceInRequest struct {
 	UserChannelId string `protobuf:"bytes,1,opt,name=user_channel_id,json=userChannelId,proto3" json:"user_channel_id,omitempty"`
 	// The hex-encoded public key of the channel's counterparty node.
 	CounterpartyNodeId string `protobuf:"bytes,2,opt,name=counterparty_node_id,json=counterpartyNodeId,proto3" json:"counterparty_node_id,omitempty"`
-	// The amount of sats to splice into the channel.
-	SpliceAmountSats uint64 `protobuf:"varint,3,opt,name=splice_amount_sats,json=spliceAmountSats,proto3" json:"splice_amount_sats,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	// Required. The funds to splice into the channel.
+	//
+	// Types that are valid to be assigned to Amount:
+	//
+	//	*SpliceInRequest_SpliceAmountSats
+	//	*SpliceInRequest_AllFunds
+	Amount        isSpliceInRequest_Amount `protobuf_oneof:"amount"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SpliceInRequest) Reset() {
 	*x = SpliceInRequest{}
-	mi := &file_api_proto_msgTypes[28]
+	mi := &file_api_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1812,7 +2414,7 @@ func (x *SpliceInRequest) String() string {
 func (*SpliceInRequest) ProtoMessage() {}
 
 func (x *SpliceInRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[28]
+	mi := &file_api_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1825,7 +2427,7 @@ func (x *SpliceInRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SpliceInRequest.ProtoReflect.Descriptor instead.
 func (*SpliceInRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{28}
+	return file_api_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *SpliceInRequest) GetUserChannelId() string {
@@ -1842,12 +2444,48 @@ func (x *SpliceInRequest) GetCounterpartyNodeId() string {
 	return ""
 }
 
+func (x *SpliceInRequest) GetAmount() isSpliceInRequest_Amount {
+	if x != nil {
+		return x.Amount
+	}
+	return nil
+}
+
 func (x *SpliceInRequest) GetSpliceAmountSats() uint64 {
 	if x != nil {
-		return x.SpliceAmountSats
+		if x, ok := x.Amount.(*SpliceInRequest_SpliceAmountSats); ok {
+			return x.SpliceAmountSats
+		}
 	}
 	return 0
 }
+
+func (x *SpliceInRequest) GetAllFunds() *AllFunds {
+	if x != nil {
+		if x, ok := x.Amount.(*SpliceInRequest_AllFunds); ok {
+			return x.AllFunds
+		}
+	}
+	return nil
+}
+
+type isSpliceInRequest_Amount interface {
+	isSpliceInRequest_Amount()
+}
+
+type SpliceInRequest_SpliceAmountSats struct {
+	// Splice in the given amount of satoshis while retaining any required Anchor channel reserves.
+	SpliceAmountSats uint64 `protobuf:"varint,3,opt,name=splice_amount_sats,json=spliceAmountSats,proto3,oneof"`
+}
+
+type SpliceInRequest_AllFunds struct {
+	// Splice in all available confirmed on-chain funds, minus fees and any required Anchor channel reserves.
+	AllFunds *AllFunds `protobuf:"bytes,4,opt,name=all_funds,json=allFunds,proto3,oneof"`
+}
+
+func (*SpliceInRequest_SpliceAmountSats) isSpliceInRequest_Amount() {}
+
+func (*SpliceInRequest_AllFunds) isSpliceInRequest_Amount() {}
 
 // The response for the `SpliceIn` RPC. On failure, a gRPC error status is returned.
 type SpliceInResponse struct {
@@ -1858,7 +2496,7 @@ type SpliceInResponse struct {
 
 func (x *SpliceInResponse) Reset() {
 	*x = SpliceInResponse{}
-	mi := &file_api_proto_msgTypes[29]
+	mi := &file_api_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1870,7 +2508,7 @@ func (x *SpliceInResponse) String() string {
 func (*SpliceInResponse) ProtoMessage() {}
 
 func (x *SpliceInResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[29]
+	mi := &file_api_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1883,7 +2521,7 @@ func (x *SpliceInResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SpliceInResponse.ProtoReflect.Descriptor instead.
 func (*SpliceInResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{29}
+	return file_api_proto_rawDescGZIP(), []int{38}
 }
 
 // Decreases the channel balance by the given amount.
@@ -1906,7 +2544,7 @@ type SpliceOutRequest struct {
 
 func (x *SpliceOutRequest) Reset() {
 	*x = SpliceOutRequest{}
-	mi := &file_api_proto_msgTypes[30]
+	mi := &file_api_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1918,7 +2556,7 @@ func (x *SpliceOutRequest) String() string {
 func (*SpliceOutRequest) ProtoMessage() {}
 
 func (x *SpliceOutRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[30]
+	mi := &file_api_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1931,7 +2569,7 @@ func (x *SpliceOutRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SpliceOutRequest.ProtoReflect.Descriptor instead.
 func (*SpliceOutRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{30}
+	return file_api_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *SpliceOutRequest) GetUserChannelId() string {
@@ -1973,7 +2611,7 @@ type SpliceOutResponse struct {
 
 func (x *SpliceOutResponse) Reset() {
 	*x = SpliceOutResponse{}
-	mi := &file_api_proto_msgTypes[31]
+	mi := &file_api_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1985,7 +2623,7 @@ func (x *SpliceOutResponse) String() string {
 func (*SpliceOutResponse) ProtoMessage() {}
 
 func (x *SpliceOutResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[31]
+	mi := &file_api_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1998,7 +2636,7 @@ func (x *SpliceOutResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SpliceOutResponse.ProtoReflect.Descriptor instead.
 func (*SpliceOutResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{31}
+	return file_api_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *SpliceOutResponse) GetAddress() string {
@@ -2024,7 +2662,7 @@ type UpdateChannelConfigRequest struct {
 
 func (x *UpdateChannelConfigRequest) Reset() {
 	*x = UpdateChannelConfigRequest{}
-	mi := &file_api_proto_msgTypes[32]
+	mi := &file_api_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2036,7 +2674,7 @@ func (x *UpdateChannelConfigRequest) String() string {
 func (*UpdateChannelConfigRequest) ProtoMessage() {}
 
 func (x *UpdateChannelConfigRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[32]
+	mi := &file_api_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2049,7 +2687,7 @@ func (x *UpdateChannelConfigRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateChannelConfigRequest.ProtoReflect.Descriptor instead.
 func (*UpdateChannelConfigRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{32}
+	return file_api_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *UpdateChannelConfigRequest) GetUserChannelId() string {
@@ -2082,7 +2720,7 @@ type UpdateChannelConfigResponse struct {
 
 func (x *UpdateChannelConfigResponse) Reset() {
 	*x = UpdateChannelConfigResponse{}
-	mi := &file_api_proto_msgTypes[33]
+	mi := &file_api_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2094,7 +2732,7 @@ func (x *UpdateChannelConfigResponse) String() string {
 func (*UpdateChannelConfigResponse) ProtoMessage() {}
 
 func (x *UpdateChannelConfigResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[33]
+	mi := &file_api_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2107,7 +2745,7 @@ func (x *UpdateChannelConfigResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateChannelConfigResponse.ProtoReflect.Descriptor instead.
 func (*UpdateChannelConfigResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{33}
+	return file_api_proto_rawDescGZIP(), []int{42}
 }
 
 // Closes the channel specified by given request.
@@ -2124,7 +2762,7 @@ type CloseChannelRequest struct {
 
 func (x *CloseChannelRequest) Reset() {
 	*x = CloseChannelRequest{}
-	mi := &file_api_proto_msgTypes[34]
+	mi := &file_api_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2136,7 +2774,7 @@ func (x *CloseChannelRequest) String() string {
 func (*CloseChannelRequest) ProtoMessage() {}
 
 func (x *CloseChannelRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[34]
+	mi := &file_api_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2149,7 +2787,7 @@ func (x *CloseChannelRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CloseChannelRequest.ProtoReflect.Descriptor instead.
 func (*CloseChannelRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{34}
+	return file_api_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *CloseChannelRequest) GetUserChannelId() string {
@@ -2175,7 +2813,7 @@ type CloseChannelResponse struct {
 
 func (x *CloseChannelResponse) Reset() {
 	*x = CloseChannelResponse{}
-	mi := &file_api_proto_msgTypes[35]
+	mi := &file_api_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2187,7 +2825,7 @@ func (x *CloseChannelResponse) String() string {
 func (*CloseChannelResponse) ProtoMessage() {}
 
 func (x *CloseChannelResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[35]
+	mi := &file_api_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2200,7 +2838,7 @@ func (x *CloseChannelResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CloseChannelResponse.ProtoReflect.Descriptor instead.
 func (*CloseChannelResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{35}
+	return file_api_proto_rawDescGZIP(), []int{44}
 }
 
 // Force closes the channel specified by given request.
@@ -2219,7 +2857,7 @@ type ForceCloseChannelRequest struct {
 
 func (x *ForceCloseChannelRequest) Reset() {
 	*x = ForceCloseChannelRequest{}
-	mi := &file_api_proto_msgTypes[36]
+	mi := &file_api_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2231,7 +2869,7 @@ func (x *ForceCloseChannelRequest) String() string {
 func (*ForceCloseChannelRequest) ProtoMessage() {}
 
 func (x *ForceCloseChannelRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[36]
+	mi := &file_api_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2244,7 +2882,7 @@ func (x *ForceCloseChannelRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ForceCloseChannelRequest.ProtoReflect.Descriptor instead.
 func (*ForceCloseChannelRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{36}
+	return file_api_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *ForceCloseChannelRequest) GetUserChannelId() string {
@@ -2277,7 +2915,7 @@ type ForceCloseChannelResponse struct {
 
 func (x *ForceCloseChannelResponse) Reset() {
 	*x = ForceCloseChannelResponse{}
-	mi := &file_api_proto_msgTypes[37]
+	mi := &file_api_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2289,7 +2927,7 @@ func (x *ForceCloseChannelResponse) String() string {
 func (*ForceCloseChannelResponse) ProtoMessage() {}
 
 func (x *ForceCloseChannelResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[37]
+	mi := &file_api_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2302,7 +2940,7 @@ func (x *ForceCloseChannelResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ForceCloseChannelResponse.ProtoReflect.Descriptor instead.
 func (*ForceCloseChannelResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{37}
+	return file_api_proto_rawDescGZIP(), []int{46}
 }
 
 // Returns a list of known channels.
@@ -2315,7 +2953,7 @@ type ListChannelsRequest struct {
 
 func (x *ListChannelsRequest) Reset() {
 	*x = ListChannelsRequest{}
-	mi := &file_api_proto_msgTypes[38]
+	mi := &file_api_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2327,7 +2965,7 @@ func (x *ListChannelsRequest) String() string {
 func (*ListChannelsRequest) ProtoMessage() {}
 
 func (x *ListChannelsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[38]
+	mi := &file_api_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2340,7 +2978,7 @@ func (x *ListChannelsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListChannelsRequest.ProtoReflect.Descriptor instead.
 func (*ListChannelsRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{38}
+	return file_api_proto_rawDescGZIP(), []int{47}
 }
 
 // The response for the `ListChannels` RPC. On failure, a gRPC error status is returned.
@@ -2354,7 +2992,7 @@ type ListChannelsResponse struct {
 
 func (x *ListChannelsResponse) Reset() {
 	*x = ListChannelsResponse{}
-	mi := &file_api_proto_msgTypes[39]
+	mi := &file_api_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2366,7 +3004,7 @@ func (x *ListChannelsResponse) String() string {
 func (*ListChannelsResponse) ProtoMessage() {}
 
 func (x *ListChannelsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[39]
+	mi := &file_api_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2379,7 +3017,7 @@ func (x *ListChannelsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListChannelsResponse.ProtoReflect.Descriptor instead.
 func (*ListChannelsResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{39}
+	return file_api_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *ListChannelsResponse) GetChannels() []*types.Channel {
@@ -2401,7 +3039,7 @@ type GetPaymentDetailsRequest struct {
 
 func (x *GetPaymentDetailsRequest) Reset() {
 	*x = GetPaymentDetailsRequest{}
-	mi := &file_api_proto_msgTypes[40]
+	mi := &file_api_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2413,7 +3051,7 @@ func (x *GetPaymentDetailsRequest) String() string {
 func (*GetPaymentDetailsRequest) ProtoMessage() {}
 
 func (x *GetPaymentDetailsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[40]
+	mi := &file_api_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2426,7 +3064,7 @@ func (x *GetPaymentDetailsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPaymentDetailsRequest.ProtoReflect.Descriptor instead.
 func (*GetPaymentDetailsRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{40}
+	return file_api_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *GetPaymentDetailsRequest) GetPaymentId() string {
@@ -2448,7 +3086,7 @@ type GetPaymentDetailsResponse struct {
 
 func (x *GetPaymentDetailsResponse) Reset() {
 	*x = GetPaymentDetailsResponse{}
-	mi := &file_api_proto_msgTypes[41]
+	mi := &file_api_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2460,7 +3098,7 @@ func (x *GetPaymentDetailsResponse) String() string {
 func (*GetPaymentDetailsResponse) ProtoMessage() {}
 
 func (x *GetPaymentDetailsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[41]
+	mi := &file_api_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2473,7 +3111,7 @@ func (x *GetPaymentDetailsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPaymentDetailsResponse.ProtoReflect.Descriptor instead.
 func (*GetPaymentDetailsResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{41}
+	return file_api_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *GetPaymentDetailsResponse) GetPayment() *types.Payment {
@@ -2487,20 +3125,20 @@ func (x *GetPaymentDetailsResponse) GetPayment() *types.Payment {
 // See more: https://docs.rs/ldk-node/latest/ldk_node/struct.Node.html#method.list_payments
 type ListPaymentsRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// `page_token` is a pagination token.
+	// `page_token` is an opaque pagination token string.
 	//
 	// To query for the first page, `page_token` must not be specified.
 	//
 	// For subsequent pages, use the value that was returned as `next_page_token` in the previous
 	// page's response.
-	PageToken     *types.PageToken `protobuf:"bytes,1,opt,name=page_token,json=pageToken,proto3,oneof" json:"page_token,omitempty"`
+	PageToken     *string `protobuf:"bytes,1,opt,name=page_token,json=pageToken,proto3,oneof" json:"page_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListPaymentsRequest) Reset() {
 	*x = ListPaymentsRequest{}
-	mi := &file_api_proto_msgTypes[42]
+	mi := &file_api_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2512,7 +3150,7 @@ func (x *ListPaymentsRequest) String() string {
 func (*ListPaymentsRequest) ProtoMessage() {}
 
 func (x *ListPaymentsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[42]
+	mi := &file_api_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2525,14 +3163,14 @@ func (x *ListPaymentsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPaymentsRequest.ProtoReflect.Descriptor instead.
 func (*ListPaymentsRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{42}
+	return file_api_proto_rawDescGZIP(), []int{51}
 }
 
-func (x *ListPaymentsRequest) GetPageToken() *types.PageToken {
-	if x != nil {
-		return x.PageToken
+func (x *ListPaymentsRequest) GetPageToken() string {
+	if x != nil && x.PageToken != nil {
+		return *x.PageToken
 	}
-	return nil
+	return ""
 }
 
 // The response for the `ListPayments` RPC. On failure, a gRPC error status is returned.
@@ -2540,7 +3178,8 @@ type ListPaymentsResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// List of payments.
 	Payments []*types.Payment `protobuf:"bytes,1,rep,name=payments,proto3" json:"payments,omitempty"`
-	// `next_page_token` is a pagination token, used to retrieve the next page of results.
+	// `next_page_token` is an opaque pagination token string used to retrieve the next page of
+	// results.
 	// Use this value to query for next-page of paginated operation, by specifying
 	// this value as the `page_token` in the next request.
 	//
@@ -2553,14 +3192,14 @@ type ListPaymentsResponse struct {
 	//
 	// **Caution**: Clients must not assume a specific number of records to be present in a page for
 	// paginated response.
-	NextPageToken *types.PageToken `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3,oneof" json:"next_page_token,omitempty"`
+	NextPageToken *string `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3,oneof" json:"next_page_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListPaymentsResponse) Reset() {
 	*x = ListPaymentsResponse{}
-	mi := &file_api_proto_msgTypes[43]
+	mi := &file_api_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2572,7 +3211,7 @@ func (x *ListPaymentsResponse) String() string {
 func (*ListPaymentsResponse) ProtoMessage() {}
 
 func (x *ListPaymentsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[43]
+	mi := &file_api_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2585,7 +3224,7 @@ func (x *ListPaymentsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPaymentsResponse.ProtoReflect.Descriptor instead.
 func (*ListPaymentsResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{43}
+	return file_api_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *ListPaymentsResponse) GetPayments() []*types.Payment {
@@ -2595,31 +3234,31 @@ func (x *ListPaymentsResponse) GetPayments() []*types.Payment {
 	return nil
 }
 
-func (x *ListPaymentsResponse) GetNextPageToken() *types.PageToken {
-	if x != nil {
-		return x.NextPageToken
+func (x *ListPaymentsResponse) GetNextPageToken() string {
+	if x != nil && x.NextPageToken != nil {
+		return *x.NextPageToken
 	}
-	return nil
+	return ""
 }
 
 // Retrieves list of all forwarded payments.
 // See more: https://docs.rs/ldk-node/latest/ldk_node/enum.Event.html#variant.PaymentForwarded
 type ListForwardedPaymentsRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// `page_token` is a pagination token.
+	// `page_token` is an opaque pagination token string.
 	//
 	// To query for the first page, `page_token` must not be specified.
 	//
 	// For subsequent pages, use the value that was returned as `next_page_token` in the previous
 	// page's response.
-	PageToken     *types.PageToken `protobuf:"bytes,1,opt,name=page_token,json=pageToken,proto3,oneof" json:"page_token,omitempty"`
+	PageToken     *string `protobuf:"bytes,1,opt,name=page_token,json=pageToken,proto3,oneof" json:"page_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListForwardedPaymentsRequest) Reset() {
 	*x = ListForwardedPaymentsRequest{}
-	mi := &file_api_proto_msgTypes[44]
+	mi := &file_api_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2631,7 +3270,7 @@ func (x *ListForwardedPaymentsRequest) String() string {
 func (*ListForwardedPaymentsRequest) ProtoMessage() {}
 
 func (x *ListForwardedPaymentsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[44]
+	mi := &file_api_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2644,14 +3283,14 @@ func (x *ListForwardedPaymentsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListForwardedPaymentsRequest.ProtoReflect.Descriptor instead.
 func (*ListForwardedPaymentsRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{44}
+	return file_api_proto_rawDescGZIP(), []int{53}
 }
 
-func (x *ListForwardedPaymentsRequest) GetPageToken() *types.PageToken {
-	if x != nil {
-		return x.PageToken
+func (x *ListForwardedPaymentsRequest) GetPageToken() string {
+	if x != nil && x.PageToken != nil {
+		return *x.PageToken
 	}
-	return nil
+	return ""
 }
 
 // The response for the `ListForwardedPayments` RPC. On failure, a gRPC error status is returned.
@@ -2659,7 +3298,8 @@ type ListForwardedPaymentsResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// List of forwarded payments.
 	ForwardedPayments []*types.ForwardedPayment `protobuf:"bytes,1,rep,name=forwarded_payments,json=forwardedPayments,proto3" json:"forwarded_payments,omitempty"`
-	// `next_page_token` is a pagination token, used to retrieve the next page of results.
+	// `next_page_token` is an opaque pagination token string used to retrieve the next page of
+	// results.
 	// Use this value to query for next-page of paginated operation, by specifying
 	// this value as the `page_token` in the next request.
 	//
@@ -2672,14 +3312,14 @@ type ListForwardedPaymentsResponse struct {
 	//
 	// **Caution**: Clients must not assume a specific number of records to be present in a page for
 	// paginated response.
-	NextPageToken *types.PageToken `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3,oneof" json:"next_page_token,omitempty"`
+	NextPageToken *string `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3,oneof" json:"next_page_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListForwardedPaymentsResponse) Reset() {
 	*x = ListForwardedPaymentsResponse{}
-	mi := &file_api_proto_msgTypes[45]
+	mi := &file_api_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2691,7 +3331,7 @@ func (x *ListForwardedPaymentsResponse) String() string {
 func (*ListForwardedPaymentsResponse) ProtoMessage() {}
 
 func (x *ListForwardedPaymentsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[45]
+	mi := &file_api_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2704,7 +3344,7 @@ func (x *ListForwardedPaymentsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListForwardedPaymentsResponse.ProtoReflect.Descriptor instead.
 func (*ListForwardedPaymentsResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{45}
+	return file_api_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *ListForwardedPaymentsResponse) GetForwardedPayments() []*types.ForwardedPayment {
@@ -2714,11 +3354,11 @@ func (x *ListForwardedPaymentsResponse) GetForwardedPayments() []*types.Forwarde
 	return nil
 }
 
-func (x *ListForwardedPaymentsResponse) GetNextPageToken() *types.PageToken {
-	if x != nil {
-		return x.NextPageToken
+func (x *ListForwardedPaymentsResponse) GetNextPageToken() string {
+	if x != nil && x.NextPageToken != nil {
+		return *x.NextPageToken
 	}
-	return nil
+	return ""
 }
 
 // Sign a message with the node's secret key.
@@ -2733,7 +3373,7 @@ type SignMessageRequest struct {
 
 func (x *SignMessageRequest) Reset() {
 	*x = SignMessageRequest{}
-	mi := &file_api_proto_msgTypes[46]
+	mi := &file_api_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2745,7 +3385,7 @@ func (x *SignMessageRequest) String() string {
 func (*SignMessageRequest) ProtoMessage() {}
 
 func (x *SignMessageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[46]
+	mi := &file_api_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2758,7 +3398,7 @@ func (x *SignMessageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SignMessageRequest.ProtoReflect.Descriptor instead.
 func (*SignMessageRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{46}
+	return file_api_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *SignMessageRequest) GetMessage() []byte {
@@ -2779,7 +3419,7 @@ type SignMessageResponse struct {
 
 func (x *SignMessageResponse) Reset() {
 	*x = SignMessageResponse{}
-	mi := &file_api_proto_msgTypes[47]
+	mi := &file_api_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2791,7 +3431,7 @@ func (x *SignMessageResponse) String() string {
 func (*SignMessageResponse) ProtoMessage() {}
 
 func (x *SignMessageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[47]
+	mi := &file_api_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2804,7 +3444,7 @@ func (x *SignMessageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SignMessageResponse.ProtoReflect.Descriptor instead.
 func (*SignMessageResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{47}
+	return file_api_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *SignMessageResponse) GetSignature() string {
@@ -2830,7 +3470,7 @@ type VerifySignatureRequest struct {
 
 func (x *VerifySignatureRequest) Reset() {
 	*x = VerifySignatureRequest{}
-	mi := &file_api_proto_msgTypes[48]
+	mi := &file_api_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2842,7 +3482,7 @@ func (x *VerifySignatureRequest) String() string {
 func (*VerifySignatureRequest) ProtoMessage() {}
 
 func (x *VerifySignatureRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[48]
+	mi := &file_api_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2855,7 +3495,7 @@ func (x *VerifySignatureRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VerifySignatureRequest.ProtoReflect.Descriptor instead.
 func (*VerifySignatureRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{48}
+	return file_api_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *VerifySignatureRequest) GetMessage() []byte {
@@ -2890,7 +3530,7 @@ type VerifySignatureResponse struct {
 
 func (x *VerifySignatureResponse) Reset() {
 	*x = VerifySignatureResponse{}
-	mi := &file_api_proto_msgTypes[49]
+	mi := &file_api_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2902,7 +3542,7 @@ func (x *VerifySignatureResponse) String() string {
 func (*VerifySignatureResponse) ProtoMessage() {}
 
 func (x *VerifySignatureResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[49]
+	mi := &file_api_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2915,7 +3555,7 @@ func (x *VerifySignatureResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VerifySignatureResponse.ProtoReflect.Descriptor instead.
 func (*VerifySignatureResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{49}
+	return file_api_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *VerifySignatureResponse) GetValid() bool {
@@ -2935,7 +3575,7 @@ type ExportPathfindingScoresRequest struct {
 
 func (x *ExportPathfindingScoresRequest) Reset() {
 	*x = ExportPathfindingScoresRequest{}
-	mi := &file_api_proto_msgTypes[50]
+	mi := &file_api_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2947,7 +3587,7 @@ func (x *ExportPathfindingScoresRequest) String() string {
 func (*ExportPathfindingScoresRequest) ProtoMessage() {}
 
 func (x *ExportPathfindingScoresRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[50]
+	mi := &file_api_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2960,7 +3600,7 @@ func (x *ExportPathfindingScoresRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExportPathfindingScoresRequest.ProtoReflect.Descriptor instead.
 func (*ExportPathfindingScoresRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{50}
+	return file_api_proto_rawDescGZIP(), []int{59}
 }
 
 // The response for the `ExportPathfindingScores` RPC. On failure, a gRPC error status is returned.
@@ -2974,7 +3614,7 @@ type ExportPathfindingScoresResponse struct {
 
 func (x *ExportPathfindingScoresResponse) Reset() {
 	*x = ExportPathfindingScoresResponse{}
-	mi := &file_api_proto_msgTypes[51]
+	mi := &file_api_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2986,7 +3626,7 @@ func (x *ExportPathfindingScoresResponse) String() string {
 func (*ExportPathfindingScoresResponse) ProtoMessage() {}
 
 func (x *ExportPathfindingScoresResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[51]
+	mi := &file_api_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2999,7 +3639,7 @@ func (x *ExportPathfindingScoresResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExportPathfindingScoresResponse.ProtoReflect.Descriptor instead.
 func (*ExportPathfindingScoresResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{51}
+	return file_api_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *ExportPathfindingScoresResponse) GetScores() []byte {
@@ -3019,7 +3659,7 @@ type GetBalancesRequest struct {
 
 func (x *GetBalancesRequest) Reset() {
 	*x = GetBalancesRequest{}
-	mi := &file_api_proto_msgTypes[52]
+	mi := &file_api_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3031,7 +3671,7 @@ func (x *GetBalancesRequest) String() string {
 func (*GetBalancesRequest) ProtoMessage() {}
 
 func (x *GetBalancesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[52]
+	mi := &file_api_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3044,7 +3684,7 @@ func (x *GetBalancesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBalancesRequest.ProtoReflect.Descriptor instead.
 func (*GetBalancesRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{52}
+	return file_api_proto_rawDescGZIP(), []int{61}
 }
 
 // The response for the `GetBalances` RPC. On failure, a gRPC error status is returned.
@@ -3087,7 +3727,7 @@ type GetBalancesResponse struct {
 
 func (x *GetBalancesResponse) Reset() {
 	*x = GetBalancesResponse{}
-	mi := &file_api_proto_msgTypes[53]
+	mi := &file_api_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3099,7 +3739,7 @@ func (x *GetBalancesResponse) String() string {
 func (*GetBalancesResponse) ProtoMessage() {}
 
 func (x *GetBalancesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[53]
+	mi := &file_api_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3112,7 +3752,7 @@ func (x *GetBalancesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBalancesResponse.ProtoReflect.Descriptor instead.
 func (*GetBalancesResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{53}
+	return file_api_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *GetBalancesResponse) GetTotalOnchainBalanceSats() uint64 {
@@ -3175,7 +3815,7 @@ type ConnectPeerRequest struct {
 
 func (x *ConnectPeerRequest) Reset() {
 	*x = ConnectPeerRequest{}
-	mi := &file_api_proto_msgTypes[54]
+	mi := &file_api_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3187,7 +3827,7 @@ func (x *ConnectPeerRequest) String() string {
 func (*ConnectPeerRequest) ProtoMessage() {}
 
 func (x *ConnectPeerRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[54]
+	mi := &file_api_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3200,7 +3840,7 @@ func (x *ConnectPeerRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConnectPeerRequest.ProtoReflect.Descriptor instead.
 func (*ConnectPeerRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{54}
+	return file_api_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *ConnectPeerRequest) GetNodePubkey() string {
@@ -3233,7 +3873,7 @@ type ConnectPeerResponse struct {
 
 func (x *ConnectPeerResponse) Reset() {
 	*x = ConnectPeerResponse{}
-	mi := &file_api_proto_msgTypes[55]
+	mi := &file_api_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3245,7 +3885,7 @@ func (x *ConnectPeerResponse) String() string {
 func (*ConnectPeerResponse) ProtoMessage() {}
 
 func (x *ConnectPeerResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[55]
+	mi := &file_api_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3258,7 +3898,7 @@ func (x *ConnectPeerResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConnectPeerResponse.ProtoReflect.Descriptor instead.
 func (*ConnectPeerResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{55}
+	return file_api_proto_rawDescGZIP(), []int{64}
 }
 
 // Disconnect from a peer and remove it from the peer store.
@@ -3273,7 +3913,7 @@ type DisconnectPeerRequest struct {
 
 func (x *DisconnectPeerRequest) Reset() {
 	*x = DisconnectPeerRequest{}
-	mi := &file_api_proto_msgTypes[56]
+	mi := &file_api_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3285,7 +3925,7 @@ func (x *DisconnectPeerRequest) String() string {
 func (*DisconnectPeerRequest) ProtoMessage() {}
 
 func (x *DisconnectPeerRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[56]
+	mi := &file_api_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3298,7 +3938,7 @@ func (x *DisconnectPeerRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisconnectPeerRequest.ProtoReflect.Descriptor instead.
 func (*DisconnectPeerRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{56}
+	return file_api_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *DisconnectPeerRequest) GetNodePubkey() string {
@@ -3317,7 +3957,7 @@ type DisconnectPeerResponse struct {
 
 func (x *DisconnectPeerResponse) Reset() {
 	*x = DisconnectPeerResponse{}
-	mi := &file_api_proto_msgTypes[57]
+	mi := &file_api_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3329,7 +3969,7 @@ func (x *DisconnectPeerResponse) String() string {
 func (*DisconnectPeerResponse) ProtoMessage() {}
 
 func (x *DisconnectPeerResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[57]
+	mi := &file_api_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3342,7 +3982,7 @@ func (x *DisconnectPeerResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisconnectPeerResponse.ProtoReflect.Descriptor instead.
 func (*DisconnectPeerResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{57}
+	return file_api_proto_rawDescGZIP(), []int{66}
 }
 
 // Returns a list of peers.
@@ -3355,7 +3995,7 @@ type ListPeersRequest struct {
 
 func (x *ListPeersRequest) Reset() {
 	*x = ListPeersRequest{}
-	mi := &file_api_proto_msgTypes[58]
+	mi := &file_api_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3367,7 +4007,7 @@ func (x *ListPeersRequest) String() string {
 func (*ListPeersRequest) ProtoMessage() {}
 
 func (x *ListPeersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[58]
+	mi := &file_api_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3380,7 +4020,7 @@ func (x *ListPeersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPeersRequest.ProtoReflect.Descriptor instead.
 func (*ListPeersRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{58}
+	return file_api_proto_rawDescGZIP(), []int{67}
 }
 
 // The response for the `ListPeers` RPC. On failure, a gRPC error status is returned.
@@ -3394,7 +4034,7 @@ type ListPeersResponse struct {
 
 func (x *ListPeersResponse) Reset() {
 	*x = ListPeersResponse{}
-	mi := &file_api_proto_msgTypes[59]
+	mi := &file_api_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3406,7 +4046,7 @@ func (x *ListPeersResponse) String() string {
 func (*ListPeersResponse) ProtoMessage() {}
 
 func (x *ListPeersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[59]
+	mi := &file_api_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3419,7 +4059,7 @@ func (x *ListPeersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListPeersResponse.ProtoReflect.Descriptor instead.
 func (*ListPeersResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{59}
+	return file_api_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *ListPeersResponse) GetPeers() []*types.Peer {
@@ -3439,7 +4079,7 @@ type GraphListChannelsRequest struct {
 
 func (x *GraphListChannelsRequest) Reset() {
 	*x = GraphListChannelsRequest{}
-	mi := &file_api_proto_msgTypes[60]
+	mi := &file_api_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3451,7 +4091,7 @@ func (x *GraphListChannelsRequest) String() string {
 func (*GraphListChannelsRequest) ProtoMessage() {}
 
 func (x *GraphListChannelsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[60]
+	mi := &file_api_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3464,7 +4104,7 @@ func (x *GraphListChannelsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GraphListChannelsRequest.ProtoReflect.Descriptor instead.
 func (*GraphListChannelsRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{60}
+	return file_api_proto_rawDescGZIP(), []int{69}
 }
 
 // The response for the `GraphListChannels` RPC. On failure, a gRPC error status is returned.
@@ -3478,7 +4118,7 @@ type GraphListChannelsResponse struct {
 
 func (x *GraphListChannelsResponse) Reset() {
 	*x = GraphListChannelsResponse{}
-	mi := &file_api_proto_msgTypes[61]
+	mi := &file_api_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3490,7 +4130,7 @@ func (x *GraphListChannelsResponse) String() string {
 func (*GraphListChannelsResponse) ProtoMessage() {}
 
 func (x *GraphListChannelsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[61]
+	mi := &file_api_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3503,7 +4143,7 @@ func (x *GraphListChannelsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GraphListChannelsResponse.ProtoReflect.Descriptor instead.
 func (*GraphListChannelsResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{61}
+	return file_api_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *GraphListChannelsResponse) GetShortChannelIds() []uint64 {
@@ -3525,7 +4165,7 @@ type GraphGetChannelRequest struct {
 
 func (x *GraphGetChannelRequest) Reset() {
 	*x = GraphGetChannelRequest{}
-	mi := &file_api_proto_msgTypes[62]
+	mi := &file_api_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3537,7 +4177,7 @@ func (x *GraphGetChannelRequest) String() string {
 func (*GraphGetChannelRequest) ProtoMessage() {}
 
 func (x *GraphGetChannelRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[62]
+	mi := &file_api_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3550,7 +4190,7 @@ func (x *GraphGetChannelRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GraphGetChannelRequest.ProtoReflect.Descriptor instead.
 func (*GraphGetChannelRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{62}
+	return file_api_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *GraphGetChannelRequest) GetShortChannelId() uint64 {
@@ -3571,7 +4211,7 @@ type GraphGetChannelResponse struct {
 
 func (x *GraphGetChannelResponse) Reset() {
 	*x = GraphGetChannelResponse{}
-	mi := &file_api_proto_msgTypes[63]
+	mi := &file_api_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3583,7 +4223,7 @@ func (x *GraphGetChannelResponse) String() string {
 func (*GraphGetChannelResponse) ProtoMessage() {}
 
 func (x *GraphGetChannelResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[63]
+	mi := &file_api_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3596,7 +4236,7 @@ func (x *GraphGetChannelResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GraphGetChannelResponse.ProtoReflect.Descriptor instead.
 func (*GraphGetChannelResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{63}
+	return file_api_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *GraphGetChannelResponse) GetChannel() *types.GraphChannel {
@@ -3616,7 +4256,7 @@ type GraphListNodesRequest struct {
 
 func (x *GraphListNodesRequest) Reset() {
 	*x = GraphListNodesRequest{}
-	mi := &file_api_proto_msgTypes[64]
+	mi := &file_api_proto_msgTypes[73]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3628,7 +4268,7 @@ func (x *GraphListNodesRequest) String() string {
 func (*GraphListNodesRequest) ProtoMessage() {}
 
 func (x *GraphListNodesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[64]
+	mi := &file_api_proto_msgTypes[73]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3641,7 +4281,7 @@ func (x *GraphListNodesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GraphListNodesRequest.ProtoReflect.Descriptor instead.
 func (*GraphListNodesRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{64}
+	return file_api_proto_rawDescGZIP(), []int{73}
 }
 
 // The response for the `GraphListNodes` RPC. On failure, a gRPC error status is returned.
@@ -3655,7 +4295,7 @@ type GraphListNodesResponse struct {
 
 func (x *GraphListNodesResponse) Reset() {
 	*x = GraphListNodesResponse{}
-	mi := &file_api_proto_msgTypes[65]
+	mi := &file_api_proto_msgTypes[74]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3667,7 +4307,7 @@ func (x *GraphListNodesResponse) String() string {
 func (*GraphListNodesResponse) ProtoMessage() {}
 
 func (x *GraphListNodesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[65]
+	mi := &file_api_proto_msgTypes[74]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3680,7 +4320,7 @@ func (x *GraphListNodesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GraphListNodesResponse.ProtoReflect.Descriptor instead.
 func (*GraphListNodesResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{65}
+	return file_api_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *GraphListNodesResponse) GetNodeIds() []string {
@@ -3710,7 +4350,7 @@ type UnifiedSendRequest struct {
 
 func (x *UnifiedSendRequest) Reset() {
 	*x = UnifiedSendRequest{}
-	mi := &file_api_proto_msgTypes[66]
+	mi := &file_api_proto_msgTypes[75]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3722,7 +4362,7 @@ func (x *UnifiedSendRequest) String() string {
 func (*UnifiedSendRequest) ProtoMessage() {}
 
 func (x *UnifiedSendRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[66]
+	mi := &file_api_proto_msgTypes[75]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3735,7 +4375,7 @@ func (x *UnifiedSendRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UnifiedSendRequest.ProtoReflect.Descriptor instead.
 func (*UnifiedSendRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{66}
+	return file_api_proto_rawDescGZIP(), []int{75}
 }
 
 func (x *UnifiedSendRequest) GetUri() string {
@@ -3774,7 +4414,7 @@ type UnifiedSendResponse struct {
 
 func (x *UnifiedSendResponse) Reset() {
 	*x = UnifiedSendResponse{}
-	mi := &file_api_proto_msgTypes[67]
+	mi := &file_api_proto_msgTypes[76]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3786,7 +4426,7 @@ func (x *UnifiedSendResponse) String() string {
 func (*UnifiedSendResponse) ProtoMessage() {}
 
 func (x *UnifiedSendResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[67]
+	mi := &file_api_proto_msgTypes[76]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3799,7 +4439,7 @@ func (x *UnifiedSendResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UnifiedSendResponse.ProtoReflect.Descriptor instead.
 func (*UnifiedSendResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{67}
+	return file_api_proto_rawDescGZIP(), []int{76}
 }
 
 func (x *UnifiedSendResponse) GetPaymentResult() isUnifiedSendResponse_PaymentResult {
@@ -3873,7 +4513,7 @@ type GraphGetNodeRequest struct {
 
 func (x *GraphGetNodeRequest) Reset() {
 	*x = GraphGetNodeRequest{}
-	mi := &file_api_proto_msgTypes[68]
+	mi := &file_api_proto_msgTypes[77]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3885,7 +4525,7 @@ func (x *GraphGetNodeRequest) String() string {
 func (*GraphGetNodeRequest) ProtoMessage() {}
 
 func (x *GraphGetNodeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[68]
+	mi := &file_api_proto_msgTypes[77]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3898,7 +4538,7 @@ func (x *GraphGetNodeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GraphGetNodeRequest.ProtoReflect.Descriptor instead.
 func (*GraphGetNodeRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{68}
+	return file_api_proto_rawDescGZIP(), []int{77}
 }
 
 func (x *GraphGetNodeRequest) GetNodeId() string {
@@ -3919,7 +4559,7 @@ type GraphGetNodeResponse struct {
 
 func (x *GraphGetNodeResponse) Reset() {
 	*x = GraphGetNodeResponse{}
-	mi := &file_api_proto_msgTypes[69]
+	mi := &file_api_proto_msgTypes[78]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3931,7 +4571,7 @@ func (x *GraphGetNodeResponse) String() string {
 func (*GraphGetNodeResponse) ProtoMessage() {}
 
 func (x *GraphGetNodeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[69]
+	mi := &file_api_proto_msgTypes[78]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3944,7 +4584,7 @@ func (x *GraphGetNodeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GraphGetNodeResponse.ProtoReflect.Descriptor instead.
 func (*GraphGetNodeResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{69}
+	return file_api_proto_rawDescGZIP(), []int{78}
 }
 
 func (x *GraphGetNodeResponse) GetNode() *types.GraphNode {
@@ -3966,7 +4606,7 @@ type DecodeInvoiceRequest struct {
 
 func (x *DecodeInvoiceRequest) Reset() {
 	*x = DecodeInvoiceRequest{}
-	mi := &file_api_proto_msgTypes[70]
+	mi := &file_api_proto_msgTypes[79]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3978,7 +4618,7 @@ func (x *DecodeInvoiceRequest) String() string {
 func (*DecodeInvoiceRequest) ProtoMessage() {}
 
 func (x *DecodeInvoiceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[70]
+	mi := &file_api_proto_msgTypes[79]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3991,7 +4631,7 @@ func (x *DecodeInvoiceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DecodeInvoiceRequest.ProtoReflect.Descriptor instead.
 func (*DecodeInvoiceRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{70}
+	return file_api_proto_rawDescGZIP(), []int{79}
 }
 
 func (x *DecodeInvoiceRequest) GetInvoice() string {
@@ -4026,8 +4666,8 @@ type DecodeInvoiceResponse struct {
 	PaymentSecret string `protobuf:"bytes,9,opt,name=payment_secret,json=paymentSecret,proto3" json:"payment_secret,omitempty"`
 	// Route hints for finding a path to the payee.
 	RouteHints []*types.Bolt11RouteHint `protobuf:"bytes,10,rep,name=route_hints,json=routeHints,proto3" json:"route_hints,omitempty"`
-	// Feature bits advertised in the invoice, keyed by bit number.
-	Features map[uint32]*types.Bolt11Feature `protobuf:"bytes,11,rep,name=features,proto3" json:"features,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Features advertised in the invoice, keyed by the signaled BOLT feature bit.
+	Features map[uint32]*types.Feature `protobuf:"bytes,11,rep,name=features,proto3" json:"features,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	// The currency or network (e.g., "bitcoin", "testnet", "signet", "regtest").
 	Currency string `protobuf:"bytes,12,opt,name=currency,proto3" json:"currency,omitempty"`
 	// The payment metadata, hex-encoded. Only present if the invoice includes payment metadata.
@@ -4040,7 +4680,7 @@ type DecodeInvoiceResponse struct {
 
 func (x *DecodeInvoiceResponse) Reset() {
 	*x = DecodeInvoiceResponse{}
-	mi := &file_api_proto_msgTypes[71]
+	mi := &file_api_proto_msgTypes[80]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4052,7 +4692,7 @@ func (x *DecodeInvoiceResponse) String() string {
 func (*DecodeInvoiceResponse) ProtoMessage() {}
 
 func (x *DecodeInvoiceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[71]
+	mi := &file_api_proto_msgTypes[80]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4065,7 +4705,7 @@ func (x *DecodeInvoiceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DecodeInvoiceResponse.ProtoReflect.Descriptor instead.
 func (*DecodeInvoiceResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{71}
+	return file_api_proto_rawDescGZIP(), []int{80}
 }
 
 func (x *DecodeInvoiceResponse) GetDestination() string {
@@ -4145,7 +4785,7 @@ func (x *DecodeInvoiceResponse) GetRouteHints() []*types.Bolt11RouteHint {
 	return nil
 }
 
-func (x *DecodeInvoiceResponse) GetFeatures() map[uint32]*types.Bolt11Feature {
+func (x *DecodeInvoiceResponse) GetFeatures() map[uint32]*types.Feature {
 	if x != nil {
 		return x.Features
 	}
@@ -4185,7 +4825,7 @@ type DecodeOfferRequest struct {
 
 func (x *DecodeOfferRequest) Reset() {
 	*x = DecodeOfferRequest{}
-	mi := &file_api_proto_msgTypes[72]
+	mi := &file_api_proto_msgTypes[81]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4197,7 +4837,7 @@ func (x *DecodeOfferRequest) String() string {
 func (*DecodeOfferRequest) ProtoMessage() {}
 
 func (x *DecodeOfferRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[72]
+	mi := &file_api_proto_msgTypes[81]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4210,7 +4850,7 @@ func (x *DecodeOfferRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DecodeOfferRequest.ProtoReflect.Descriptor instead.
 func (*DecodeOfferRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{72}
+	return file_api_proto_rawDescGZIP(), []int{81}
 }
 
 func (x *DecodeOfferRequest) GetOffer() string {
@@ -4239,8 +4879,8 @@ type DecodeOfferResponse struct {
 	Quantity *types.OfferQuantity `protobuf:"bytes,7,opt,name=quantity,proto3" json:"quantity,omitempty"`
 	// Blinded paths to the offer recipient.
 	Paths []*types.BlindedPath `protobuf:"bytes,8,rep,name=paths,proto3" json:"paths,omitempty"`
-	// Feature bits advertised in the offer, keyed by bit number.
-	Features map[uint32]*types.Bolt11Feature `protobuf:"bytes,9,rep,name=features,proto3" json:"features,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Features advertised in the offer, keyed by the signaled BOLT feature bit.
+	Features map[uint32]*types.Feature `protobuf:"bytes,9,rep,name=features,proto3" json:"features,omitempty" protobuf_key:"varint,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	// Supported blockchain networks (e.g., "bitcoin", "testnet", "signet", "regtest").
 	Chains []string `protobuf:"bytes,10,rep,name=chains,proto3" json:"chains,omitempty"`
 	// The metadata, hex-encoded, if any.
@@ -4253,7 +4893,7 @@ type DecodeOfferResponse struct {
 
 func (x *DecodeOfferResponse) Reset() {
 	*x = DecodeOfferResponse{}
-	mi := &file_api_proto_msgTypes[73]
+	mi := &file_api_proto_msgTypes[82]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4265,7 +4905,7 @@ func (x *DecodeOfferResponse) String() string {
 func (*DecodeOfferResponse) ProtoMessage() {}
 
 func (x *DecodeOfferResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[73]
+	mi := &file_api_proto_msgTypes[82]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4278,7 +4918,7 @@ func (x *DecodeOfferResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DecodeOfferResponse.ProtoReflect.Descriptor instead.
 func (*DecodeOfferResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{73}
+	return file_api_proto_rawDescGZIP(), []int{82}
 }
 
 func (x *DecodeOfferResponse) GetOfferId() string {
@@ -4337,7 +4977,7 @@ func (x *DecodeOfferResponse) GetPaths() []*types.BlindedPath {
 	return nil
 }
 
-func (x *DecodeOfferResponse) GetFeatures() map[uint32]*types.Bolt11Feature {
+func (x *DecodeOfferResponse) GetFeatures() map[uint32]*types.Feature {
 	if x != nil {
 		return x.Features
 	}
@@ -4365,7 +5005,15 @@ func (x *DecodeOfferResponse) GetIsExpired() bool {
 	return false
 }
 
-// Subscribe to a stream of server events.
+// Subscribe to a best-effort stream of new server events.
+//
+// Events are not persisted for subscribers or replayed after reconnecting, and the server does not
+// wait for client acknowledgement. Slow or disconnected subscribers may miss events. Reconcile
+// recoverable state with the listing and detail APIs after reconnecting. Some event fields,
+// including inputs required for payer proofs, cannot be recovered through these APIs.
+//
+// If a PaymentClaimable event is missed and the payment is not otherwise claimed or failed, LDK
+// Node automatically fails the HTLC backward at its claim_deadline.
 type SubscribeEventsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -4374,7 +5022,7 @@ type SubscribeEventsRequest struct {
 
 func (x *SubscribeEventsRequest) Reset() {
 	*x = SubscribeEventsRequest{}
-	mi := &file_api_proto_msgTypes[74]
+	mi := &file_api_proto_msgTypes[83]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4386,7 +5034,7 @@ func (x *SubscribeEventsRequest) String() string {
 func (*SubscribeEventsRequest) ProtoMessage() {}
 
 func (x *SubscribeEventsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_msgTypes[74]
+	mi := &file_api_proto_msgTypes[83]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4399,7 +5047,7 @@ func (x *SubscribeEventsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubscribeEventsRequest.ProtoReflect.Descriptor instead.
 func (*SubscribeEventsRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_rawDescGZIP(), []int{74}
+	return file_api_proto_rawDescGZIP(), []int{83}
 }
 
 var File_api_proto protoreflect.FileDescriptor
@@ -4407,7 +5055,7 @@ var File_api_proto protoreflect.FileDescriptor
 const file_api_proto_rawDesc = "" +
 	"\n" +
 	"\tapi.proto\x12\x03api\x1a\vtypes.proto\x1a\fevents.proto\"\x14\n" +
-	"\x12GetNodeInfoRequest\"\xd5\a\n" +
+	"\x12GetNodeInfoRequest\"\xf0\t\n" +
 	"\x13GetNodeInfoResponse\x12\x17\n" +
 	"\anode_id\x18\x01 \x01(\tR\x06nodeId\x12>\n" +
 	"\x12current_best_block\x18\x03 \x01(\v2\x10.types.BestBlockR\x10currentBestBlock\x12W\n" +
@@ -4422,24 +5070,29 @@ const file_api_proto_rawDesc = "" +
 	"\n" +
 	"node_alias\x18\v \x01(\tH\x05R\tnodeAlias\x88\x01\x01\x12\x1b\n" +
 	"\tnode_uris\x18\f \x03(\tR\bnodeUris\x12(\n" +
-	"\anetwork\x18\r \x01(\x0e2\x0e.types.NetworkR\anetworkB)\n" +
+	"\anetwork\x18\r \x01(\x0e2\x0e.types.NetworkR\anetwork\x12B\n" +
+	"\bfeatures\x18\x0e \x03(\v2&.api.GetNodeInfoResponse.FeaturesEntryR\bfeatures\x12[\n" +
+	"(latest_pathfinding_scores_sync_timestamp\x18\x0f \x01(\x04H\x06R$latestPathfindingScoresSyncTimestamp\x88\x01\x01\x1aK\n" +
+	"\rFeaturesEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\rR\x03key\x12$\n" +
+	"\x05value\x18\x02 \x01(\v2\x0e.types.FeatureR\x05value:\x028\x01B)\n" +
 	"'_latest_lightning_wallet_sync_timestampB'\n" +
 	"%_latest_onchain_wallet_sync_timestampB)\n" +
 	"'_latest_fee_rate_cache_update_timestampB \n" +
 	"\x1e_latest_rgs_snapshot_timestampB/\n" +
 	"-_latest_node_announcement_broadcast_timestampB\r\n" +
-	"\v_node_alias\"\x17\n" +
+	"\v_node_aliasB+\n" +
+	")_latest_pathfinding_scores_sync_timestamp\"\x17\n" +
 	"\x15OnchainReceiveRequest\"2\n" +
 	"\x16OnchainReceiveResponse\x12\x18\n" +
-	"\aaddress\x18\x01 \x01(\tR\aaddress\"\xdc\x01\n" +
+	"\aaddress\x18\x01 \x01(\tR\aaddress\"\xd4\x01\n" +
 	"\x12OnchainSendRequest\x12\x18\n" +
-	"\aaddress\x18\x01 \x01(\tR\aaddress\x12$\n" +
+	"\aaddress\x18\x01 \x01(\tR\aaddress\x12!\n" +
 	"\vamount_sats\x18\x02 \x01(\x04H\x00R\n" +
-	"amountSats\x88\x01\x01\x12\x1e\n" +
-	"\bsend_all\x18\x03 \x01(\bH\x01R\asendAll\x88\x01\x01\x121\n" +
-	"\x13fee_rate_sat_per_vb\x18\x04 \x01(\x04H\x02R\x0ffeeRateSatPerVb\x88\x01\x01B\x0e\n" +
-	"\f_amount_satsB\v\n" +
-	"\t_send_allB\x16\n" +
+	"amountSats\x12,\n" +
+	"\tall_funds\x18\x03 \x01(\v2\r.api.AllFundsH\x00R\ballFunds\x121\n" +
+	"\x13fee_rate_sat_per_vb\x18\x04 \x01(\x04H\x01R\x0ffeeRateSatPerVb\x88\x01\x01B\b\n" +
+	"\x06amountB\x16\n" +
 	"\x14_fee_rate_sat_per_vb\")\n" +
 	"\x13OnchainSendResponse\x12\x12\n" +
 	"\x04txid\x18\x01 \x01(\tR\x04txid\"\xb0\x01\n" +
@@ -4463,17 +5116,18 @@ const file_api_proto_rawDesc = "" +
 	"\fpayment_hash\x18\x04 \x01(\tR\vpaymentHashB\x0e\n" +
 	"\f_amount_msat\"8\n" +
 	"\x1cBolt11ReceiveForHashResponse\x12\x18\n" +
-	"\ainvoice\x18\x01 \x01(\tR\ainvoice\"\xc3\x01\n" +
-	"\x19Bolt11ClaimForHashRequest\x12&\n" +
-	"\fpayment_hash\x18\x01 \x01(\tH\x00R\vpaymentHash\x88\x01\x01\x127\n" +
-	"\x15claimable_amount_msat\x18\x02 \x01(\x04H\x01R\x13claimableAmountMsat\x88\x01\x01\x12\x1a\n" +
-	"\bpreimage\x18\x03 \x01(\tR\bpreimageB\x0f\n" +
-	"\r_payment_hashB\x18\n" +
-	"\x16_claimable_amount_msat\"\x1c\n" +
-	"\x1aBolt11ClaimForHashResponse\"=\n" +
-	"\x18Bolt11FailForHashRequest\x12!\n" +
-	"\fpayment_hash\x18\x01 \x01(\tR\vpaymentHash\"\x1b\n" +
-	"\x19Bolt11FailForHashResponse\"\x8d\x02\n" +
+	"\ainvoice\x18\x01 \x01(\tR\ainvoice\"\xa7\x01\n" +
+	"\x17Bolt11ClaimForIdRequest\x12\x1d\n" +
+	"\n" +
+	"payment_id\x18\x01 \x01(\tR\tpaymentId\x127\n" +
+	"\x15claimable_amount_msat\x18\x02 \x01(\x04H\x00R\x13claimableAmountMsat\x88\x01\x01\x12\x1a\n" +
+	"\bpreimage\x18\x03 \x01(\tR\bpreimageB\x18\n" +
+	"\x16_claimable_amount_msat\"\x1a\n" +
+	"\x18Bolt11ClaimForIdResponse\"7\n" +
+	"\x16Bolt11FailForIdRequest\x12\x1d\n" +
+	"\n" +
+	"payment_id\x18\x01 \x01(\tR\tpaymentId\"\x19\n" +
+	"\x17Bolt11FailForIdResponse\"\x8d\x02\n" +
 	"!Bolt11ReceiveViaJitChannelRequest\x12\x1f\n" +
 	"\vamount_msat\x18\x01 \x01(\x04R\n" +
 	"amountMsat\x12A\n" +
@@ -4500,6 +5154,15 @@ const file_api_proto_rawDesc = "" +
 	"\f_amount_msatB\x13\n" +
 	"\x11_route_parameters\"3\n" +
 	"\x12Bolt11SendResponse\x12\x1d\n" +
+	"\n" +
+	"payment_id\x18\x01 \x01(\tR\tpaymentId\"\xbc\x01\n" +
+	"\x1cBolt11SendUnderpayingRequest\x12\x18\n" +
+	"\ainvoice\x18\x01 \x01(\tR\ainvoice\x12\x1f\n" +
+	"\vamount_msat\x18\x02 \x01(\x04R\n" +
+	"amountMsat\x12L\n" +
+	"\x10route_parameters\x18\x03 \x01(\v2\x1c.types.RouteParametersConfigH\x00R\x0frouteParameters\x88\x01\x01B\x13\n" +
+	"\x11_route_parameters\">\n" +
+	"\x1dBolt11SendUnderpayingResponse\x12\x1d\n" +
 	"\n" +
 	"payment_id\x18\x01 \x01(\tR\tpaymentId\"\xd2\x01\n" +
 	"\x14Bolt12ReceiveRequest\x12 \n" +
@@ -4529,35 +5192,72 @@ const file_api_proto_rawDesc = "" +
 	"\x11_route_parameters\"3\n" +
 	"\x12Bolt12SendResponse\x12\x1d\n" +
 	"\n" +
-	"payment_id\x18\x01 \x01(\tR\tpaymentId\"\xee\x01\n" +
+	"payment_id\x18\x01 \x01(\tR\tpaymentId\"\x9f\x02\n" +
+	"\x17Bolt12SendRefundRequest\x12\x1f\n" +
+	"\vamount_msat\x18\x01 \x01(\x04R\n" +
+	"amountMsat\x12\x1f\n" +
+	"\vexpiry_secs\x18\x02 \x01(\rR\n" +
+	"expirySecs\x12\x1f\n" +
+	"\bquantity\x18\x03 \x01(\x04H\x00R\bquantity\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"payer_note\x18\x04 \x01(\tH\x01R\tpayerNote\x88\x01\x01\x12L\n" +
+	"\x10route_parameters\x18\x05 \x01(\v2\x1c.types.RouteParametersConfigH\x02R\x0frouteParameters\x88\x01\x01B\v\n" +
+	"\t_quantityB\r\n" +
+	"\v_payer_noteB\x13\n" +
+	"\x11_route_parameters\"2\n" +
+	"\x18Bolt12SendRefundResponse\x12\x16\n" +
+	"\x06refund\x18\x01 \x01(\tR\x06refund\"4\n" +
+	"\x1aBolt12ReceiveRefundRequest\x12\x16\n" +
+	"\x06refund\x18\x01 \x01(\tR\x06refund\"@\n" +
+	"\x1bBolt12ReceiveRefundResponse\x12!\n" +
+	"\fpayment_hash\x18\x01 \x01(\tR\vpaymentHash\"\xc8\x01\n" +
+	"\x1dBolt12CreatePayerProofRequest\x12\x1d\n" +
+	"\n" +
+	"payment_id\x18\x01 \x01(\tR\tpaymentId\x12)\n" +
+	"\x10payment_preimage\x18\x02 \x01(\tR\x0fpaymentPreimage\x12\x18\n" +
+	"\ainvoice\x18\x03 \x01(\tR\ainvoice\x127\n" +
+	"\aoptions\x18\x04 \x01(\v2\x18.types.PayerProofOptionsH\x00R\aoptions\x88\x01\x01B\n" +
+	"\n" +
+	"\b_options\"A\n" +
+	"\x1eBolt12CreatePayerProofResponse\x12\x1f\n" +
+	"\vpayer_proof\x18\x01 \x01(\tR\n" +
+	"payerProof\"\x9c\x02\n" +
 	"\x16SpontaneousSendRequest\x12\x1f\n" +
 	"\vamount_msat\x18\x01 \x01(\x04R\n" +
 	"amountMsat\x12\x17\n" +
 	"\anode_id\x18\x02 \x01(\tR\x06nodeId\x12L\n" +
 	"\x10route_parameters\x18\x03 \x01(\v2\x1c.types.RouteParametersConfigH\x00R\x0frouteParameters\x88\x01\x01\x127\n" +
 	"\vcustom_tlvs\x18\x04 \x03(\v2\x16.types.CustomTlvRecordR\n" +
-	"customTlvsB\x13\n" +
-	"\x11_route_parameters\"8\n" +
+	"customTlvs\x12\x1f\n" +
+	"\bpreimage\x18\x05 \x01(\tH\x01R\bpreimage\x88\x01\x01B\x13\n" +
+	"\x11_route_parametersB\v\n" +
+	"\t_preimage\"8\n" +
 	"\x17SpontaneousSendResponse\x12\x1d\n" +
 	"\n" +
-	"payment_id\x18\x01 \x01(\tR\tpaymentId\"\x9f\x03\n" +
+	"payment_id\x18\x01 \x01(\tR\tpaymentId\"\n" +
+	"\n" +
+	"\bAllFunds\"\xd9\x03\n" +
 	"\x12OpenChannelRequest\x12\x1f\n" +
 	"\vnode_pubkey\x18\x01 \x01(\tR\n" +
 	"nodePubkey\x12\x18\n" +
-	"\aaddress\x18\x02 \x01(\tR\aaddress\x12.\n" +
-	"\x13channel_amount_sats\x18\x03 \x01(\x04R\x11channelAmountSats\x12>\n" +
-	"\x19push_to_counterparty_msat\x18\x04 \x01(\x04H\x00R\x16pushToCounterpartyMsat\x88\x01\x01\x12@\n" +
-	"\x0echannel_config\x18\x05 \x01(\v2\x14.types.ChannelConfigH\x01R\rchannelConfig\x88\x01\x01\x12)\n" +
+	"\aaddress\x18\x02 \x01(\tR\aaddress\x120\n" +
+	"\x13channel_amount_sats\x18\x03 \x01(\x04H\x00R\x11channelAmountSats\x12,\n" +
+	"\tall_funds\x18\b \x01(\v2\r.api.AllFundsH\x00R\ballFunds\x12>\n" +
+	"\x19push_to_counterparty_msat\x18\x04 \x01(\x04H\x01R\x16pushToCounterpartyMsat\x88\x01\x01\x12@\n" +
+	"\x0echannel_config\x18\x05 \x01(\v2\x14.types.ChannelConfigH\x02R\rchannelConfig\x88\x01\x01\x12)\n" +
 	"\x10announce_channel\x18\x06 \x01(\bR\x0fannounceChannel\x12@\n" +
-	"\x1cdisable_counterparty_reserve\x18\a \x01(\bR\x1adisableCounterpartyReserveB\x1c\n" +
+	"\x1cdisable_counterparty_reserve\x18\a \x01(\bR\x1adisableCounterpartyReserveB\b\n" +
+	"\x06amountB\x1c\n" +
 	"\x1a_push_to_counterparty_msatB\x11\n" +
 	"\x0f_channel_config\"=\n" +
 	"\x13OpenChannelResponse\x12&\n" +
-	"\x0fuser_channel_id\x18\x01 \x01(\tR\ruserChannelId\"\x99\x01\n" +
+	"\x0fuser_channel_id\x18\x01 \x01(\tR\ruserChannelId\"\xd3\x01\n" +
 	"\x0fSpliceInRequest\x12&\n" +
 	"\x0fuser_channel_id\x18\x01 \x01(\tR\ruserChannelId\x120\n" +
-	"\x14counterparty_node_id\x18\x02 \x01(\tR\x12counterpartyNodeId\x12,\n" +
-	"\x12splice_amount_sats\x18\x03 \x01(\x04R\x10spliceAmountSats\"\x12\n" +
+	"\x14counterparty_node_id\x18\x02 \x01(\tR\x12counterpartyNodeId\x12.\n" +
+	"\x12splice_amount_sats\x18\x03 \x01(\x04H\x00R\x10spliceAmountSats\x12,\n" +
+	"\tall_funds\x18\x04 \x01(\v2\r.api.AllFundsH\x00R\ballFundsB\b\n" +
+	"\x06amount\"\x12\n" +
 	"\x10SpliceInResponse\"\xc5\x01\n" +
 	"\x10SpliceOutRequest\x12&\n" +
 	"\x0fuser_channel_id\x18\x01 \x01(\tR\ruserChannelId\x120\n" +
@@ -4590,22 +5290,22 @@ const file_api_proto_rawDesc = "" +
 	"\n" +
 	"payment_id\x18\x01 \x01(\tR\tpaymentId\"E\n" +
 	"\x19GetPaymentDetailsResponse\x12(\n" +
-	"\apayment\x18\x01 \x01(\v2\x0e.types.PaymentR\apayment\"Z\n" +
-	"\x13ListPaymentsRequest\x124\n" +
+	"\apayment\x18\x01 \x01(\v2\x0e.types.PaymentR\apayment\"H\n" +
+	"\x13ListPaymentsRequest\x12\"\n" +
 	"\n" +
-	"page_token\x18\x01 \x01(\v2\x10.types.PageTokenH\x00R\tpageToken\x88\x01\x01B\r\n" +
-	"\v_page_token\"\x95\x01\n" +
+	"page_token\x18\x01 \x01(\tH\x00R\tpageToken\x88\x01\x01B\r\n" +
+	"\v_page_token\"\x83\x01\n" +
 	"\x14ListPaymentsResponse\x12*\n" +
-	"\bpayments\x18\x01 \x03(\v2\x0e.types.PaymentR\bpayments\x12=\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\v2\x10.types.PageTokenH\x00R\rnextPageToken\x88\x01\x01B\x12\n" +
-	"\x10_next_page_token\"c\n" +
-	"\x1cListForwardedPaymentsRequest\x124\n" +
+	"\bpayments\x18\x01 \x03(\v2\x0e.types.PaymentR\bpayments\x12+\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tH\x00R\rnextPageToken\x88\x01\x01B\x12\n" +
+	"\x10_next_page_token\"Q\n" +
+	"\x1cListForwardedPaymentsRequest\x12\"\n" +
 	"\n" +
-	"page_token\x18\x01 \x01(\v2\x10.types.PageTokenH\x00R\tpageToken\x88\x01\x01B\r\n" +
-	"\v_page_token\"\xba\x01\n" +
+	"page_token\x18\x01 \x01(\tH\x00R\tpageToken\x88\x01\x01B\r\n" +
+	"\v_page_token\"\xa8\x01\n" +
 	"\x1dListForwardedPaymentsResponse\x12F\n" +
-	"\x12forwarded_payments\x18\x01 \x03(\v2\x17.types.ForwardedPaymentR\x11forwardedPayments\x12=\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\v2\x10.types.PageTokenH\x00R\rnextPageToken\x88\x01\x01B\x12\n" +
+	"\x12forwarded_payments\x18\x01 \x03(\v2\x17.types.ForwardedPaymentR\x11forwardedPayments\x12+\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tH\x00R\rnextPageToken\x88\x01\x01B\x12\n" +
 	"\x10_next_page_token\".\n" +
 	"\x12SignMessageRequest\x12\x18\n" +
 	"\amessage\x18\x01 \x01(\fR\amessage\"3\n" +
@@ -4669,7 +5369,7 @@ const file_api_proto_rawDesc = "" +
 	"\x14GraphGetNodeResponse\x12$\n" +
 	"\x04node\x18\x01 \x01(\v2\x10.types.GraphNodeR\x04node\"0\n" +
 	"\x14DecodeInvoiceRequest\x12\x18\n" +
-	"\ainvoice\x18\x01 \x01(\tR\ainvoice\"\xc0\x06\n" +
+	"\ainvoice\x18\x01 \x01(\tR\ainvoice\"\xba\x06\n" +
 	"\x15DecodeInvoiceResponse\x12 \n" +
 	"\vdestination\x18\x01 \x01(\tR\vdestination\x12!\n" +
 	"\fpayment_hash\x18\x02 \x01(\tR\vpaymentHash\x12$\n" +
@@ -4689,17 +5389,17 @@ const file_api_proto_rawDesc = "" +
 	"\bcurrency\x18\f \x01(\tR\bcurrency\x12.\n" +
 	"\x10payment_metadata\x18\r \x01(\tH\x04R\x0fpaymentMetadata\x88\x01\x01\x12\x1d\n" +
 	"\n" +
-	"is_expired\x18\x0f \x01(\bR\tisExpired\x1aQ\n" +
+	"is_expired\x18\x0f \x01(\bR\tisExpired\x1aK\n" +
 	"\rFeaturesEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\rR\x03key\x12*\n" +
-	"\x05value\x18\x02 \x01(\v2\x14.types.Bolt11FeatureR\x05value:\x028\x01B\x0e\n" +
+	"\x03key\x18\x01 \x01(\rR\x03key\x12$\n" +
+	"\x05value\x18\x02 \x01(\v2\x0e.types.FeatureR\x05value:\x028\x01B\x0e\n" +
 	"\f_amount_msatB\x0e\n" +
 	"\f_descriptionB\x13\n" +
 	"\x11_description_hashB\x13\n" +
 	"\x11_fallback_addressB\x13\n" +
 	"\x11_payment_metadata\"*\n" +
 	"\x12DecodeOfferRequest\x12\x14\n" +
-	"\x05offer\x18\x01 \x01(\tR\x05offer\"\xa8\x05\n" +
+	"\x05offer\x18\x01 \x01(\tR\x05offer\"\xa2\x05\n" +
 	"\x13DecodeOfferResponse\x12\x19\n" +
 	"\boffer_id\x18\x01 \x01(\tR\aofferId\x12%\n" +
 	"\vdescription\x18\x02 \x01(\tH\x00R\vdescription\x88\x01\x01\x12\x1b\n" +
@@ -4714,32 +5414,36 @@ const file_api_proto_rawDesc = "" +
 	" \x03(\tR\x06chains\x12\x1f\n" +
 	"\bmetadata\x18\v \x01(\tH\x04R\bmetadata\x88\x01\x01\x12\x1d\n" +
 	"\n" +
-	"is_expired\x18\f \x01(\bR\tisExpired\x1aQ\n" +
+	"is_expired\x18\f \x01(\bR\tisExpired\x1aK\n" +
 	"\rFeaturesEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\rR\x03key\x12*\n" +
-	"\x05value\x18\x02 \x01(\v2\x14.types.Bolt11FeatureR\x05value:\x028\x01B\x0e\n" +
+	"\x03key\x18\x01 \x01(\rR\x03key\x12$\n" +
+	"\x05value\x18\x02 \x01(\v2\x0e.types.FeatureR\x05value:\x028\x01B\x0e\n" +
 	"\f_descriptionB\t\n" +
 	"\a_issuerB\x18\n" +
 	"\x16_issuer_signing_pubkeyB\x12\n" +
 	"\x10_absolute_expiryB\v\n" +
 	"\t_metadata\"\x18\n" +
-	"\x16SubscribeEventsRequest2\xfb\x16\n" +
+	"\x16SubscribeEventsRequest2\xdd\x19\n" +
 	"\rLightningNode\x12@\n" +
 	"\vGetNodeInfo\x12\x17.api.GetNodeInfoRequest\x1a\x18.api.GetNodeInfoResponse\x12@\n" +
 	"\vGetBalances\x12\x17.api.GetBalancesRequest\x1a\x18.api.GetBalancesResponse\x12I\n" +
 	"\x0eOnchainReceive\x12\x1a.api.OnchainReceiveRequest\x1a\x1b.api.OnchainReceiveResponse\x12@\n" +
 	"\vOnchainSend\x12\x17.api.OnchainSendRequest\x1a\x18.api.OnchainSendResponse\x12F\n" +
 	"\rBolt11Receive\x12\x19.api.Bolt11ReceiveRequest\x1a\x1a.api.Bolt11ReceiveResponse\x12[\n" +
-	"\x14Bolt11ReceiveForHash\x12 .api.Bolt11ReceiveForHashRequest\x1a!.api.Bolt11ReceiveForHashResponse\x12U\n" +
-	"\x12Bolt11ClaimForHash\x12\x1e.api.Bolt11ClaimForHashRequest\x1a\x1f.api.Bolt11ClaimForHashResponse\x12R\n" +
-	"\x11Bolt11FailForHash\x12\x1d.api.Bolt11FailForHashRequest\x1a\x1e.api.Bolt11FailForHashResponse\x12m\n" +
+	"\x14Bolt11ReceiveForHash\x12 .api.Bolt11ReceiveForHashRequest\x1a!.api.Bolt11ReceiveForHashResponse\x12O\n" +
+	"\x10Bolt11ClaimForId\x12\x1c.api.Bolt11ClaimForIdRequest\x1a\x1d.api.Bolt11ClaimForIdResponse\x12L\n" +
+	"\x0fBolt11FailForId\x12\x1b.api.Bolt11FailForIdRequest\x1a\x1c.api.Bolt11FailForIdResponse\x12m\n" +
 	"\x1aBolt11ReceiveViaJitChannel\x12&.api.Bolt11ReceiveViaJitChannelRequest\x1a'.api.Bolt11ReceiveViaJitChannelResponse\x12\x97\x01\n" +
 	"(Bolt11ReceiveVariableAmountViaJitChannel\x124.api.Bolt11ReceiveVariableAmountViaJitChannelRequest\x1a5.api.Bolt11ReceiveVariableAmountViaJitChannelResponse\x12=\n" +
 	"\n" +
-	"Bolt11Send\x12\x16.api.Bolt11SendRequest\x1a\x17.api.Bolt11SendResponse\x12F\n" +
+	"Bolt11Send\x12\x16.api.Bolt11SendRequest\x1a\x17.api.Bolt11SendResponse\x12^\n" +
+	"\x15Bolt11SendUnderpaying\x12!.api.Bolt11SendUnderpayingRequest\x1a\".api.Bolt11SendUnderpayingResponse\x12F\n" +
 	"\rBolt12Receive\x12\x19.api.Bolt12ReceiveRequest\x1a\x1a.api.Bolt12ReceiveResponse\x12=\n" +
 	"\n" +
-	"Bolt12Send\x12\x16.api.Bolt12SendRequest\x1a\x17.api.Bolt12SendResponse\x12L\n" +
+	"Bolt12Send\x12\x16.api.Bolt12SendRequest\x1a\x17.api.Bolt12SendResponse\x12O\n" +
+	"\x10Bolt12SendRefund\x12\x1c.api.Bolt12SendRefundRequest\x1a\x1d.api.Bolt12SendRefundResponse\x12X\n" +
+	"\x13Bolt12ReceiveRefund\x12\x1f.api.Bolt12ReceiveRefundRequest\x1a .api.Bolt12ReceiveRefundResponse\x12a\n" +
+	"\x16Bolt12CreatePayerProof\x12\".api.Bolt12CreatePayerProofRequest\x1a#.api.Bolt12CreatePayerProofResponse\x12L\n" +
 	"\x0fSpontaneousSend\x12\x1b.api.SpontaneousSendRequest\x1a\x1c.api.SpontaneousSendResponse\x12@\n" +
 	"\vOpenChannel\x12\x17.api.OpenChannelRequest\x1a\x18.api.OpenChannelResponse\x127\n" +
 	"\bSpliceIn\x12\x14.api.SpliceInRequest\x1a\x15.api.SpliceInResponse\x12:\n" +
@@ -4778,7 +5482,7 @@ func file_api_proto_rawDescGZIP() []byte {
 	return file_api_proto_rawDescData
 }
 
-var file_api_proto_msgTypes = make([]protoimpl.MessageInfo, 77)
+var file_api_proto_msgTypes = make([]protoimpl.MessageInfo, 87)
 var file_api_proto_goTypes = []any{
 	(*GetNodeInfoRequest)(nil),                               // 0: api.GetNodeInfoRequest
 	(*GetNodeInfoResponse)(nil),                              // 1: api.GetNodeInfoResponse
@@ -4790,211 +5494,233 @@ var file_api_proto_goTypes = []any{
 	(*Bolt11ReceiveResponse)(nil),                            // 7: api.Bolt11ReceiveResponse
 	(*Bolt11ReceiveForHashRequest)(nil),                      // 8: api.Bolt11ReceiveForHashRequest
 	(*Bolt11ReceiveForHashResponse)(nil),                     // 9: api.Bolt11ReceiveForHashResponse
-	(*Bolt11ClaimForHashRequest)(nil),                        // 10: api.Bolt11ClaimForHashRequest
-	(*Bolt11ClaimForHashResponse)(nil),                       // 11: api.Bolt11ClaimForHashResponse
-	(*Bolt11FailForHashRequest)(nil),                         // 12: api.Bolt11FailForHashRequest
-	(*Bolt11FailForHashResponse)(nil),                        // 13: api.Bolt11FailForHashResponse
+	(*Bolt11ClaimForIdRequest)(nil),                          // 10: api.Bolt11ClaimForIdRequest
+	(*Bolt11ClaimForIdResponse)(nil),                         // 11: api.Bolt11ClaimForIdResponse
+	(*Bolt11FailForIdRequest)(nil),                           // 12: api.Bolt11FailForIdRequest
+	(*Bolt11FailForIdResponse)(nil),                          // 13: api.Bolt11FailForIdResponse
 	(*Bolt11ReceiveViaJitChannelRequest)(nil),                // 14: api.Bolt11ReceiveViaJitChannelRequest
 	(*Bolt11ReceiveViaJitChannelResponse)(nil),               // 15: api.Bolt11ReceiveViaJitChannelResponse
 	(*Bolt11ReceiveVariableAmountViaJitChannelRequest)(nil),  // 16: api.Bolt11ReceiveVariableAmountViaJitChannelRequest
 	(*Bolt11ReceiveVariableAmountViaJitChannelResponse)(nil), // 17: api.Bolt11ReceiveVariableAmountViaJitChannelResponse
 	(*Bolt11SendRequest)(nil),                                // 18: api.Bolt11SendRequest
 	(*Bolt11SendResponse)(nil),                               // 19: api.Bolt11SendResponse
-	(*Bolt12ReceiveRequest)(nil),                             // 20: api.Bolt12ReceiveRequest
-	(*Bolt12ReceiveResponse)(nil),                            // 21: api.Bolt12ReceiveResponse
-	(*Bolt12SendRequest)(nil),                                // 22: api.Bolt12SendRequest
-	(*Bolt12SendResponse)(nil),                               // 23: api.Bolt12SendResponse
-	(*SpontaneousSendRequest)(nil),                           // 24: api.SpontaneousSendRequest
-	(*SpontaneousSendResponse)(nil),                          // 25: api.SpontaneousSendResponse
-	(*OpenChannelRequest)(nil),                               // 26: api.OpenChannelRequest
-	(*OpenChannelResponse)(nil),                              // 27: api.OpenChannelResponse
-	(*SpliceInRequest)(nil),                                  // 28: api.SpliceInRequest
-	(*SpliceInResponse)(nil),                                 // 29: api.SpliceInResponse
-	(*SpliceOutRequest)(nil),                                 // 30: api.SpliceOutRequest
-	(*SpliceOutResponse)(nil),                                // 31: api.SpliceOutResponse
-	(*UpdateChannelConfigRequest)(nil),                       // 32: api.UpdateChannelConfigRequest
-	(*UpdateChannelConfigResponse)(nil),                      // 33: api.UpdateChannelConfigResponse
-	(*CloseChannelRequest)(nil),                              // 34: api.CloseChannelRequest
-	(*CloseChannelResponse)(nil),                             // 35: api.CloseChannelResponse
-	(*ForceCloseChannelRequest)(nil),                         // 36: api.ForceCloseChannelRequest
-	(*ForceCloseChannelResponse)(nil),                        // 37: api.ForceCloseChannelResponse
-	(*ListChannelsRequest)(nil),                              // 38: api.ListChannelsRequest
-	(*ListChannelsResponse)(nil),                             // 39: api.ListChannelsResponse
-	(*GetPaymentDetailsRequest)(nil),                         // 40: api.GetPaymentDetailsRequest
-	(*GetPaymentDetailsResponse)(nil),                        // 41: api.GetPaymentDetailsResponse
-	(*ListPaymentsRequest)(nil),                              // 42: api.ListPaymentsRequest
-	(*ListPaymentsResponse)(nil),                             // 43: api.ListPaymentsResponse
-	(*ListForwardedPaymentsRequest)(nil),                     // 44: api.ListForwardedPaymentsRequest
-	(*ListForwardedPaymentsResponse)(nil),                    // 45: api.ListForwardedPaymentsResponse
-	(*SignMessageRequest)(nil),                               // 46: api.SignMessageRequest
-	(*SignMessageResponse)(nil),                              // 47: api.SignMessageResponse
-	(*VerifySignatureRequest)(nil),                           // 48: api.VerifySignatureRequest
-	(*VerifySignatureResponse)(nil),                          // 49: api.VerifySignatureResponse
-	(*ExportPathfindingScoresRequest)(nil),                   // 50: api.ExportPathfindingScoresRequest
-	(*ExportPathfindingScoresResponse)(nil),                  // 51: api.ExportPathfindingScoresResponse
-	(*GetBalancesRequest)(nil),                               // 52: api.GetBalancesRequest
-	(*GetBalancesResponse)(nil),                              // 53: api.GetBalancesResponse
-	(*ConnectPeerRequest)(nil),                               // 54: api.ConnectPeerRequest
-	(*ConnectPeerResponse)(nil),                              // 55: api.ConnectPeerResponse
-	(*DisconnectPeerRequest)(nil),                            // 56: api.DisconnectPeerRequest
-	(*DisconnectPeerResponse)(nil),                           // 57: api.DisconnectPeerResponse
-	(*ListPeersRequest)(nil),                                 // 58: api.ListPeersRequest
-	(*ListPeersResponse)(nil),                                // 59: api.ListPeersResponse
-	(*GraphListChannelsRequest)(nil),                         // 60: api.GraphListChannelsRequest
-	(*GraphListChannelsResponse)(nil),                        // 61: api.GraphListChannelsResponse
-	(*GraphGetChannelRequest)(nil),                           // 62: api.GraphGetChannelRequest
-	(*GraphGetChannelResponse)(nil),                          // 63: api.GraphGetChannelResponse
-	(*GraphListNodesRequest)(nil),                            // 64: api.GraphListNodesRequest
-	(*GraphListNodesResponse)(nil),                           // 65: api.GraphListNodesResponse
-	(*UnifiedSendRequest)(nil),                               // 66: api.UnifiedSendRequest
-	(*UnifiedSendResponse)(nil),                              // 67: api.UnifiedSendResponse
-	(*GraphGetNodeRequest)(nil),                              // 68: api.GraphGetNodeRequest
-	(*GraphGetNodeResponse)(nil),                             // 69: api.GraphGetNodeResponse
-	(*DecodeInvoiceRequest)(nil),                             // 70: api.DecodeInvoiceRequest
-	(*DecodeInvoiceResponse)(nil),                            // 71: api.DecodeInvoiceResponse
-	(*DecodeOfferRequest)(nil),                               // 72: api.DecodeOfferRequest
-	(*DecodeOfferResponse)(nil),                              // 73: api.DecodeOfferResponse
-	(*SubscribeEventsRequest)(nil),                           // 74: api.SubscribeEventsRequest
-	nil,                                                      // 75: api.DecodeInvoiceResponse.FeaturesEntry
-	nil,                                                      // 76: api.DecodeOfferResponse.FeaturesEntry
-	(*types.BestBlock)(nil),                                  // 77: types.BestBlock
-	(types.Network)(0),                                       // 78: types.Network
-	(*types.Bolt11InvoiceDescription)(nil),                   // 79: types.Bolt11InvoiceDescription
-	(*types.RouteParametersConfig)(nil),                      // 80: types.RouteParametersConfig
-	(*types.CustomTlvRecord)(nil),                            // 81: types.CustomTlvRecord
-	(*types.ChannelConfig)(nil),                              // 82: types.ChannelConfig
-	(*types.Channel)(nil),                                    // 83: types.Channel
-	(*types.Payment)(nil),                                    // 84: types.Payment
-	(*types.PageToken)(nil),                                  // 85: types.PageToken
-	(*types.ForwardedPayment)(nil),                           // 86: types.ForwardedPayment
-	(*types.LightningBalance)(nil),                           // 87: types.LightningBalance
-	(*types.PendingSweepBalance)(nil),                        // 88: types.PendingSweepBalance
-	(*types.Peer)(nil),                                       // 89: types.Peer
-	(*types.GraphChannel)(nil),                               // 90: types.GraphChannel
-	(*types.GraphNode)(nil),                                  // 91: types.GraphNode
-	(*types.Bolt11RouteHint)(nil),                            // 92: types.Bolt11RouteHint
-	(*types.OfferAmount)(nil),                                // 93: types.OfferAmount
-	(*types.OfferQuantity)(nil),                              // 94: types.OfferQuantity
-	(*types.BlindedPath)(nil),                                // 95: types.BlindedPath
-	(*types.Bolt11Feature)(nil),                              // 96: types.Bolt11Feature
-	(*events.EventEnvelope)(nil),                             // 97: events.EventEnvelope
+	(*Bolt11SendUnderpayingRequest)(nil),                     // 20: api.Bolt11SendUnderpayingRequest
+	(*Bolt11SendUnderpayingResponse)(nil),                    // 21: api.Bolt11SendUnderpayingResponse
+	(*Bolt12ReceiveRequest)(nil),                             // 22: api.Bolt12ReceiveRequest
+	(*Bolt12ReceiveResponse)(nil),                            // 23: api.Bolt12ReceiveResponse
+	(*Bolt12SendRequest)(nil),                                // 24: api.Bolt12SendRequest
+	(*Bolt12SendResponse)(nil),                               // 25: api.Bolt12SendResponse
+	(*Bolt12SendRefundRequest)(nil),                          // 26: api.Bolt12SendRefundRequest
+	(*Bolt12SendRefundResponse)(nil),                         // 27: api.Bolt12SendRefundResponse
+	(*Bolt12ReceiveRefundRequest)(nil),                       // 28: api.Bolt12ReceiveRefundRequest
+	(*Bolt12ReceiveRefundResponse)(nil),                      // 29: api.Bolt12ReceiveRefundResponse
+	(*Bolt12CreatePayerProofRequest)(nil),                    // 30: api.Bolt12CreatePayerProofRequest
+	(*Bolt12CreatePayerProofResponse)(nil),                   // 31: api.Bolt12CreatePayerProofResponse
+	(*SpontaneousSendRequest)(nil),                           // 32: api.SpontaneousSendRequest
+	(*SpontaneousSendResponse)(nil),                          // 33: api.SpontaneousSendResponse
+	(*AllFunds)(nil),                                         // 34: api.AllFunds
+	(*OpenChannelRequest)(nil),                               // 35: api.OpenChannelRequest
+	(*OpenChannelResponse)(nil),                              // 36: api.OpenChannelResponse
+	(*SpliceInRequest)(nil),                                  // 37: api.SpliceInRequest
+	(*SpliceInResponse)(nil),                                 // 38: api.SpliceInResponse
+	(*SpliceOutRequest)(nil),                                 // 39: api.SpliceOutRequest
+	(*SpliceOutResponse)(nil),                                // 40: api.SpliceOutResponse
+	(*UpdateChannelConfigRequest)(nil),                       // 41: api.UpdateChannelConfigRequest
+	(*UpdateChannelConfigResponse)(nil),                      // 42: api.UpdateChannelConfigResponse
+	(*CloseChannelRequest)(nil),                              // 43: api.CloseChannelRequest
+	(*CloseChannelResponse)(nil),                             // 44: api.CloseChannelResponse
+	(*ForceCloseChannelRequest)(nil),                         // 45: api.ForceCloseChannelRequest
+	(*ForceCloseChannelResponse)(nil),                        // 46: api.ForceCloseChannelResponse
+	(*ListChannelsRequest)(nil),                              // 47: api.ListChannelsRequest
+	(*ListChannelsResponse)(nil),                             // 48: api.ListChannelsResponse
+	(*GetPaymentDetailsRequest)(nil),                         // 49: api.GetPaymentDetailsRequest
+	(*GetPaymentDetailsResponse)(nil),                        // 50: api.GetPaymentDetailsResponse
+	(*ListPaymentsRequest)(nil),                              // 51: api.ListPaymentsRequest
+	(*ListPaymentsResponse)(nil),                             // 52: api.ListPaymentsResponse
+	(*ListForwardedPaymentsRequest)(nil),                     // 53: api.ListForwardedPaymentsRequest
+	(*ListForwardedPaymentsResponse)(nil),                    // 54: api.ListForwardedPaymentsResponse
+	(*SignMessageRequest)(nil),                               // 55: api.SignMessageRequest
+	(*SignMessageResponse)(nil),                              // 56: api.SignMessageResponse
+	(*VerifySignatureRequest)(nil),                           // 57: api.VerifySignatureRequest
+	(*VerifySignatureResponse)(nil),                          // 58: api.VerifySignatureResponse
+	(*ExportPathfindingScoresRequest)(nil),                   // 59: api.ExportPathfindingScoresRequest
+	(*ExportPathfindingScoresResponse)(nil),                  // 60: api.ExportPathfindingScoresResponse
+	(*GetBalancesRequest)(nil),                               // 61: api.GetBalancesRequest
+	(*GetBalancesResponse)(nil),                              // 62: api.GetBalancesResponse
+	(*ConnectPeerRequest)(nil),                               // 63: api.ConnectPeerRequest
+	(*ConnectPeerResponse)(nil),                              // 64: api.ConnectPeerResponse
+	(*DisconnectPeerRequest)(nil),                            // 65: api.DisconnectPeerRequest
+	(*DisconnectPeerResponse)(nil),                           // 66: api.DisconnectPeerResponse
+	(*ListPeersRequest)(nil),                                 // 67: api.ListPeersRequest
+	(*ListPeersResponse)(nil),                                // 68: api.ListPeersResponse
+	(*GraphListChannelsRequest)(nil),                         // 69: api.GraphListChannelsRequest
+	(*GraphListChannelsResponse)(nil),                        // 70: api.GraphListChannelsResponse
+	(*GraphGetChannelRequest)(nil),                           // 71: api.GraphGetChannelRequest
+	(*GraphGetChannelResponse)(nil),                          // 72: api.GraphGetChannelResponse
+	(*GraphListNodesRequest)(nil),                            // 73: api.GraphListNodesRequest
+	(*GraphListNodesResponse)(nil),                           // 74: api.GraphListNodesResponse
+	(*UnifiedSendRequest)(nil),                               // 75: api.UnifiedSendRequest
+	(*UnifiedSendResponse)(nil),                              // 76: api.UnifiedSendResponse
+	(*GraphGetNodeRequest)(nil),                              // 77: api.GraphGetNodeRequest
+	(*GraphGetNodeResponse)(nil),                             // 78: api.GraphGetNodeResponse
+	(*DecodeInvoiceRequest)(nil),                             // 79: api.DecodeInvoiceRequest
+	(*DecodeInvoiceResponse)(nil),                            // 80: api.DecodeInvoiceResponse
+	(*DecodeOfferRequest)(nil),                               // 81: api.DecodeOfferRequest
+	(*DecodeOfferResponse)(nil),                              // 82: api.DecodeOfferResponse
+	(*SubscribeEventsRequest)(nil),                           // 83: api.SubscribeEventsRequest
+	nil,                                                      // 84: api.GetNodeInfoResponse.FeaturesEntry
+	nil,                                                      // 85: api.DecodeInvoiceResponse.FeaturesEntry
+	nil,                                                      // 86: api.DecodeOfferResponse.FeaturesEntry
+	(*types.BestBlock)(nil),                                  // 87: types.BestBlock
+	(types.Network)(0),                                       // 88: types.Network
+	(*types.Bolt11InvoiceDescription)(nil),                   // 89: types.Bolt11InvoiceDescription
+	(*types.RouteParametersConfig)(nil),                      // 90: types.RouteParametersConfig
+	(*types.PayerProofOptions)(nil),                          // 91: types.PayerProofOptions
+	(*types.CustomTlvRecord)(nil),                            // 92: types.CustomTlvRecord
+	(*types.ChannelConfig)(nil),                              // 93: types.ChannelConfig
+	(*types.Channel)(nil),                                    // 94: types.Channel
+	(*types.Payment)(nil),                                    // 95: types.Payment
+	(*types.ForwardedPayment)(nil),                           // 96: types.ForwardedPayment
+	(*types.LightningBalance)(nil),                           // 97: types.LightningBalance
+	(*types.PendingSweepBalance)(nil),                        // 98: types.PendingSweepBalance
+	(*types.Peer)(nil),                                       // 99: types.Peer
+	(*types.GraphChannel)(nil),                               // 100: types.GraphChannel
+	(*types.GraphNode)(nil),                                  // 101: types.GraphNode
+	(*types.Bolt11RouteHint)(nil),                            // 102: types.Bolt11RouteHint
+	(*types.OfferAmount)(nil),                                // 103: types.OfferAmount
+	(*types.OfferQuantity)(nil),                              // 104: types.OfferQuantity
+	(*types.BlindedPath)(nil),                                // 105: types.BlindedPath
+	(*types.Feature)(nil),                                    // 106: types.Feature
+	(*events.EventEnvelope)(nil),                             // 107: events.EventEnvelope
 }
 var file_api_proto_depIdxs = []int32{
-	77, // 0: api.GetNodeInfoResponse.current_best_block:type_name -> types.BestBlock
-	78, // 1: api.GetNodeInfoResponse.network:type_name -> types.Network
-	79, // 2: api.Bolt11ReceiveRequest.description:type_name -> types.Bolt11InvoiceDescription
-	79, // 3: api.Bolt11ReceiveForHashRequest.description:type_name -> types.Bolt11InvoiceDescription
-	79, // 4: api.Bolt11ReceiveViaJitChannelRequest.description:type_name -> types.Bolt11InvoiceDescription
-	79, // 5: api.Bolt11ReceiveVariableAmountViaJitChannelRequest.description:type_name -> types.Bolt11InvoiceDescription
-	80, // 6: api.Bolt11SendRequest.route_parameters:type_name -> types.RouteParametersConfig
-	80, // 7: api.Bolt12SendRequest.route_parameters:type_name -> types.RouteParametersConfig
-	80, // 8: api.SpontaneousSendRequest.route_parameters:type_name -> types.RouteParametersConfig
-	81, // 9: api.SpontaneousSendRequest.custom_tlvs:type_name -> types.CustomTlvRecord
-	82, // 10: api.OpenChannelRequest.channel_config:type_name -> types.ChannelConfig
-	82, // 11: api.UpdateChannelConfigRequest.channel_config:type_name -> types.ChannelConfig
-	83, // 12: api.ListChannelsResponse.channels:type_name -> types.Channel
-	84, // 13: api.GetPaymentDetailsResponse.payment:type_name -> types.Payment
-	85, // 14: api.ListPaymentsRequest.page_token:type_name -> types.PageToken
-	84, // 15: api.ListPaymentsResponse.payments:type_name -> types.Payment
-	85, // 16: api.ListPaymentsResponse.next_page_token:type_name -> types.PageToken
-	85, // 17: api.ListForwardedPaymentsRequest.page_token:type_name -> types.PageToken
-	86, // 18: api.ListForwardedPaymentsResponse.forwarded_payments:type_name -> types.ForwardedPayment
-	85, // 19: api.ListForwardedPaymentsResponse.next_page_token:type_name -> types.PageToken
-	87, // 20: api.GetBalancesResponse.lightning_balances:type_name -> types.LightningBalance
-	88, // 21: api.GetBalancesResponse.pending_balances_from_channel_closures:type_name -> types.PendingSweepBalance
-	89, // 22: api.ListPeersResponse.peers:type_name -> types.Peer
-	90, // 23: api.GraphGetChannelResponse.channel:type_name -> types.GraphChannel
-	80, // 24: api.UnifiedSendRequest.route_parameters:type_name -> types.RouteParametersConfig
-	91, // 25: api.GraphGetNodeResponse.node:type_name -> types.GraphNode
-	92, // 26: api.DecodeInvoiceResponse.route_hints:type_name -> types.Bolt11RouteHint
-	75, // 27: api.DecodeInvoiceResponse.features:type_name -> api.DecodeInvoiceResponse.FeaturesEntry
-	93, // 28: api.DecodeOfferResponse.amount:type_name -> types.OfferAmount
-	94, // 29: api.DecodeOfferResponse.quantity:type_name -> types.OfferQuantity
-	95, // 30: api.DecodeOfferResponse.paths:type_name -> types.BlindedPath
-	76, // 31: api.DecodeOfferResponse.features:type_name -> api.DecodeOfferResponse.FeaturesEntry
-	96, // 32: api.DecodeInvoiceResponse.FeaturesEntry.value:type_name -> types.Bolt11Feature
-	96, // 33: api.DecodeOfferResponse.FeaturesEntry.value:type_name -> types.Bolt11Feature
-	0,  // 34: api.LightningNode.GetNodeInfo:input_type -> api.GetNodeInfoRequest
-	52, // 35: api.LightningNode.GetBalances:input_type -> api.GetBalancesRequest
-	2,  // 36: api.LightningNode.OnchainReceive:input_type -> api.OnchainReceiveRequest
-	4,  // 37: api.LightningNode.OnchainSend:input_type -> api.OnchainSendRequest
-	6,  // 38: api.LightningNode.Bolt11Receive:input_type -> api.Bolt11ReceiveRequest
-	8,  // 39: api.LightningNode.Bolt11ReceiveForHash:input_type -> api.Bolt11ReceiveForHashRequest
-	10, // 40: api.LightningNode.Bolt11ClaimForHash:input_type -> api.Bolt11ClaimForHashRequest
-	12, // 41: api.LightningNode.Bolt11FailForHash:input_type -> api.Bolt11FailForHashRequest
-	14, // 42: api.LightningNode.Bolt11ReceiveViaJitChannel:input_type -> api.Bolt11ReceiveViaJitChannelRequest
-	16, // 43: api.LightningNode.Bolt11ReceiveVariableAmountViaJitChannel:input_type -> api.Bolt11ReceiveVariableAmountViaJitChannelRequest
-	18, // 44: api.LightningNode.Bolt11Send:input_type -> api.Bolt11SendRequest
-	20, // 45: api.LightningNode.Bolt12Receive:input_type -> api.Bolt12ReceiveRequest
-	22, // 46: api.LightningNode.Bolt12Send:input_type -> api.Bolt12SendRequest
-	24, // 47: api.LightningNode.SpontaneousSend:input_type -> api.SpontaneousSendRequest
-	26, // 48: api.LightningNode.OpenChannel:input_type -> api.OpenChannelRequest
-	28, // 49: api.LightningNode.SpliceIn:input_type -> api.SpliceInRequest
-	30, // 50: api.LightningNode.SpliceOut:input_type -> api.SpliceOutRequest
-	32, // 51: api.LightningNode.UpdateChannelConfig:input_type -> api.UpdateChannelConfigRequest
-	34, // 52: api.LightningNode.CloseChannel:input_type -> api.CloseChannelRequest
-	36, // 53: api.LightningNode.ForceCloseChannel:input_type -> api.ForceCloseChannelRequest
-	38, // 54: api.LightningNode.ListChannels:input_type -> api.ListChannelsRequest
-	40, // 55: api.LightningNode.GetPaymentDetails:input_type -> api.GetPaymentDetailsRequest
-	42, // 56: api.LightningNode.ListPayments:input_type -> api.ListPaymentsRequest
-	44, // 57: api.LightningNode.ListForwardedPayments:input_type -> api.ListForwardedPaymentsRequest
-	54, // 58: api.LightningNode.ConnectPeer:input_type -> api.ConnectPeerRequest
-	56, // 59: api.LightningNode.DisconnectPeer:input_type -> api.DisconnectPeerRequest
-	58, // 60: api.LightningNode.ListPeers:input_type -> api.ListPeersRequest
-	46, // 61: api.LightningNode.SignMessage:input_type -> api.SignMessageRequest
-	48, // 62: api.LightningNode.VerifySignature:input_type -> api.VerifySignatureRequest
-	50, // 63: api.LightningNode.ExportPathfindingScores:input_type -> api.ExportPathfindingScoresRequest
-	66, // 64: api.LightningNode.UnifiedSend:input_type -> api.UnifiedSendRequest
-	70, // 65: api.LightningNode.DecodeInvoice:input_type -> api.DecodeInvoiceRequest
-	72, // 66: api.LightningNode.DecodeOffer:input_type -> api.DecodeOfferRequest
-	60, // 67: api.LightningNode.GraphListChannels:input_type -> api.GraphListChannelsRequest
-	62, // 68: api.LightningNode.GraphGetChannel:input_type -> api.GraphGetChannelRequest
-	64, // 69: api.LightningNode.GraphListNodes:input_type -> api.GraphListNodesRequest
-	68, // 70: api.LightningNode.GraphGetNode:input_type -> api.GraphGetNodeRequest
-	74, // 71: api.LightningNode.SubscribeEvents:input_type -> api.SubscribeEventsRequest
-	1,  // 72: api.LightningNode.GetNodeInfo:output_type -> api.GetNodeInfoResponse
-	53, // 73: api.LightningNode.GetBalances:output_type -> api.GetBalancesResponse
-	3,  // 74: api.LightningNode.OnchainReceive:output_type -> api.OnchainReceiveResponse
-	5,  // 75: api.LightningNode.OnchainSend:output_type -> api.OnchainSendResponse
-	7,  // 76: api.LightningNode.Bolt11Receive:output_type -> api.Bolt11ReceiveResponse
-	9,  // 77: api.LightningNode.Bolt11ReceiveForHash:output_type -> api.Bolt11ReceiveForHashResponse
-	11, // 78: api.LightningNode.Bolt11ClaimForHash:output_type -> api.Bolt11ClaimForHashResponse
-	13, // 79: api.LightningNode.Bolt11FailForHash:output_type -> api.Bolt11FailForHashResponse
-	15, // 80: api.LightningNode.Bolt11ReceiveViaJitChannel:output_type -> api.Bolt11ReceiveViaJitChannelResponse
-	17, // 81: api.LightningNode.Bolt11ReceiveVariableAmountViaJitChannel:output_type -> api.Bolt11ReceiveVariableAmountViaJitChannelResponse
-	19, // 82: api.LightningNode.Bolt11Send:output_type -> api.Bolt11SendResponse
-	21, // 83: api.LightningNode.Bolt12Receive:output_type -> api.Bolt12ReceiveResponse
-	23, // 84: api.LightningNode.Bolt12Send:output_type -> api.Bolt12SendResponse
-	25, // 85: api.LightningNode.SpontaneousSend:output_type -> api.SpontaneousSendResponse
-	27, // 86: api.LightningNode.OpenChannel:output_type -> api.OpenChannelResponse
-	29, // 87: api.LightningNode.SpliceIn:output_type -> api.SpliceInResponse
-	31, // 88: api.LightningNode.SpliceOut:output_type -> api.SpliceOutResponse
-	33, // 89: api.LightningNode.UpdateChannelConfig:output_type -> api.UpdateChannelConfigResponse
-	35, // 90: api.LightningNode.CloseChannel:output_type -> api.CloseChannelResponse
-	37, // 91: api.LightningNode.ForceCloseChannel:output_type -> api.ForceCloseChannelResponse
-	39, // 92: api.LightningNode.ListChannels:output_type -> api.ListChannelsResponse
-	41, // 93: api.LightningNode.GetPaymentDetails:output_type -> api.GetPaymentDetailsResponse
-	43, // 94: api.LightningNode.ListPayments:output_type -> api.ListPaymentsResponse
-	45, // 95: api.LightningNode.ListForwardedPayments:output_type -> api.ListForwardedPaymentsResponse
-	55, // 96: api.LightningNode.ConnectPeer:output_type -> api.ConnectPeerResponse
-	57, // 97: api.LightningNode.DisconnectPeer:output_type -> api.DisconnectPeerResponse
-	59, // 98: api.LightningNode.ListPeers:output_type -> api.ListPeersResponse
-	47, // 99: api.LightningNode.SignMessage:output_type -> api.SignMessageResponse
-	49, // 100: api.LightningNode.VerifySignature:output_type -> api.VerifySignatureResponse
-	51, // 101: api.LightningNode.ExportPathfindingScores:output_type -> api.ExportPathfindingScoresResponse
-	67, // 102: api.LightningNode.UnifiedSend:output_type -> api.UnifiedSendResponse
-	71, // 103: api.LightningNode.DecodeInvoice:output_type -> api.DecodeInvoiceResponse
-	73, // 104: api.LightningNode.DecodeOffer:output_type -> api.DecodeOfferResponse
-	61, // 105: api.LightningNode.GraphListChannels:output_type -> api.GraphListChannelsResponse
-	63, // 106: api.LightningNode.GraphGetChannel:output_type -> api.GraphGetChannelResponse
-	65, // 107: api.LightningNode.GraphListNodes:output_type -> api.GraphListNodesResponse
-	69, // 108: api.LightningNode.GraphGetNode:output_type -> api.GraphGetNodeResponse
-	97, // 109: api.LightningNode.SubscribeEvents:output_type -> events.EventEnvelope
-	72, // [72:110] is the sub-list for method output_type
-	34, // [34:72] is the sub-list for method input_type
-	34, // [34:34] is the sub-list for extension type_name
-	34, // [34:34] is the sub-list for extension extendee
-	0,  // [0:34] is the sub-list for field type_name
+	87,  // 0: api.GetNodeInfoResponse.current_best_block:type_name -> types.BestBlock
+	88,  // 1: api.GetNodeInfoResponse.network:type_name -> types.Network
+	84,  // 2: api.GetNodeInfoResponse.features:type_name -> api.GetNodeInfoResponse.FeaturesEntry
+	34,  // 3: api.OnchainSendRequest.all_funds:type_name -> api.AllFunds
+	89,  // 4: api.Bolt11ReceiveRequest.description:type_name -> types.Bolt11InvoiceDescription
+	89,  // 5: api.Bolt11ReceiveForHashRequest.description:type_name -> types.Bolt11InvoiceDescription
+	89,  // 6: api.Bolt11ReceiveViaJitChannelRequest.description:type_name -> types.Bolt11InvoiceDescription
+	89,  // 7: api.Bolt11ReceiveVariableAmountViaJitChannelRequest.description:type_name -> types.Bolt11InvoiceDescription
+	90,  // 8: api.Bolt11SendRequest.route_parameters:type_name -> types.RouteParametersConfig
+	90,  // 9: api.Bolt11SendUnderpayingRequest.route_parameters:type_name -> types.RouteParametersConfig
+	90,  // 10: api.Bolt12SendRequest.route_parameters:type_name -> types.RouteParametersConfig
+	90,  // 11: api.Bolt12SendRefundRequest.route_parameters:type_name -> types.RouteParametersConfig
+	91,  // 12: api.Bolt12CreatePayerProofRequest.options:type_name -> types.PayerProofOptions
+	90,  // 13: api.SpontaneousSendRequest.route_parameters:type_name -> types.RouteParametersConfig
+	92,  // 14: api.SpontaneousSendRequest.custom_tlvs:type_name -> types.CustomTlvRecord
+	34,  // 15: api.OpenChannelRequest.all_funds:type_name -> api.AllFunds
+	93,  // 16: api.OpenChannelRequest.channel_config:type_name -> types.ChannelConfig
+	34,  // 17: api.SpliceInRequest.all_funds:type_name -> api.AllFunds
+	93,  // 18: api.UpdateChannelConfigRequest.channel_config:type_name -> types.ChannelConfig
+	94,  // 19: api.ListChannelsResponse.channels:type_name -> types.Channel
+	95,  // 20: api.GetPaymentDetailsResponse.payment:type_name -> types.Payment
+	95,  // 21: api.ListPaymentsResponse.payments:type_name -> types.Payment
+	96,  // 22: api.ListForwardedPaymentsResponse.forwarded_payments:type_name -> types.ForwardedPayment
+	97,  // 23: api.GetBalancesResponse.lightning_balances:type_name -> types.LightningBalance
+	98,  // 24: api.GetBalancesResponse.pending_balances_from_channel_closures:type_name -> types.PendingSweepBalance
+	99,  // 25: api.ListPeersResponse.peers:type_name -> types.Peer
+	100, // 26: api.GraphGetChannelResponse.channel:type_name -> types.GraphChannel
+	90,  // 27: api.UnifiedSendRequest.route_parameters:type_name -> types.RouteParametersConfig
+	101, // 28: api.GraphGetNodeResponse.node:type_name -> types.GraphNode
+	102, // 29: api.DecodeInvoiceResponse.route_hints:type_name -> types.Bolt11RouteHint
+	85,  // 30: api.DecodeInvoiceResponse.features:type_name -> api.DecodeInvoiceResponse.FeaturesEntry
+	103, // 31: api.DecodeOfferResponse.amount:type_name -> types.OfferAmount
+	104, // 32: api.DecodeOfferResponse.quantity:type_name -> types.OfferQuantity
+	105, // 33: api.DecodeOfferResponse.paths:type_name -> types.BlindedPath
+	86,  // 34: api.DecodeOfferResponse.features:type_name -> api.DecodeOfferResponse.FeaturesEntry
+	106, // 35: api.GetNodeInfoResponse.FeaturesEntry.value:type_name -> types.Feature
+	106, // 36: api.DecodeInvoiceResponse.FeaturesEntry.value:type_name -> types.Feature
+	106, // 37: api.DecodeOfferResponse.FeaturesEntry.value:type_name -> types.Feature
+	0,   // 38: api.LightningNode.GetNodeInfo:input_type -> api.GetNodeInfoRequest
+	61,  // 39: api.LightningNode.GetBalances:input_type -> api.GetBalancesRequest
+	2,   // 40: api.LightningNode.OnchainReceive:input_type -> api.OnchainReceiveRequest
+	4,   // 41: api.LightningNode.OnchainSend:input_type -> api.OnchainSendRequest
+	6,   // 42: api.LightningNode.Bolt11Receive:input_type -> api.Bolt11ReceiveRequest
+	8,   // 43: api.LightningNode.Bolt11ReceiveForHash:input_type -> api.Bolt11ReceiveForHashRequest
+	10,  // 44: api.LightningNode.Bolt11ClaimForId:input_type -> api.Bolt11ClaimForIdRequest
+	12,  // 45: api.LightningNode.Bolt11FailForId:input_type -> api.Bolt11FailForIdRequest
+	14,  // 46: api.LightningNode.Bolt11ReceiveViaJitChannel:input_type -> api.Bolt11ReceiveViaJitChannelRequest
+	16,  // 47: api.LightningNode.Bolt11ReceiveVariableAmountViaJitChannel:input_type -> api.Bolt11ReceiveVariableAmountViaJitChannelRequest
+	18,  // 48: api.LightningNode.Bolt11Send:input_type -> api.Bolt11SendRequest
+	20,  // 49: api.LightningNode.Bolt11SendUnderpaying:input_type -> api.Bolt11SendUnderpayingRequest
+	22,  // 50: api.LightningNode.Bolt12Receive:input_type -> api.Bolt12ReceiveRequest
+	24,  // 51: api.LightningNode.Bolt12Send:input_type -> api.Bolt12SendRequest
+	26,  // 52: api.LightningNode.Bolt12SendRefund:input_type -> api.Bolt12SendRefundRequest
+	28,  // 53: api.LightningNode.Bolt12ReceiveRefund:input_type -> api.Bolt12ReceiveRefundRequest
+	30,  // 54: api.LightningNode.Bolt12CreatePayerProof:input_type -> api.Bolt12CreatePayerProofRequest
+	32,  // 55: api.LightningNode.SpontaneousSend:input_type -> api.SpontaneousSendRequest
+	35,  // 56: api.LightningNode.OpenChannel:input_type -> api.OpenChannelRequest
+	37,  // 57: api.LightningNode.SpliceIn:input_type -> api.SpliceInRequest
+	39,  // 58: api.LightningNode.SpliceOut:input_type -> api.SpliceOutRequest
+	41,  // 59: api.LightningNode.UpdateChannelConfig:input_type -> api.UpdateChannelConfigRequest
+	43,  // 60: api.LightningNode.CloseChannel:input_type -> api.CloseChannelRequest
+	45,  // 61: api.LightningNode.ForceCloseChannel:input_type -> api.ForceCloseChannelRequest
+	47,  // 62: api.LightningNode.ListChannels:input_type -> api.ListChannelsRequest
+	49,  // 63: api.LightningNode.GetPaymentDetails:input_type -> api.GetPaymentDetailsRequest
+	51,  // 64: api.LightningNode.ListPayments:input_type -> api.ListPaymentsRequest
+	53,  // 65: api.LightningNode.ListForwardedPayments:input_type -> api.ListForwardedPaymentsRequest
+	63,  // 66: api.LightningNode.ConnectPeer:input_type -> api.ConnectPeerRequest
+	65,  // 67: api.LightningNode.DisconnectPeer:input_type -> api.DisconnectPeerRequest
+	67,  // 68: api.LightningNode.ListPeers:input_type -> api.ListPeersRequest
+	55,  // 69: api.LightningNode.SignMessage:input_type -> api.SignMessageRequest
+	57,  // 70: api.LightningNode.VerifySignature:input_type -> api.VerifySignatureRequest
+	59,  // 71: api.LightningNode.ExportPathfindingScores:input_type -> api.ExportPathfindingScoresRequest
+	75,  // 72: api.LightningNode.UnifiedSend:input_type -> api.UnifiedSendRequest
+	79,  // 73: api.LightningNode.DecodeInvoice:input_type -> api.DecodeInvoiceRequest
+	81,  // 74: api.LightningNode.DecodeOffer:input_type -> api.DecodeOfferRequest
+	69,  // 75: api.LightningNode.GraphListChannels:input_type -> api.GraphListChannelsRequest
+	71,  // 76: api.LightningNode.GraphGetChannel:input_type -> api.GraphGetChannelRequest
+	73,  // 77: api.LightningNode.GraphListNodes:input_type -> api.GraphListNodesRequest
+	77,  // 78: api.LightningNode.GraphGetNode:input_type -> api.GraphGetNodeRequest
+	83,  // 79: api.LightningNode.SubscribeEvents:input_type -> api.SubscribeEventsRequest
+	1,   // 80: api.LightningNode.GetNodeInfo:output_type -> api.GetNodeInfoResponse
+	62,  // 81: api.LightningNode.GetBalances:output_type -> api.GetBalancesResponse
+	3,   // 82: api.LightningNode.OnchainReceive:output_type -> api.OnchainReceiveResponse
+	5,   // 83: api.LightningNode.OnchainSend:output_type -> api.OnchainSendResponse
+	7,   // 84: api.LightningNode.Bolt11Receive:output_type -> api.Bolt11ReceiveResponse
+	9,   // 85: api.LightningNode.Bolt11ReceiveForHash:output_type -> api.Bolt11ReceiveForHashResponse
+	11,  // 86: api.LightningNode.Bolt11ClaimForId:output_type -> api.Bolt11ClaimForIdResponse
+	13,  // 87: api.LightningNode.Bolt11FailForId:output_type -> api.Bolt11FailForIdResponse
+	15,  // 88: api.LightningNode.Bolt11ReceiveViaJitChannel:output_type -> api.Bolt11ReceiveViaJitChannelResponse
+	17,  // 89: api.LightningNode.Bolt11ReceiveVariableAmountViaJitChannel:output_type -> api.Bolt11ReceiveVariableAmountViaJitChannelResponse
+	19,  // 90: api.LightningNode.Bolt11Send:output_type -> api.Bolt11SendResponse
+	21,  // 91: api.LightningNode.Bolt11SendUnderpaying:output_type -> api.Bolt11SendUnderpayingResponse
+	23,  // 92: api.LightningNode.Bolt12Receive:output_type -> api.Bolt12ReceiveResponse
+	25,  // 93: api.LightningNode.Bolt12Send:output_type -> api.Bolt12SendResponse
+	27,  // 94: api.LightningNode.Bolt12SendRefund:output_type -> api.Bolt12SendRefundResponse
+	29,  // 95: api.LightningNode.Bolt12ReceiveRefund:output_type -> api.Bolt12ReceiveRefundResponse
+	31,  // 96: api.LightningNode.Bolt12CreatePayerProof:output_type -> api.Bolt12CreatePayerProofResponse
+	33,  // 97: api.LightningNode.SpontaneousSend:output_type -> api.SpontaneousSendResponse
+	36,  // 98: api.LightningNode.OpenChannel:output_type -> api.OpenChannelResponse
+	38,  // 99: api.LightningNode.SpliceIn:output_type -> api.SpliceInResponse
+	40,  // 100: api.LightningNode.SpliceOut:output_type -> api.SpliceOutResponse
+	42,  // 101: api.LightningNode.UpdateChannelConfig:output_type -> api.UpdateChannelConfigResponse
+	44,  // 102: api.LightningNode.CloseChannel:output_type -> api.CloseChannelResponse
+	46,  // 103: api.LightningNode.ForceCloseChannel:output_type -> api.ForceCloseChannelResponse
+	48,  // 104: api.LightningNode.ListChannels:output_type -> api.ListChannelsResponse
+	50,  // 105: api.LightningNode.GetPaymentDetails:output_type -> api.GetPaymentDetailsResponse
+	52,  // 106: api.LightningNode.ListPayments:output_type -> api.ListPaymentsResponse
+	54,  // 107: api.LightningNode.ListForwardedPayments:output_type -> api.ListForwardedPaymentsResponse
+	64,  // 108: api.LightningNode.ConnectPeer:output_type -> api.ConnectPeerResponse
+	66,  // 109: api.LightningNode.DisconnectPeer:output_type -> api.DisconnectPeerResponse
+	68,  // 110: api.LightningNode.ListPeers:output_type -> api.ListPeersResponse
+	56,  // 111: api.LightningNode.SignMessage:output_type -> api.SignMessageResponse
+	58,  // 112: api.LightningNode.VerifySignature:output_type -> api.VerifySignatureResponse
+	60,  // 113: api.LightningNode.ExportPathfindingScores:output_type -> api.ExportPathfindingScoresResponse
+	76,  // 114: api.LightningNode.UnifiedSend:output_type -> api.UnifiedSendResponse
+	80,  // 115: api.LightningNode.DecodeInvoice:output_type -> api.DecodeInvoiceResponse
+	82,  // 116: api.LightningNode.DecodeOffer:output_type -> api.DecodeOfferResponse
+	70,  // 117: api.LightningNode.GraphListChannels:output_type -> api.GraphListChannelsResponse
+	72,  // 118: api.LightningNode.GraphGetChannel:output_type -> api.GraphGetChannelResponse
+	74,  // 119: api.LightningNode.GraphListNodes:output_type -> api.GraphListNodesResponse
+	78,  // 120: api.LightningNode.GraphGetNode:output_type -> api.GraphGetNodeResponse
+	107, // 121: api.LightningNode.SubscribeEvents:output_type -> events.EventEnvelope
+	80,  // [80:122] is the sub-list for method output_type
+	38,  // [38:80] is the sub-list for method input_type
+	38,  // [38:38] is the sub-list for extension type_name
+	38,  // [38:38] is the sub-list for extension extendee
+	0,   // [0:38] is the sub-list for field type_name
 }
 
 func init() { file_api_proto_init() }
@@ -5003,7 +5729,10 @@ func file_api_proto_init() {
 		return
 	}
 	file_api_proto_msgTypes[1].OneofWrappers = []any{}
-	file_api_proto_msgTypes[4].OneofWrappers = []any{}
+	file_api_proto_msgTypes[4].OneofWrappers = []any{
+		(*OnchainSendRequest_AmountSats)(nil),
+		(*OnchainSendRequest_AllFunds)(nil),
+	}
 	file_api_proto_msgTypes[6].OneofWrappers = []any{}
 	file_api_proto_msgTypes[8].OneofWrappers = []any{}
 	file_api_proto_msgTypes[10].OneofWrappers = []any{}
@@ -5015,26 +5744,36 @@ func file_api_proto_init() {
 	file_api_proto_msgTypes[24].OneofWrappers = []any{}
 	file_api_proto_msgTypes[26].OneofWrappers = []any{}
 	file_api_proto_msgTypes[30].OneofWrappers = []any{}
-	file_api_proto_msgTypes[36].OneofWrappers = []any{}
-	file_api_proto_msgTypes[42].OneofWrappers = []any{}
-	file_api_proto_msgTypes[43].OneofWrappers = []any{}
-	file_api_proto_msgTypes[44].OneofWrappers = []any{}
+	file_api_proto_msgTypes[32].OneofWrappers = []any{}
+	file_api_proto_msgTypes[35].OneofWrappers = []any{
+		(*OpenChannelRequest_ChannelAmountSats)(nil),
+		(*OpenChannelRequest_AllFunds)(nil),
+	}
+	file_api_proto_msgTypes[37].OneofWrappers = []any{
+		(*SpliceInRequest_SpliceAmountSats)(nil),
+		(*SpliceInRequest_AllFunds)(nil),
+	}
+	file_api_proto_msgTypes[39].OneofWrappers = []any{}
 	file_api_proto_msgTypes[45].OneofWrappers = []any{}
-	file_api_proto_msgTypes[66].OneofWrappers = []any{}
-	file_api_proto_msgTypes[67].OneofWrappers = []any{
+	file_api_proto_msgTypes[51].OneofWrappers = []any{}
+	file_api_proto_msgTypes[52].OneofWrappers = []any{}
+	file_api_proto_msgTypes[53].OneofWrappers = []any{}
+	file_api_proto_msgTypes[54].OneofWrappers = []any{}
+	file_api_proto_msgTypes[75].OneofWrappers = []any{}
+	file_api_proto_msgTypes[76].OneofWrappers = []any{
 		(*UnifiedSendResponse_Txid)(nil),
 		(*UnifiedSendResponse_Bolt11PaymentId)(nil),
 		(*UnifiedSendResponse_Bolt12PaymentId)(nil),
 	}
-	file_api_proto_msgTypes[71].OneofWrappers = []any{}
-	file_api_proto_msgTypes[73].OneofWrappers = []any{}
+	file_api_proto_msgTypes[80].OneofWrappers = []any{}
+	file_api_proto_msgTypes[82].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_proto_rawDesc), len(file_api_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   77,
+			NumMessages:   87,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
