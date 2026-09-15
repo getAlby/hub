@@ -14,4 +14,10 @@ Then run Alby Hub as normal. (if default port is not 8080 you will need to updat
 
 Then start caddy: `sudo caddy run -c ./Caddyfile`
 
-and visit `http://your-domain.com/example-path
+and visit `http://your-domain.com/example-path`
+
+## Adding a password prompt
+
+To put an extra password prompt in front of Alby Hub, see [`../caddy-gate`](../caddy-gate). Wrap its `handle @gated` / `handle` blocks in the `handle_path /example-path*` block above and keep `Path=/` on the gate cookie - the `__Host-` cookie prefix requires it.
+
+Do not just wrap this example in `basic_auth`: Alby Hub authenticates its own API with an `Authorization: Bearer <JWT>` header, which the frontend sets explicitly, so the browser's Basic credentials never make it to Caddy and every API call is rejected with a 401.

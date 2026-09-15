@@ -7,13 +7,24 @@
 
 
 :80 {
-        # optional additional basic authentication
-        # the password is hashed, see Caddy documentation: https://caddyserver.com/docs/caddyfile/directives/basic_auth
-        #basicauth {
-                # Username "Bob", password "hiccup"
-		            # Bob $2a$14$Zkx19XLiW6VYouLHR5NmfOFU0z2GTNmpkT/5qqR7hx4IjWJPDhjvG
-        #}
-
-        # Alby Hub runs on 8029 by default
+        # Alby Hub runs on 8029 by default (when installed as a systemd
+        # service by the install script; it is 8080 when started via start.sh)
         reverse_proxy :8029
 }
+
+# ---------------------------------------------------------------------------
+# Adding a password prompt on the web server level
+# ---------------------------------------------------------------------------
+#
+# Do NOT simply wrap the block above in `basic_auth`. Alby Hub authenticates
+# its own API with `Authorization: Bearer <JWT>`, and the frontend sets that
+# header explicitly - which replaces the `Authorization: Basic ...` header the
+# browser sends after a Basic Auth login. Pages would load, but every API call
+# would be answered with 401 and the web UI would be broken.
+#
+# ../caddy-gate has a working configuration: Basic Auth is used for the first
+# request only, after which Caddy hands out a gate cookie and leaves the
+# Authorization header to Alby Hub. The install script can set it up for you.
+#
+# A password prompt is an extra layer, not a substitute for keeping Alby Hub
+# off the public internet - prefer a VPN such as WireGuard or Tailscale.
