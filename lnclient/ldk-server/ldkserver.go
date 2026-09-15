@@ -1227,7 +1227,7 @@ func paymentToTransaction(payment *ldktypes.Payment) (*lnclient.Transaction, err
 	}
 
 	transaction := &lnclient.Transaction{
-		PaymentID:    payment.GetId(),
+		PaymentID:    payment.GetPaymentId(),
 		AmountMsat:   int64(payment.GetAmountMsat()),
 		FeesPaidMsat: int64(payment.GetFeePaidMsat()),
 		CreatedAt:    int64(payment.LatestUpdateTimestamp),
