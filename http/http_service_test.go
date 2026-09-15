@@ -250,14 +250,14 @@ func TestInfo_RecognizesJWTAuthentication(t *testing.T) {
 			wantUnlocked: true,
 		},
 		{
-			name: "standard Authorization header fallback",
+			name: "Bearer authentication",
 			headers: http.Header{
 				"Authorization": {"Bearer " + token},
 			},
 			wantUnlocked: true,
 		},
 		{
-			name: "invalid session cookie falls back to Authorization",
+			name: "Bearer header takes precedence over invalid session cookie",
 			cookies: []*http.Cookie{
 				{Name: sessionCookieName, Value: "invalid"},
 			},

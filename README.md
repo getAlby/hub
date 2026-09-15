@@ -637,7 +637,11 @@ The Alby Hub frontend is a standard React app that can run in one of two modes: 
 
 #### Authentication
 
-Alby Hub uses simple JWT auth in HTTP mode, which also allows the HTTP API to be exposed to external apps, which can use Alby Hub's API to have access to extra functionality currently not covered by the NIP-47 spec, however there are downsides - this API is not a public spec, and only works over HTTP. Therefore, apps are recommended to use NIP-47 where possible.
+In HTTP mode, the Alby Hub frontend uses an `HttpOnly` session cookie, while external API clients can authenticate with a JWT Bearer token. Keeping the browser session in a cookie allows reverse-proxy HTTP Basic Authentication to use the `Authorization` header without colliding with Hub authentication.
+
+Cookie-authenticated state changes require the request `Origin` to match the browser-visible scheme and host. Reverse proxies must therefore preserve the original `Host` header or set `X-Forwarded-Host`, and must set `X-Forwarded-Proto` when terminating HTTPS. The Caddy examples in this repository do this automatically.
+
+The HTTP API can give external apps access to functionality not covered by NIP-47, but it is not a public specification and only works over HTTP. Apps should use NIP-47 where possible.
 
 ### Encryption
 
