@@ -7,8 +7,6 @@ import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
 
 import { useInfo } from "src/hooks/useInfo";
-import { saveAuthToken } from "src/lib/auth";
-import { AuthTokenResponse } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
@@ -46,7 +44,7 @@ export default function Start() {
       setLoading(true);
       setButtonText("Please wait...");
 
-      const authTokenResponse = await request<AuthTokenResponse>("/api/start", {
+      await request("/api/start", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -54,11 +52,9 @@ export default function Start() {
         body: JSON.stringify({
           unlockPassword,
           permission: "full",
+          session: true,
         }),
       });
-      if (authTokenResponse) {
-        saveAuthToken(authTokenResponse.token);
-      }
     } catch (error) {
       handleRequestError("Failed to connect", error);
       setLoading(false);

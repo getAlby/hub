@@ -2,7 +2,6 @@ export const localStorageKeys = {
   returnTo: "returnTo",
   setupReturnTo: "setupReturnTo",
   channelOrder: "channelOrder",
-  authToken: "authToken",
   supportAlbySidebarHintHiddenUntil: "supportAlbySidebarHintHiddenUntil",
   aiHeroDismissed: "aiHeroDismissed",
   cardsHeroDismissed: "cardsHeroDismissed",
