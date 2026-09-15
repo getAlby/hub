@@ -1487,7 +1487,7 @@ func (svc *transactionsService) SetTransactionUserLabels(ctx context.Context, id
 // database transaction and publishes the corresponding events after it
 // commits, so subscribers never observe uncommitted state.
 func (svc *transactionsService) markTransactionSettled(dbTransaction *db.Transaction, preimage string, feeMsat uint64, selfPayment bool) (*db.Transaction, error) {
-	if preimage == "" {
+	if preimage == "" && dbTransaction.Type != constants.TRANSACTION_TYPE_INCOMING {
 		return nil, errors.New("no preimage in payment")
 	}
 
@@ -1505,14 +1505,17 @@ func (svc *transactionsService) markTransactionSettled(dbTransaction *db.Transac
 		}
 
 		settledAt := time.Now()
-		err = tx.Model(dbTransaction).Updates(map[string]interface{}{
+		updates := map[string]interface{}{
 			"State":          constants.TRANSACTION_STATE_SETTLED,
-			"Preimage":       &preimage,
 			"FeeMsat":        feeMsat,
 			"FeeReserveMsat": 0,
 			"SettledAt":      &settledAt,
 			"SelfPayment":    selfPayment,
-		}).Error
+		}
+		if preimage != "" {
+			updates["Preimage"] = &preimage
+		}
+		err = tx.Model(dbTransaction).Updates(updates).Error
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"payment_hash": dbTransaction.PaymentHash,
@@ -1545,7 +1548,7 @@ func (svc *transactionsService) markTransactionSettled(dbTransaction *db.Transac
 // or received outside of Alby Hub, or a received keysend, which has no
 // invoice created upfront).
 func (svc *transactionsService) createSettledTransactionFromNotification(dbTransaction *db.Transaction, preimage string, feeMsat uint64, selfPayment bool) (*db.Transaction, error) {
-	if preimage == "" {
+	if preimage == "" && dbTransaction.Type != constants.TRANSACTION_TYPE_INCOMING {
 		return nil, errors.New("no preimage in payment")
 	}
 
@@ -1564,7 +1567,9 @@ func (svc *transactionsService) createSettledTransactionFromNotification(dbTrans
 
 		settledAt := time.Now()
 		dbTransaction.State = constants.TRANSACTION_STATE_SETTLED
-		dbTransaction.Preimage = &preimage
+		if preimage != "" {
+			dbTransaction.Preimage = &preimage
+		}
 		dbTransaction.FeeMsat = feeMsat
 		dbTransaction.FeeReserveMsat = 0
 		dbTransaction.SettledAt = &settledAt
