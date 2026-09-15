@@ -1,8 +1,13 @@
 import { ErrorResponse } from "src/types";
 
 // Remove browser-readable session tokens left by versions that authenticated
-// the web UI with Authorization headers.
-localStorage.removeItem("authToken");
+// the web UI with Authorization headers. Storage access can be disabled by the
+// browser, but cookie authentication must continue to work in that case.
+try {
+  localStorage.removeItem("authToken");
+} catch {
+  // This is best-effort migration cleanup; the token is no longer read.
+}
 
 export const request = async <T>(
   ...args: Parameters<typeof fetch>
