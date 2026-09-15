@@ -10,6 +10,7 @@ import (
 
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/tests"
 	"gorm.io/datatypes"
 )
@@ -193,6 +194,38 @@ func TestListTransactions_UnpaidOutgoing(t *testing.T) {
 	for _, transaction := range outgoingTransactions {
 		assert.Equal(t, constants.TRANSACTION_TYPE_OUTGOING, transaction.Type)
 	}
+}
+
+func TestListTransactions_UnpaidOutgoingIncludesAcceptedHoldInvoice(t *testing.T) {
+	ctx := context.TODO()
+
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	acceptedHold := db.Transaction{
+		State:       constants.TRANSACTION_STATE_ACCEPTED,
+		Type:        constants.TRANSACTION_TYPE_INCOMING,
+		PaymentHash: "accepted-hold",
+		AmountMsat:  123000,
+		Hold:        true,
+	}
+	require.NoError(t, svc.DB.Create(&acceptedHold).Error)
+	require.NoError(t, svc.DB.Create(&db.Transaction{
+		State:       constants.TRANSACTION_STATE_PENDING,
+		Type:        constants.TRANSACTION_TYPE_INCOMING,
+		PaymentHash: "regular-pending-incoming",
+		AmountMsat:  123000,
+	}).Error)
+	svc.LNClient.(*tests.MockLn).MockTransaction = &lnclient.Transaction{}
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+	listed, totalCount, err := transactionsService.ListTransactions(ctx, 0, 0, 0, 0, true, false, svc.LNClient, nil, false, nil)
+
+	require.NoError(t, err)
+	require.Equal(t, uint64(1), totalCount)
+	require.Len(t, listed, 1)
+	require.Equal(t, acceptedHold.ID, listed[0].ID)
 }
 
 func TestListTransactions_Unpaid(t *testing.T) {

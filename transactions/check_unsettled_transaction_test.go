@@ -65,6 +65,15 @@ func TestCheckUnsettledTransactions(t *testing.T) {
 		CreatedAt:   time.Now(),
 	}
 	svc.DB.Create(&dbTransaction)
+	acceptedHold := db.Transaction{
+		State:       constants.TRANSACTION_STATE_ACCEPTED,
+		Type:        constants.TRANSACTION_TYPE_INCOMING,
+		PaymentHash: "accepted-hold-payment-hash",
+		AmountMsat:  456000,
+		CreatedAt:   time.Now(),
+		Hold:        true,
+	}
+	svc.DB.Create(&acceptedHold)
 
 	mockEventConsumer := tests.NewMockEventConsumer()
 	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
@@ -76,13 +85,19 @@ func TestCheckUnsettledTransactions(t *testing.T) {
 		Preimage:  "dummy",
 	}
 
-	// do not allow checking unsettled transactions if notifications are supported
+	// Notification clients still reconcile accepted hold invoices because event
+	// streams may disconnect before delivering settlement.
 	transactionsService.checkUnsettledTransactions(context.TODO(), svc.LNClient)
 
 	svc.DB.Find(&dbTransaction, db.Transaction{
 		ID: dbTransaction.ID,
 	})
 	assert.Equal(t, constants.TRANSACTION_STATE_PENDING, dbTransaction.State)
+	svc.DB.Find(&acceptedHold, db.Transaction{ID: acceptedHold.ID})
+	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, acceptedHold.State)
+	consumedEvents := mockEventConsumer.WaitForConsumedEvents(1)
+	require.Len(t, consumedEvents, 1)
+	assert.Equal(t, "nwc_payment_received", consumedEvents[0].Event)
 
 	svc.LNClient.(*tests.MockLn).SupportedNotificationTypes = &[]string{}
 	transactionsService.checkUnsettledTransactions(context.TODO(), svc.LNClient)
@@ -92,9 +107,9 @@ func TestCheckUnsettledTransactions(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, dbTransaction.State)
-	consumedEvents := mockEventConsumer.WaitForConsumedEvents(1)
-	assert.Equal(t, 1, len(consumedEvents))
-	assert.Equal(t, "nwc_payment_sent", consumedEvents[0].Event)
-	settledTransaction := consumedEvents[0].Properties.(*db.Transaction)
+	consumedEvents = mockEventConsumer.WaitForConsumedEvents(2)
+	require.Len(t, consumedEvents, 2)
+	assert.Equal(t, "nwc_payment_sent", consumedEvents[1].Event)
+	settledTransaction := consumedEvents[1].Properties.(*db.Transaction)
 	assert.Equal(t, dbTransaction.ID, settledTransaction.ID)
 }

@@ -8,10 +8,22 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/getAlby/hub/constants"
+	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/tests"
 	"github.com/getAlby/hub/tests/mocks"
 	"github.com/getAlby/hub/transactions"
 )
+
+func TestToApiTransactionMapsAcceptedHoldToPending(t *testing.T) {
+	transaction := &db.Transaction{
+		State: constants.TRANSACTION_STATE_ACCEPTED,
+		Type:  constants.TRANSACTION_TYPE_INCOMING,
+		Hold:  true,
+	}
+
+	require.Equal(t, "pending", toApiTransaction(transaction).State)
+}
 
 func TestCreateInvoice_ToApp(t *testing.T) {
 	ctx := context.TODO()

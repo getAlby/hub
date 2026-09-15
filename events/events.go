@@ -54,18 +54,26 @@ func (ep *eventPublisher) PublishSync(event *Event) {
 
 func (ep *eventPublisher) publish(event *Event, sync bool) {
 	ep.subscriberMtx.Lock()
-	defer ep.subscriberMtx.Unlock()
-	logger.Logger.WithFields(logrus.Fields{"event": event, "global": ep.globalProperties}).Debug("Publishing event")
-	for _, listener := range ep.listeners {
+	listeners := append([]EventSubscriber(nil), ep.listeners...)
+	globalProperties := make(map[string]interface{}, len(ep.globalProperties))
+	for key, value := range ep.globalProperties {
+		globalProperties[key] = value
+	}
+	ep.subscriberMtx.Unlock()
+
+	logger.Logger.WithFields(logrus.Fields{"event": event, "global": globalProperties}).Debug("Publishing event")
+	for _, listener := range listeners {
 		if sync {
-			listener.ConsumeEvent(context.Background(), event, ep.globalProperties)
+			listener.ConsumeEvent(context.Background(), event, globalProperties)
 		} else {
 			// consume event without blocking thread
-			go listener.ConsumeEvent(context.Background(), event, ep.globalProperties)
+			go listener.ConsumeEvent(context.Background(), event, globalProperties)
 		}
 	}
 }
 
 func (ep *eventPublisher) SetGlobalProperty(key string, value interface{}) {
+	ep.subscriberMtx.Lock()
+	defer ep.subscriberMtx.Unlock()
 	ep.globalProperties[key] = value
 }

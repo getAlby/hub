@@ -805,6 +805,8 @@ func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHa
 
 	if transaction.State == constants.TRANSACTION_STATE_PENDING {
 		svc.checkUnsettledTransaction(ctx, &transaction, lnClient)
+	} else if transaction.State == constants.TRANSACTION_STATE_ACCEPTED && transaction.Hold {
+		svc.checkTransactionSettlement(ctx, &transaction, lnClient)
 	}
 
 	return &transaction, nil
@@ -837,7 +839,14 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 	if !unpaidOutgoing && !unpaidIncoming {
 		tx = tx.Where("state = ?", constants.TRANSACTION_STATE_SETTLED)
 	} else if unpaidOutgoing && !unpaidIncoming {
-		tx = tx.Where("state = ? OR type = ?", constants.TRANSACTION_STATE_SETTLED, constants.TRANSACTION_TYPE_OUTGOING)
+		tx = tx.Where(
+			"state = ? OR type = ? OR (type = ? AND state = ? AND hold = ?)",
+			constants.TRANSACTION_STATE_SETTLED,
+			constants.TRANSACTION_TYPE_OUTGOING,
+			constants.TRANSACTION_TYPE_INCOMING,
+			constants.TRANSACTION_STATE_ACCEPTED,
+			true,
+		)
 	} else if unpaidIncoming && !unpaidOutgoing {
 		tx = tx.Where("state = ? OR type = ?", constants.TRANSACTION_STATE_SETTLED, constants.TRANSACTION_TYPE_INCOMING)
 	}
@@ -912,28 +921,36 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 }
 
 func (svc *transactionsService) checkUnsettledTransactions(ctx context.Context, lnClient lnclient.LNClient) {
-	// Only check unsettled transactions for clients that don't support async events
 	// checkUnsettledTransactions does not work for keysend payments!
-	if slices.Contains(lnClient.GetSupportedNIP47NotificationTypes(), "payment_received") {
-		return
-	}
-
-	// check pending payments less than a day old
 	transactions := []Transaction{}
-	result := svc.db.Where("state = ? AND created_at > ?", constants.TRANSACTION_STATE_PENDING, time.Now().Add(-24*time.Hour)).Find(&transactions)
+	tx := svc.db.Where("state = ? AND hold = ?", constants.TRANSACTION_STATE_ACCEPTED, true)
+	if !slices.Contains(lnClient.GetSupportedNIP47NotificationTypes(), "payment_received") {
+		// Also check pending payments less than a day old for clients without async events.
+		tx = svc.db.Where(
+			"(state = ? AND created_at > ?) OR (state = ? AND hold = ?)",
+			constants.TRANSACTION_STATE_PENDING,
+			time.Now().Add(-24*time.Hour),
+			constants.TRANSACTION_STATE_ACCEPTED,
+			true,
+		)
+	}
+	result := tx.Find(&transactions)
 	if result.Error != nil {
 		logger.Logger.WithError(result.Error).Error("Failed to list DB transactions")
 		return
 	}
 	for _, transaction := range transactions {
-		svc.checkUnsettledTransaction(ctx, &transaction, lnClient)
+		svc.checkTransactionSettlement(ctx, &transaction, lnClient)
 	}
 }
 func (svc *transactionsService) checkUnsettledTransaction(ctx context.Context, transaction *db.Transaction, lnClient lnclient.LNClient) {
 	if slices.Contains(lnClient.GetSupportedNIP47NotificationTypes(), "payment_received") {
 		return
 	}
+	svc.checkTransactionSettlement(ctx, transaction, lnClient)
+}
 
+func (svc *transactionsService) checkTransactionSettlement(ctx context.Context, transaction *db.Transaction, lnClient lnclient.LNClient) {
 	lnClientTransaction, err := lnClient.LookupInvoice(ctx, transaction.PaymentHash)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{

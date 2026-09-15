@@ -156,6 +156,10 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 			}).Error("Failed to deserialize transaction metadata")
 		}
 	}
+	state := strings.ToLower(transaction.State)
+	if transaction.State == constants.TRANSACTION_STATE_ACCEPTED {
+		state = strings.ToLower(constants.TRANSACTION_STATE_PENDING)
+	}
 
 	var boostagram *Boostagram
 	if transaction.Boostagram != nil {
@@ -173,7 +177,7 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 	return &Transaction{
 		ID:              transaction.ID,
 		Type:            transaction.Type,
-		State:           strings.ToLower(transaction.State),
+		State:           state,
 		Invoice:         transaction.PaymentRequest,
 		Description:     transaction.Description,
 		DescriptionHash: transaction.DescriptionHash,
