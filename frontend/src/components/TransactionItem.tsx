@@ -280,7 +280,12 @@ function TransactionItem({ tx, transactionListKey }: Props) {
           {tx.state != "failed" && type == "outgoing" && (
             <TransactionDetailRow label="Fee">
               <FormattedBitcoinAmount amountMsat={tx.feesPaidMsat} />
-              &nbsp;({((tx.feesPaidMsat / tx.amountMsat) * 100).toFixed(2)}%)
+              {tx.amountMsat > 0 && (
+                <>
+                  &nbsp;({((tx.feesPaidMsat / tx.amountMsat) * 100).toFixed(2)}
+                  %)
+                </>
+              )}
             </TransactionDetailRow>
           )}
           {tx.description && (
