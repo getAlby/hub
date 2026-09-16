@@ -551,13 +551,30 @@ func (svc *LDKServerService) DecodeOffer(ctx context.Context, offer string) (*ln
 }
 
 func (svc *LDKServerService) StartOfferPayment(ctx context.Context, offer string, amountMsat *uint64, payerNote string) (string, error) {
+	return svc.startOfferPayment(ctx, offer, amountMsat, payerNote, nil)
+}
+
+func (svc *LDKServerService) StartOfferPaymentWithFeeLimit(ctx context.Context, offer string, amountMsat *uint64, payerNote string, maxFeeMsat uint64) (string, error) {
+	return svc.startOfferPayment(ctx, offer, amountMsat, payerNote, &maxFeeMsat)
+}
+
+func (svc *LDKServerService) startOfferPayment(ctx context.Context, offer string, amountMsat *uint64, payerNote string, maxFeeMsat *uint64) (string, error) {
 	resp := &ldkapi.Bolt12SendResponse{}
-	if err := svc.doUnary(ctx, ldkapi.LightningNode_Bolt12Send_FullMethodName, &ldkapi.Bolt12SendRequest{
+	req := &ldkapi.Bolt12SendRequest{
 		Offer:      offer,
 		AmountMsat: amountMsat,
 		PayerNote:  &payerNote,
-	}, resp); err != nil {
-		return "", err
+	}
+	if maxFeeMsat != nil {
+		req.RouteParameters = &ldktypes.RouteParametersConfig{
+			MaxTotalRoutingFeeMsat:          maxFeeMsat,
+			MaxTotalCltvExpiryDelta:         1008,
+			MaxPathCount:                    10,
+			MaxChannelSaturationPowerOfHalf: 2,
+		}
+	}
+	if err := svc.doUnary(ctx, ldkapi.LightningNode_Bolt12Send_FullMethodName, req, resp); err != nil {
+		return "", fmt.Errorf("%w: %v", lnclient.ErrOfferPaymentUnknown, err)
 	}
 	return resp.PaymentId, nil
 }
@@ -565,24 +582,41 @@ func (svc *LDKServerService) StartOfferPayment(ctx context.Context, offer string
 func (svc *LDKServerService) WaitForOfferPayment(ctx context.Context, paymentID string) (*lnclient.PayOfferResponse, error) {
 	payment, err := svc.waitForPaymentTerminal(paymentID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w: %v", lnclient.ErrOfferPaymentUnknown, err)
+	}
+	return offerPaymentResult(payment)
+}
+
+func (svc *LDKServerService) LookupOfferPayment(ctx context.Context, paymentID string) (*lnclient.PayOfferResponse, error) {
+	resp := &ldkapi.GetPaymentDetailsResponse{}
+	if err := svc.doUnary(ctx, ldkapi.LightningNode_GetPaymentDetails_FullMethodName, &ldkapi.GetPaymentDetailsRequest{PaymentId: paymentID}, resp); err != nil {
+		return nil, fmt.Errorf("%w: %v", lnclient.ErrOfferPaymentUnknown, err)
+	}
+	if resp.Payment == nil || resp.Payment.PaymentId != paymentID {
+		return nil, lnclient.ErrOfferPaymentUnknown
+	}
+	return offerPaymentResult(resp.Payment)
+}
+
+func offerPaymentResult(payment *ldktypes.Payment) (*lnclient.PayOfferResponse, error) {
+	if payment == nil || payment.Kind == nil {
+		return nil, lnclient.ErrOfferPaymentUnknown
+	}
+	kind, ok := payment.Kind.Kind.(*ldktypes.PaymentKind_Bolt12Offer)
+	if !ok || kind.Bolt12Offer == nil || payment.Direction != ldktypes.PaymentDirection_OUTBOUND {
+		return nil, fmt.Errorf("%w: not an outgoing BOLT-12 payment", lnclient.ErrOfferPaymentUnknown)
 	}
 	if payment.Status == ldktypes.PaymentStatus_FAILED {
-		return nil, errors.New("ldk-server reported BOLT-12 payment failure")
+		return nil, lnclient.ErrOfferPaymentFailed
 	}
 	if payment.Status != ldktypes.PaymentStatus_SUCCEEDED {
-		return nil, fmt.Errorf("unexpected BOLT-12 payment status: %s", payment.Status.String())
-	}
-
-	kind, ok := payment.Kind.Kind.(*ldktypes.PaymentKind_Bolt12Offer)
-	if !ok {
-		return nil, errors.New("ldk-server payment is not a BOLT-12 offer payment")
+		return nil, lnclient.ErrOfferPaymentUnknown
 	}
 	if kind.Bolt12Offer.Hash == nil {
-		return nil, errors.New("ldk-server BOLT-12 payment hash is missing")
+		return nil, fmt.Errorf("%w: payment hash missing", lnclient.ErrOfferPaymentUnknown)
 	}
 	if kind.Bolt12Offer.Preimage == nil {
-		return nil, errors.New("ldk-server BOLT-12 payment preimage is missing")
+		return nil, fmt.Errorf("%w: preimage missing", lnclient.ErrOfferPaymentUnknown)
 	}
 
 	return &lnclient.PayOfferResponse{

@@ -1,6 +1,8 @@
 package models
 
 import (
+	"encoding/json"
+	"strings"
 	"testing"
 	"time"
 
@@ -9,6 +11,25 @@ import (
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/transactions"
 )
+
+func TestBolt12HistoryPreservesRecoveryFields(t *testing.T) {
+	for _, state := range []string{constants.TRANSACTION_STATE_PENDING, constants.TRANSACTION_STATE_FAILED, constants.TRANSACTION_STATE_SETTLED} {
+		result := ToNip47Transaction(&transactions.Transaction{
+			ID: 42, Type: "outgoing", State: state, PaymentRequest: "lno1offer",
+			PaymentHash: "learned-hash", FailureReason: "invoice request expired",
+			Metadata: []byte(`{"bitblik_attempt":"attempt-id"}`),
+		})
+		encoded, err := json.Marshal(result)
+		require.NoError(t, err)
+		var fields map[string]interface{}
+		require.NoError(t, json.Unmarshal(encoded, &fields))
+		require.Equal(t, "42", fields["transaction_id"])
+		require.Equal(t, "bolt12", fields["instruction_type"])
+		require.Equal(t, strings.ToLower(state), fields["state"])
+		require.Equal(t, "invoice request expired", fields["failure_reason"])
+		require.Equal(t, "attempt-id", fields["metadata"].(map[string]interface{})["bitblik_attempt"])
+	}
+}
 
 func TestToNip47TransactionKeepsAcceptedStateAfterInvoiceExpiry(t *testing.T) {
 	expiresAt := time.Now().Add(-time.Hour)

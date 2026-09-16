@@ -10,6 +10,7 @@ import (
 	"github.com/getAlby/go-nostr"
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/getAlby/hub/transactions"
@@ -23,6 +24,7 @@ const instructionTypeBolt12 = "bolt12"
 type payParams struct {
 	Payment   string                 `json:"payment"`
 	Amount    *uint64                `json:"amount"`
+	MaxFee    *uint64                `json:"max_fee,omitempty"`
 	PayerNote string                 `json:"payer_note"`
 	Metadata  map[string]interface{} `json:"metadata,omitempty"`
 }
@@ -221,7 +223,13 @@ func (controller *nip47Controller) payBolt12(ctx context.Context, nip47Request *
 		"offer":            offer,
 	}).Info("Sending BOLT-12 payment")
 
-	transaction, err := controller.transactionsService.PayOfferSync(ctx, offer, offerInfo, amountMsat, payParams.PayerNote, payParams.Metadata, controller.lnClient, &app.ID, &requestEventId)
+	if payParams.MaxFee != nil {
+		if _, ok := controller.lnClient.(lnclient.OfferPaymentFeeLimitClient); !ok {
+			publishError(&models.Error{Code: constants.ERROR_NOT_IMPLEMENTED, Message: "BOLT-12 routing fee limits are not supported by this backend"})
+			return
+		}
+	}
+	transaction, err := controller.transactionsService.PayOfferSync(ctx, offer, offerInfo, amountMsat, payParams.PayerNote, payParams.Metadata, controller.lnClient, &app.ID, &requestEventId, payParams.MaxFee)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"request_event_id": requestEventId,
@@ -237,11 +245,11 @@ func (controller *nip47Controller) payBolt12(ctx context.Context, nip47Request *
 }
 
 // publishPayResult publishes the NWC-321 pay result for a settled transaction.
-// If the backend did not return a payment hash, the DB transaction ID is used
-// as the wallet-scoped transaction identifier.
+// BOLT-12 uses the DB transaction ID so its wallet-scoped identifier stays
+// stable before and after an invoice hash becomes available.
 func (controller *nip47Controller) publishPayResult(nip47Request *models.Request, transaction *transactions.Transaction, instructionType string, publishResponse publishFunc) {
 	transactionId := transaction.PaymentHash
-	if transactionId == "" {
+	if transactionId == "" || instructionType == instructionTypeBolt12 {
 		transactionId = strconv.FormatUint(uint64(transaction.ID), 10)
 	}
 

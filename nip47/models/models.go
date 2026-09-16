@@ -32,6 +32,9 @@ const (
 )
 
 type Transaction struct {
+	TransactionId   string      `json:"transaction_id,omitempty"`
+	InstructionType string      `json:"instruction_type,omitempty"`
+	FailureReason   string      `json:"failure_reason,omitempty"`
 	Type            string      `json:"type"`
 	State           string      `json:"state"`
 	Invoice         string      `json:"invoice"`

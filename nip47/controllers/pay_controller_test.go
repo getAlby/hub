@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/getAlby/go-nostr"
@@ -24,6 +25,53 @@ const nip47PayJson = `
 	}
 }
 `
+
+type feeLimitedOfferClient struct {
+	lnclient.LNClient
+	fee *uint64
+}
+
+func (c *feeLimitedOfferClient) StartOfferPayment(context.Context, string, *uint64, string) (string, error) {
+	return "payment-id", nil
+}
+
+func (c *feeLimitedOfferClient) StartOfferPaymentWithFeeLimit(ctx context.Context, offer string, amount *uint64, note string, fee uint64) (string, error) {
+	c.fee = &fee
+	return c.StartOfferPayment(ctx, offer, amount, note)
+}
+
+func (c *feeLimitedOfferClient) WaitForOfferPayment(context.Context, string) (*lnclient.PayOfferResponse, error) {
+	return &lnclient.PayOfferResponse{PaymentHash: tests.MockPaymentHash, Preimage: "preimage"}, nil
+}
+
+func TestHandlePayEvent_Bolt12FeeLimit(t *testing.T) {
+	for _, supported := range []bool{true, false} {
+		t.Run(fmt.Sprint(supported), func(t *testing.T) {
+			svc, app, event := setupPayTest(t)
+			svc.LNClient.(*tests.MockLn).SupportsBolt12 = true
+			client := &feeLimitedOfferClient{LNClient: svc.LNClient}
+			if supported {
+				svc.LNClient = client
+			}
+			request := &models.Request{}
+			require.NoError(t, json.Unmarshal([]byte(`{"method":"pay","params":{"payment":"bitcoin:?lno=`+tests.MockOffer+`","amount":123000,"max_fee":0}}`), request))
+			var response *models.Response
+			NewTestNip47Controller(svc).HandlePayEvent(context.Background(), request, event.ID, app, func(r *models.Response, _ nostr.Tags) { response = r })
+			require.NotNil(t, response)
+			if supported {
+				require.Nil(t, response.Error)
+				require.NotNil(t, client.fee)
+				require.Zero(t, *client.fee)
+			} else {
+				require.NotNil(t, response.Error)
+				require.Equal(t, constants.ERROR_NOT_IMPLEMENTED, response.Error.Code)
+				var count int64
+				require.NoError(t, svc.DB.Model(&db.Transaction{}).Count(&count).Error)
+				require.Zero(t, count)
+			}
+		})
+	}
+}
 
 const nip47PayZeroAmountNoAmountJson = `
 {
@@ -218,7 +266,8 @@ func TestHandlePayEvent_Bolt12(t *testing.T) {
 	assert.Equal(t, "bolt12", result.InstructionType)
 	assert.Equal(t, "123preimage", result.Preimage)
 	assert.Equal(t, tests.MockPaymentHash, result.PaymentHash)
-	assert.Equal(t, tests.MockPaymentHash, result.TransactionId)
+	assert.NotEmpty(t, result.TransactionId)
+	assert.NotEqual(t, tests.MockPaymentHash, result.TransactionId)
 	assert.Equal(t, uint64(123000), result.Amount)
 	assert.NotNil(t, result.SettledAt)
 }

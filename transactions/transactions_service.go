@@ -41,7 +41,7 @@ type TransactionsService interface {
 	LookupTransaction(ctx context.Context, paymentHash string, transactionType *string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error)
 	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool, filters *ListTransactionsFilters) (transactions []Transaction, totalCount uint64, err error)
 	SendPaymentSync(payReq string, amountMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
-	PayOfferSync(ctx context.Context, offer string, offerInfo *lnclient.OfferInfo, amountMsat *uint64, payerNote string, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
+	PayOfferSync(ctx context.Context, offer string, offerInfo *lnclient.OfferInfo, amountMsat *uint64, payerNote string, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint, maxFeeMsat *uint64) (*Transaction, error)
 	SendKeysend(amountMsat uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	MakeHoldInvoice(ctx context.Context, amountMsat uint64, description string, descriptionHash string, expiry uint64, paymentHash string, minCltvExpiryDelta *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	SettleHoldInvoice(ctx context.Context, preimage string, lnClient lnclient.LNClient) (*Transaction, error)
@@ -490,7 +490,11 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 // validates the amount against the offer, pays it through the LN client and
 // marks the transaction settled or failed. BOLT-12 offers can be paid
 // repeatedly, so unlike invoice payments there is no deduplication check.
-func (svc *transactionsService) PayOfferSync(ctx context.Context, offer string, offerInfo *lnclient.OfferInfo, amountMsat *uint64, payerNote string, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
+func (svc *transactionsService) PayOfferSync(ctx context.Context, offer string, offerInfo *lnclient.OfferInfo, amountMsat *uint64, payerNote string, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint, maxFeeMsat *uint64) (*Transaction, error) {
+	feeClient, supportsFeeLimit := lnClient.(lnclient.OfferPaymentFeeLimitClient)
+	if maxFeeMsat != nil && !supportsFeeLimit {
+		return nil, errors.New("BOLT-12 routing fee limits are not supported by this backend")
+	}
 	var metadataBytes []byte
 	if metadata != nil {
 		var err error
@@ -556,8 +560,16 @@ func (svc *transactionsService) PayOfferSync(ctx context.Context, offer string, 
 
 	var response *lnclient.PayOfferResponse
 	if lifecycleClient, ok := lnClient.(lnclient.OfferPaymentLifecycleClient); ok {
-		paymentID, err := lifecycleClient.StartOfferPayment(ctx, offer, amountMsat, payerNote)
+		var paymentID string
+		if maxFeeMsat != nil {
+			paymentID, err = feeClient.StartOfferPaymentWithFeeLimit(ctx, offer, amountMsat, payerNote, *maxFeeMsat)
+		} else {
+			paymentID, err = lifecycleClient.StartOfferPayment(ctx, offer, amountMsat, payerNote)
+		}
 		if err != nil {
+			if errors.Is(err, lnclient.ErrOfferPaymentUnknown) {
+				return nil, err
+			}
 			logger.Logger.WithFields(logrus.Fields{
 				"offer": offer,
 			}).WithError(err).Error("Failed to start BOLT-12 offer payment")
@@ -576,20 +588,20 @@ func (svc *transactionsService) PayOfferSync(ctx context.Context, offer string, 
 				"offer":      offer,
 				"payment_id": paymentID,
 			}).WithError(err).Error("Failed to persist LN client payment ID for BOLT-12 payment")
-			if _, markFailedErr := svc.markPaymentFailed(&dbTransaction, err.Error()); markFailedErr != nil {
-				logger.Logger.WithFields(logrus.Fields{
-					"offer":      offer,
-					"payment_id": paymentID,
-				}).WithError(markFailedErr).Error("Failed to mark payment as failed")
-			}
-			return nil, err
+			return nil, fmt.Errorf("%w: persist payment ID %s: %v", lnclient.ErrOfferPaymentUnknown, paymentID, err)
 		}
 
 		response, err = lifecycleClient.WaitForOfferPayment(ctx, paymentID)
 	} else {
 		response, err = lnClient.PayOfferSync(ctx, offer, amountMsat, payerNote)
 	}
+	if err == nil && response == nil {
+		err = fmt.Errorf("%w: backend returned no result", lnclient.ErrOfferPaymentUnknown)
+	}
 	if err != nil {
+		if errors.Is(err, lnclient.ErrOfferPaymentUnknown) {
+			return nil, err
+		}
 		logger.Logger.WithFields(logrus.Fields{
 			"offer": offer,
 		}).WithError(err).Error("Failed to pay BOLT-12 offer")
@@ -934,6 +946,10 @@ func (svc *transactionsService) checkUnsettledTransactions(ctx context.Context, 
 			true,
 		)
 	}
+	// Event streams can miss terminal BOLT-12 updates during a restart.
+	if _, ok := lnClient.(lnclient.OfferPaymentLookupClient); ok {
+		tx = tx.Or("state = ? AND ln_client_payment_id <> ? AND LOWER(payment_request) LIKE ?", constants.TRANSACTION_STATE_PENDING, "", "lno1%")
+	}
 	result := tx.Find(&transactions)
 	if result.Error != nil {
 		logger.Logger.WithError(result.Error).Error("Failed to list DB transactions")
@@ -951,6 +967,21 @@ func (svc *transactionsService) checkUnsettledTransaction(ctx context.Context, t
 }
 
 func (svc *transactionsService) checkTransactionSettlement(ctx context.Context, transaction *db.Transaction, lnClient lnclient.LNClient) {
+	if transaction.State == constants.TRANSACTION_STATE_PENDING && transaction.LNClientPaymentID != "" && strings.HasPrefix(strings.ToLower(transaction.PaymentRequest), "lno1") {
+		if client, ok := lnClient.(lnclient.OfferPaymentLookupClient); ok {
+			result, err := client.LookupOfferPayment(ctx, transaction.LNClientPaymentID)
+			if errors.Is(err, lnclient.ErrOfferPaymentFailed) {
+				_, err = svc.markPaymentFailed(transaction, err.Error())
+			} else if err == nil && result != nil {
+				transaction.PaymentHash = result.PaymentHash
+				_, err = svc.markTransactionSettled(transaction, result.Preimage, result.FeeMsat, false)
+			}
+			if err != nil && !errors.Is(err, lnclient.ErrOfferPaymentUnknown) {
+				logger.Logger.WithError(err).Warn("Could not reconcile BOLT-12 payment")
+			}
+			return
+		}
+	}
 	lnClientTransaction, err := lnClient.LookupInvoice(ctx, transaction.PaymentHash)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{

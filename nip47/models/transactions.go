@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"strconv"
 	"strings"
 	"time"
 
@@ -44,7 +45,15 @@ func ToNip47Transaction(transaction *transactions.Transaction) *Transaction {
 		}
 	}
 
+	var transactionID, instructionType string
+	if strings.HasPrefix(strings.ToLower(transaction.PaymentRequest), "lno1") {
+		instructionType = "bolt12"
+		transactionID = strconv.FormatUint(uint64(transaction.ID), 10)
+	}
 	return &Transaction{
+		TransactionId:   transactionID,
+		InstructionType: instructionType,
+		FailureReason:   transaction.FailureReason,
 		Type:            transaction.Type,
 		State:           state,
 		Invoice:         transaction.PaymentRequest,

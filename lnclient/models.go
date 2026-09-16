@@ -114,6 +114,23 @@ type OfferPaymentLifecycleClient interface {
 	WaitForOfferPayment(ctx context.Context, paymentID string) (*PayOfferResponse, error)
 }
 
+// OfferPaymentFeeLimitClient can enforce a caller's routing fee cap before sending.
+type OfferPaymentFeeLimitClient interface {
+	OfferPaymentLifecycleClient
+	StartOfferPaymentWithFeeLimit(ctx context.Context, offer string, amountMsat *uint64, payerNote string, maxFeeMsat uint64) (string, error)
+}
+
+// ErrOfferPaymentUnknown means submission or tracking could not establish a
+// terminal outcome. The persisted payment must remain pending for reconciliation.
+var ErrOfferPaymentUnknown = errors.New("BOLT-12 payment outcome unknown")
+
+var ErrOfferPaymentFailed = errors.New("BOLT-12 payment failed")
+
+// OfferPaymentLookupClient reconciles a persisted backend ID without resending.
+type OfferPaymentLookupClient interface {
+	LookupOfferPayment(ctx context.Context, paymentID string) (*PayOfferResponse, error)
+}
+
 type Channel struct {
 	LocalBalanceMsat                            int64
 	LocalSpendableBalanceMsat                   int64
