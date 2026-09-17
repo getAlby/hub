@@ -8,7 +8,12 @@ import {
   PayInvoiceResponse,
 } from "src/types";
 
-import { CopyIcon, QrCodeIcon, RefreshCwIcon } from "lucide-react";
+import {
+  AlertCircleIcon,
+  CopyIcon,
+  QrCodeIcon,
+  RefreshCwIcon,
+} from "lucide-react";
 import { Link } from "react-router";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
@@ -17,6 +22,7 @@ import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
+import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -64,10 +70,8 @@ import useChannelOrderStore from "src/state/ChannelOrderStore";
 import { LSPOrderRequest, LSPOrderResponse } from "src/types";
 import { request } from "src/utils/request";
 
-// ensures React does not open a duplicate channel
-// this is a hack and will break if the user tries to open
-// 2 outbound channels without refreshing the page (I think an edge case)
-let hasStartedOpenedChannel = false;
+// Prevent duplicate requests across StrictMode effects and route remounts.
+let isOpeningChannel = false;
 
 export function CurrentChannelOrder() {
   const order = useChannelOrderStore((store) => store.order);
@@ -102,6 +106,8 @@ function ChannelOrderInternal({ order }: { order: NewChannelOrder }) {
       return <PaidLightningChannelOrder />;
     case "opening":
       return <ChannelOpening fundingTxId={order.fundingTxId} />;
+    case "failed":
+      return <FailedChannelOrder order={order} />;
     case "success":
       return <Success />;
     default:
@@ -112,6 +118,77 @@ function ChannelOrderInternal({ order }: { order: NewChannelOrder }) {
     <p>
       TODO: {order.status} {order.paymentMethod}
     </p>
+  );
+}
+
+function FailedChannelOrder({ order }: { order: NewChannelOrder }) {
+  const [amountSat, setAmountSat] = React.useState(order.amountSat);
+  const error = (order.error || "The channel could not be opened.")
+    .replace(/^\d{3}\s+/, "")
+    .replace(/^could not open channel:\s*/i, "");
+  const amountTooSmall =
+    /(?:minimum|minimal|min)[ _-]+(?:channel|chan)[ _-]+size|(?:channel|funding|amount).*?(?:too small|too low|below.*?min)/is.test(
+      error
+    );
+
+  return (
+    <div className="flex max-w-md flex-col gap-5">
+      <AppHeader
+        pageTitle="Channel could not be opened"
+        title="Channel could not be opened"
+        description="Review the details below before trying again."
+      />
+      <Alert variant={amountTooSmall ? "warning" : "destructive"}>
+        <AlertCircleIcon />
+        <AlertTitle className="line-clamp-none">
+          {amountTooSmall
+            ? "Channel amount is too small"
+            : "Opening interrupted"}
+        </AlertTitle>
+        <AlertDescription className="min-w-0 break-words">
+          {amountTooSmall && (
+            <p>Increase the amount to meet this peer's minimum channel size.</p>
+          )}
+          <p>{error}</p>
+        </AlertDescription>
+      </Alert>
+      {!amountTooSmall && (
+        <p className="text-sm text-muted-foreground">
+          If the request timed out or the connection was lost, check your
+          channels before retrying. The channel may still be opening.
+        </p>
+      )}
+      <form
+        className="flex flex-col gap-5"
+        onSubmit={(event) => {
+          event.preventDefault();
+          useChannelOrderStore.getState().updateOrder({
+            amountSat,
+            error: undefined,
+            status: "pay",
+          });
+        }}
+      >
+        <div className="grid gap-1.5">
+          <Label htmlFor="retry-channel-amount">Channel amount (sats)</Label>
+          <Input
+            id="retry-channel-amount"
+            type="number"
+            min={1}
+            step={1}
+            required
+            value={amountSat}
+            onChange={(event) => setAmountSat(event.target.value)}
+          />
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <Button type="submit">Try again</Button>
+          <LinkButton to="/channels" variant="outline">
+            Check channels
+          </LinkButton>
+        </div>
+      </form>
+    </div>
   );
 }
 
@@ -400,7 +477,7 @@ function PayBitcoinChannelOrderWithSpendableFunds({
   if (order.paymentMethod !== "onchain") {
     throw new Error("incorrect payment method");
   }
-  const { data: peers } = usePeers();
+  const { data: peers, error: peersError } = usePeers();
 
   const { pubkey, host } = order;
 
@@ -435,6 +512,10 @@ function PayBitcoinChannelOrderWithSpendableFunds({
   }, [nodeDetails, pubkey, host]);
 
   const openChannel = React.useCallback(async () => {
+    if (isOpeningChannel) {
+      return;
+    }
+    isOpeningChannel = true;
     try {
       if (order.paymentMethod !== "onchain") {
         throw new Error("incorrect payment method");
@@ -482,9 +563,12 @@ function PayBitcoinChannelOrderWithSpendableFunds({
       });
     } catch (error) {
       console.error(error);
-      toast.error("Something went wrong", {
-        description: "" + error,
+      useChannelOrderStore.getState().updateOrder({
+        status: "failed",
+        error: error instanceof Error ? error.message : String(error),
       });
+    } finally {
+      isOpeningChannel = false;
     }
   }, [
     connectPeer,
@@ -496,13 +580,20 @@ function PayBitcoinChannelOrderWithSpendableFunds({
   ]);
 
   React.useEffect(() => {
-    if (!peers || hasStartedOpenedChannel) {
+    if (peersError && !isOpeningChannel) {
+      useChannelOrderStore.getState().updateOrder({
+        status: "failed",
+        error:
+          "Could not load your peers. Check your connection and try again.",
+      });
+      return;
+    }
+    if (!peers) {
       return;
     }
 
-    hasStartedOpenedChannel = true;
     openChannel();
-  }, [openChannel, order.amountSat, peers, pubkey]);
+  }, [openChannel, peers, peersError]);
 
   return (
     <div className="flex flex-col gap-5">

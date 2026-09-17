@@ -739,13 +739,19 @@ export type ListTransactionsResponse = {
   totalCount: number;
 };
 
-export type NewChannelOrderStatus = "pay" | "paid" | "success" | "opening";
+export type NewChannelOrderStatus =
+  | "pay"
+  | "paid"
+  | "success"
+  | "opening"
+  | "failed";
 
 type NewChannelOrderCommon = {
   amountSat: string;
   isPublic: boolean;
   status: NewChannelOrderStatus;
   fundingTxId?: string;
+  error?: string;
   prevChannelIds: string[];
 };
 

@@ -17,6 +17,7 @@ import (
 	"net/url"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/getAlby/hub/config"
@@ -43,6 +44,15 @@ type LDKServerService struct {
 	eventPublisher events.EventPublisher
 	pubkey         string
 	nodeInfo       *lnclient.NodeInfo
+	channelOpensMu sync.Mutex
+	channelOpens   map[*pendingChannelOpen]struct{}
+}
+
+// Registered before OpenChannel so a rejection arriving before the RPC response
+// is retained. Both the registry and failure maps are guarded by channelOpensMu.
+type pendingChannelOpen struct {
+	failures map[string]string
+	changed  chan struct{}
 }
 
 func NewLDKServerService(ctx context.Context, eventPublisher events.EventPublisher, address, tlsCertPEM, apiKey string) (lnclient.LNClient, error) {
@@ -456,10 +466,28 @@ func (svc *LDKServerService) ConnectPeer(ctx context.Context, connectPeerRequest
 }
 
 func (svc *LDKServerService) OpenChannel(ctx context.Context, openChannelRequest *lnclient.OpenChannelRequest) (*lnclient.OpenChannelResponse, error) {
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
+	defer cancel()
+	stop := context.AfterFunc(svc.ctx, cancel)
+	defer stop()
+
 	peer, err := svc.findPeer(ctx, openChannelRequest.Pubkey)
 	if err != nil {
 		return nil, err
 	}
+	attempt := &pendingChannelOpen{failures: make(map[string]string), changed: make(chan struct{}, 1)}
+	svc.channelOpensMu.Lock()
+	if svc.channelOpens == nil {
+		svc.channelOpens = make(map[*pendingChannelOpen]struct{})
+	}
+	svc.channelOpens[attempt] = struct{}{}
+	svc.channelOpensMu.Unlock()
+	defer func() {
+		svc.channelOpensMu.Lock()
+		delete(svc.channelOpens, attempt)
+		svc.channelOpensMu.Unlock()
+	}()
+
 	resp := &ldkapi.OpenChannelResponse{}
 	if err := svc.doUnary(ctx, ldkapi.LightningNode_OpenChannel_FullMethodName, &ldkapi.OpenChannelRequest{
 		NodePubkey: openChannelRequest.Pubkey,
@@ -471,7 +499,7 @@ func (svc *LDKServerService) OpenChannel(ctx context.Context, openChannelRequest
 	}, resp); err != nil {
 		return nil, err
 	}
-	fundingTxID, err := svc.waitForFundingTxID(resp.UserChannelId)
+	fundingTxID, err := svc.waitForFundingTxID(ctx, resp.UserChannelId, attempt)
 	if err != nil {
 		return nil, err
 	}
@@ -1114,6 +1142,19 @@ func (svc *LDKServerService) handleChannelStateChanged(event *ldkevents.ChannelS
 		if event.Reason != nil {
 			reason = event.Reason.Message
 		}
+		failure := reason
+		if failure == "" {
+			failure = "The peer closed the channel before funding completed. Check the peer's channel requirements before trying again."
+		}
+		svc.channelOpensMu.Lock()
+		for attempt := range svc.channelOpens {
+			attempt.failures[event.UserChannelId] = failure
+			select {
+			case attempt.changed <- struct{}{}:
+			default:
+			}
+		}
+		svc.channelOpensMu.Unlock()
 		svc.eventPublisher.Publish(&events.Event{
 			Event: "nwc_channel_closed",
 			Properties: map[string]interface{}{
@@ -1151,14 +1192,17 @@ func (svc *LDKServerService) waitForPaymentTerminal(paymentID string) (*ldktypes
 	}
 }
 
-func (svc *LDKServerService) waitForFundingTxID(userChannelID string) (string, error) {
-	ctx, cancel := context.WithTimeout(svc.ctx, 2*time.Minute)
-	defer cancel()
-
+func (svc *LDKServerService) waitForFundingTxID(ctx context.Context, userChannelID string, attempt *pendingChannelOpen) (string, error) {
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 
 	for {
+		svc.channelOpensMu.Lock()
+		reason, failed := attempt.failures[userChannelID]
+		svc.channelOpensMu.Unlock()
+		if failed {
+			return "", fmt.Errorf("could not open channel: %s", reason)
+		}
 		channels, err := svc.ListChannels(ctx)
 		if err != nil {
 			return "", err
@@ -1171,7 +1215,8 @@ func (svc *LDKServerService) waitForFundingTxID(userChannelID string) (string, e
 
 		select {
 		case <-ctx.Done():
-			return "", fmt.Errorf("timed out waiting for ldk-server funding transaction for channel %s", userChannelID)
+			return "", fmt.Errorf("could not confirm channel funding; check your channels before trying again: %w", ctx.Err())
+		case <-attempt.changed:
 		case <-ticker.C:
 		}
 	}
