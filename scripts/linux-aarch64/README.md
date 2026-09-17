@@ -27,7 +27,7 @@ You can also do these quite simple steps manually, have a look in the install sc
 
 Alby Hub listens on port 8080 (standalone) or port 8029 (when run with a systemd service) on **all network interfaces**, so it is reachable from any machine that can reach the server, for example at `http://<server-ip>:8029`. Restrict access with a firewall so that only your local network or VPN can reach it. The port is configurable using the `PORT` environment variable or by editing `Environment="PORT=8029"` in the albyhub.service systemd config file - See "Editing The Service" below)
 
-Alby Hub is not designed to be exposed on the public internet. If you need remote access, prefer a VPN such as WireGuard or Tailscale. If you nevertheless run it on a public domain, you do so at your own risk: put it behind an HTTPS reverse proxy such as [Caddy](https://caddyserver.com/) and restrict who can reach it (for example by IP allowlist or client certificates).
+Alby Hub is not designed to be exposed on the public internet. If you need remote access, prefer a VPN such as WireGuard or Tailscale. If you nevertheless run it on a public domain, you do so at your own risk: put it behind an HTTPS reverse proxy such as [Caddy](https://caddyserver.com/) and restrict who can reach it (for example by IP allowlist or client certificates). See [Caddy Example](../caddy-basicauth/README.md)
 
 ### Running the services
 
