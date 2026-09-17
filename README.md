@@ -464,7 +464,7 @@ Run NWC on your own node!
 ## Deploy it yourself
 
 > [!WARNING]
-> Alby Hub is intended to run on a secure, private network (for example your home network or behind a VPN). Do not expose it directly to the public internet. By default the HTTP server listens on **all network interfaces**, so restrict access with a firewall or bind it to a private address.
+> Alby Hub is intended to run on a secure, private network (for example your home network or behind a VPN). Do not expose it directly to the public internet. By default the HTTP server listens on **all network interfaces**, so restrict access with a firewall or bind it to a private address. For remote access without exposing it publicly, see the [Tailcat example](scripts/tailcat/README.md).
 
 ### Requirements
 
