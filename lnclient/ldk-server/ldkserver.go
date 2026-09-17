@@ -1049,11 +1049,23 @@ func (svc *LDKServerService) handleEvent(event *ldkevents.EventEnvelope) {
 			logger.Logger.WithError(err).Error("Failed to convert ldk-server payment failed event")
 			return
 		}
+		// The failure reason exists only on this event, not in GetPaymentDetails.
+		// Log it before publishing so it survives even if payment polling already
+		// marked the transaction as failed with a generic error.
+		reason := "PaymentFailed"
+		if e.PaymentFailed.GetReason() != ldkevents.PaymentFailureReason_PAYMENT_FAILURE_REASON_UNSPECIFIED {
+			reason = strings.TrimPrefix(e.PaymentFailed.GetReason().String(), "PAYMENT_FAILURE_REASON_")
+		}
+		logger.Logger.WithFields(logrus.Fields{
+			"payment_id":   e.PaymentFailed.PaymentId,
+			"payment_hash": transaction.PaymentHash,
+			"reason":       reason,
+		}).Warn("ldk-server payment failed")
 		svc.eventPublisher.Publish(&events.Event{
 			Event: "nwc_lnclient_payment_failed",
 			Properties: &lnclient.PaymentFailedEventProperties{
 				Transaction: transaction,
-				Reason:      "PaymentFailed",
+				Reason:      reason,
 			},
 		})
 	case *ldkevents.EventEnvelope_PaymentForwarded:
