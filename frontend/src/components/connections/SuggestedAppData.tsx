@@ -16,6 +16,7 @@ import castamatic from "src/assets/suggested-apps/castamatic.png";
 import clams from "src/assets/suggested-apps/clams.png";
 import coracle from "src/assets/suggested-apps/coracle.png";
 import damus from "src/assets/suggested-apps/damus.png";
+import firedown from "src/assets/suggested-apps/firedown.png";
 import fountain from "src/assets/suggested-apps/fountain.png";
 import hablanews from "src/assets/suggested-apps/habla-news.png";
 import iris from "src/assets/suggested-apps/iris.png";
@@ -2497,6 +2498,49 @@ export const appStoreApps: AppStoreApp[] = (
       ),
       categories: ["payment-tools"],
       addedDate: "2026-04-10",
+    },
+    {
+      id: "firedown",
+      title: "Firedown",
+      description:
+        "Private Android browser & downloader with encrypted cloud backup",
+      webLink: "https://firedown.app",
+      logo: firedown,
+      extendedDescription:
+        "Pay for Firedown's end-to-end encrypted Cloud Backup storage credit straight from your Hub — settle the Lightning invoice in one tap without leaving the app.",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Install{" "}
+            <ExternalLink
+              to="https://firedown.app/install"
+              className="font-medium text-foreground underline"
+            >
+              Firedown
+            </ExternalLink>{" "}
+            on your Android phone
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In Firedown</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>Open Settings, then Cloud, then Add storage credit</li>
+              <li>Pick an amount, choose Lightning, and continue</li>
+              <li>Tap Connect a wallet to pay in one tap</li>
+              <li>
+                Scan or paste the connection secret from Alby Hub, then tap
+                Connect
+              </li>
+              <li>Tap Pay with connected wallet</li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["misc"],
+      addedDate: "2026-08-01",
     },
   ] satisfies AppStoreApp[]
 ).sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));
