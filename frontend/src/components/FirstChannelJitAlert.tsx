@@ -7,6 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
+import { useJitChannelsInfo } from "src/hooks/useJitChannelsInfo";
 import { CreateInvoiceRequest, Transaction } from "src/types";
 import { request } from "src/utils/request";
 
@@ -24,7 +25,8 @@ export default function FirstChannelJitAlert() {
     ? info.jitChannelsLiquiditySource
     : undefined;
 
-  const minPaymentSizeMsat = info?.jitChannelsMinPaymentSizeMsat;
+  const { data: jitChannelsInfo } = useJitChannelsInfo(!!lsps2Source);
+  const minPaymentSizeMsat = jitChannelsInfo?.minPaymentSizeMsat;
 
   const isJitEnabled = !!lsps2Source && !!channels;
   // the user's first received payment opens the channel when they have none yet.

@@ -43,6 +43,7 @@ import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
 
 import { useInfo } from "src/hooks/useInfo";
+import { useJitChannelsInfo } from "src/hooks/useJitChannelsInfo";
 import { useTransaction } from "src/hooks/useTransaction";
 import { copyToClipboard } from "src/lib/clipboard";
 import { cn } from "src/lib/utils";
@@ -73,23 +74,24 @@ export default function ReceiveInvoice() {
   const jitChannelsEnabled = !!info?.jitChannelsEnabled;
   const configuredLsps2Source = info?.jitChannelsLiquiditySource;
   const lsps2Source = jitChannelsEnabled ? configuredLsps2Source : undefined;
+  const { data: jitChannelsInfo } = useJitChannelsInfo(!!lsps2Source);
   const lsps2MinimumPaymentSizeSat = React.useMemo(() => {
-    if (jitChannelsEnabled && info?.jitChannelsMinPaymentSizeMsat) {
-      return Math.ceil(info.jitChannelsMinPaymentSizeMsat / 1000);
+    if (jitChannelsInfo?.minPaymentSizeMsat) {
+      return Math.ceil(jitChannelsInfo.minPaymentSizeMsat / 1000);
     }
     return undefined;
-  }, [info?.jitChannelsMinPaymentSizeMsat, jitChannelsEnabled]);
+  }, [jitChannelsInfo?.minPaymentSizeMsat]);
   // only enforce the minimum on the input when the user has no channels yet -
   // their first channel must meet the minimum size.
   const jitMinimumReceiveSat = channels?.length
     ? undefined
     : lsps2MinimumPaymentSizeSat;
   const lsps2MaximumPaymentSizeSat = React.useMemo(() => {
-    if (jitChannelsEnabled && info?.jitChannelsMaxPaymentSizeMsat) {
-      return Math.floor(info.jitChannelsMaxPaymentSizeMsat / 1000);
+    if (jitChannelsInfo?.maxPaymentSizeMsat) {
+      return Math.floor(jitChannelsInfo.maxPaymentSizeMsat / 1000);
     }
     return undefined;
-  }, [info?.jitChannelsMaxPaymentSizeMsat, jitChannelsEnabled]);
+  }, [jitChannelsInfo?.maxPaymentSizeMsat]);
   const jitMaximumReceiveSat =
     hasChannelManagement && lsps2Source
       ? lsps2MaximumPaymentSizeSat
