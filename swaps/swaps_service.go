@@ -87,7 +87,12 @@ type SwapResponse struct {
 
 func NewSwapsService(ctx context.Context, db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublisher events.EventPublisher,
 	lnClient lnclient.LNClient, transactionsService transactions.TransactionsService, encryptionKey string) SwapsService {
-	boltzApi := &boltz.Api{URL: cfg.GetEnv().BoltzApi}
+	boltzApi := &boltz.Api{
+		URL: cfg.GetEnv().BoltzApi,
+		Client: http.Client{
+			Timeout: 5 * time.Second,
+		},
+	}
 	boltzWs := boltzApi.NewWebsocket()
 
 	svc := &swapsService{
