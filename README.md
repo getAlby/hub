@@ -244,7 +244,9 @@ _To configure via env, the following parameters must be provided:_
 
 ### LDK Backend parameters
 
-- `LDK_ESPLORA_SERVER`: By default the optimized Alby esplora is used. You can configure your own esplora server (note: the public blockstream one is slow and can cause onchain syncing and issues with opening channels)
+- `LDK_ELECTRUM_SERVER`: By default the optimized Alby electrum server is used. You can configure your own electrum server (e.g. `ssl://host:50002` or `tcp://host:50001`).
+- `LDK_ESPLORA_SERVER`: Use an esplora server as the chain source instead of electrum (note: the public blockstream one is slow and can cause onchain syncing and issues with opening channels)
+- The configured electrum or esplora server is also used for onchain address lookups. Bitcoind has no address index, so when using `LDK_BITCOIND_RPC_HOST` these lookups still go to the electrum server.
 - `LDK_VSS_URL`: Use VSS (encrypted remote storage) rather than local sqlite store for lightning and bitcoin data. Currently this feature only works for brand new Alby Hub instances that are connected to Alby Accounts with an active subscription plan.
 - `LDK_LISTENING_ADDRESSES`: configure listening addresses, required for public channels, and ideally reachable if you would like others to be able to initiate peering with your node.
 - `LDK_ANNOUNCEMENT_ADDRESSES`: configure announcement addresses (only required if you use a VPN)
@@ -260,12 +262,12 @@ _To configure via env, the following parameters must be provided:_
 
 - `MEMPOOL_API=https://mutinynet.com/api`
 - `NETWORK=signet`
-- `LDK_ESPLORA_SERVER=https://mutinynet.com/api`
+- `LDK_ELECTRUM_SERVER=electrum.mutinynet.com:50001`
 - `LDK_GOSSIP_SOURCE=https://rgs.mutinynet.com/snapshot` (NOTE: by default ALby Hub does not use RGS)
 
-(or electrum instead of esplora)
+(or esplora instead of electrum)
 
-- `LDK_ELECTRUM_SERVER=electrum.mutinynet.com:50001`
+- `LDK_ESPLORA_SERVER=https://mutinynet.com/api`
 
 ##### Signet
 

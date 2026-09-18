@@ -1310,19 +1310,13 @@ func (api *api) GetUnusedOnchainAddress(ctx context.Context) (string, error) {
 
 	if currentAddress != "" {
 		// check if address has any transactions
-		response, err := api.RequestEsploraApi(ctx, "/address/"+currentAddress+"/txs")
+		hasTransactions, err := api.addressHasTransactions(ctx, currentAddress)
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to get current address transactions")
 			return currentAddress, nil
 		}
 
-		transactions, ok := response.([]interface{})
-		if !ok {
-			logger.Logger.WithField("response", response).Error("Failed to cast esplora address txs response", response)
-			return currentAddress, nil
-		}
-
-		if len(transactions) == 0 {
+		if !hasTransactions {
 			// address has not been used yet
 			return currentAddress, nil
 		}

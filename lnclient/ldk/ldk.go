@@ -221,14 +221,12 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 			return nil, err
 		}
 		builder.SetChainSourceBitcoindRpc(cfg.GetEnv().LDKBitcoindRpcHost, uint16(port), cfg.GetEnv().LDKBitcoindRpcUser, cfg.GetEnv().LDKBitcoindRpcPassword)
+		// bitcoind has no address index, so address lookups still need an electrum server
+		logger.Logger.WithFields(logrus.Fields{
+			"electrum_url": cfg.GetEnv().LDKElectrumServer,
+		}).Warn("Bitcoind chain source does not support address lookups, using electrum server for address lookups. Set LDK_ELECTRUM_SERVER to use your own")
 		chainSource = "bitcoind"
-	} else if cfg.GetEnv().LDKElectrumServer != "" {
-		builder.SetChainSourceElectrum(cfg.GetEnv().LDKElectrumServer, &ldk_node.ElectrumSyncConfig{
-			// turn off background sync - we manage syncs ourselves
-			BackgroundSyncConfig: nil,
-		})
-		chainSource = "electrum"
-	} else {
+	} else if cfg.GetEnv().LDKEsploraServer != "" {
 		logger.Logger.WithFields(logrus.Fields{
 			"esplora_url": cfg.GetEnv().LDKEsploraServer,
 		}).Info("Using LDK node esplora chain source")
@@ -237,6 +235,15 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 			BackgroundSyncConfig: nil,
 		})
 		chainSource = "esplora"
+	} else {
+		logger.Logger.WithFields(logrus.Fields{
+			"electrum_url": cfg.GetEnv().LDKElectrumServer,
+		}).Info("Using LDK node electrum chain source")
+		builder.SetChainSourceElectrum(cfg.GetEnv().LDKElectrumServer, &ldk_node.ElectrumSyncConfig{
+			// turn off background sync - we manage syncs ourselves
+			BackgroundSyncConfig: nil,
+		})
+		chainSource = "electrum"
 	}
 
 	if cfg.GetEnv().LDKGossipSource != "" {
@@ -2671,13 +2678,13 @@ func (ls *LDKService) GetChainDataSource() (string, string) {
 		rpcPort := ls.cfg.GetEnv().LDKBitcoindRpcPort
 		return "bitcoind", sanitizeChainEndpoint(endpoint, rpcPort)
 	}
-	if endpoint := ls.cfg.GetEnv().LDKElectrumServer; endpoint != "" {
-		return "electrum", sanitizeChainEndpoint(endpoint, "")
+	if endpoint := ls.cfg.GetEnv().LDKEsploraServer; endpoint != "" {
+		return "esplora", sanitizeChainEndpoint(endpoint, "")
 	}
 
-	// Fallback to Esplora
-	endpoint := ls.cfg.GetEnv().LDKEsploraServer
-	return "esplora", sanitizeChainEndpoint(endpoint, "")
+	// Fallback to Electrum
+	endpoint := ls.cfg.GetEnv().LDKElectrumServer
+	return "electrum", sanitizeChainEndpoint(endpoint, "")
 }
 
 func (ls *LDKService) GetLiquiditySourceLsps2() string {
