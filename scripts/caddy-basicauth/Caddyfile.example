@@ -1,0 +1,36 @@
+# Example Caddyfile to run Alby Hub behind a Caddy reverse proxy with an
+# additional layer of Basic Auth.
+#
+# After a successful Basic Auth login Caddy issues a short-lived "gate" cookie,
+# so the browser does not need to send the Basic Auth credentials on every
+# request. Requests with a valid gate cookie are proxied directly to Alby Hub.
+#
+# GATE_SECRET, BASIC_AUTH_USERNAME and BASIC_AUTH_PASSWORD_HASH are read from gate.env (see README.md)
+#
+# Caddy has embedded letsencrypt support and creates HTTPS certificates
+# learn more: https://caddyserver.com/docs/getting-started
+# https://caddyserver.com/docs/caddyfile
+
+https://your-domain.com {
+	# Valid gate cookie: skip Basic Auth
+	@gated `{http.request.cookie.gate} != "" && {http.request.cookie.gate} == "{$GATE_SECRET}"`
+	handle @gated {
+		# Alby Hub uses its own "Authorization: Bearer ..." header, so only strip Basic Auth credentials
+		@basic header Authorization Basic*
+		request_header @basic -Authorization
+		reverse_proxy 127.0.0.1:8080
+	}
+
+	# No/invalid gate cookie: Basic Auth challenge, then issue the gate cookie
+	handle {
+		route {
+			basic_auth {
+				# Generate the hash with: caddy hash-password
+				{$BASIC_AUTH_USERNAME} {$BASIC_AUTH_PASSWORD_HASH}
+			}
+			header Set-Cookie "gate={$GATE_SECRET}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=3600"
+			request_header -Authorization
+			reverse_proxy 127.0.0.1:8080
+		}
+	}
+}

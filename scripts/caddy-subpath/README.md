@@ -12,6 +12,6 @@ BASE_PATH="/example-path" yarn build:http
 
 Then run Alby Hub as normal. (if default port is not 8080 you will need to update the Caddyfile)
 
-Then start caddy: `sudo caddy run -c ./Caddyfile`
+Copy `Caddyfile.example` to `Caddyfile`, then start caddy: `sudo caddy run -c ./Caddyfile`
 
 and visit `http://your-domain.com/example-path
