@@ -18,6 +18,12 @@ Ideally the app runs 24/7 (on a node, VPS or always-online desktop/laptop machin
 
 Visit [albyhub.com](https://albyhub.com) to learn more and get started and get Alby Hub running in minutes.
 
+## Deploy on Hostinger
+
+Quickly deploy using Hostinger with a 1-click installation
+
+[![Deploy on Hostinger](https://assets.hostinger.com/vps/deploy.svg)](https://www.hostinger.com/vps/docker-hosting?compose_url=https://github.com/getAlby/hub/)
+
 ## Self Hosted
 
 Go to the [Deploy it yourself](#deploy-it-yourself) section below.
