@@ -1475,6 +1475,14 @@ func (api *api) RequestMempoolApi(ctx context.Context, endpoint string) (interfa
 	}
 
 	if res.StatusCode != http.StatusOK {
+		if strings.HasPrefix(endpoint, "/v1/lightning/nodes/") && strings.Contains(string(body), `"error":"Failed to get node"`) {
+			logger.Logger.WithFields(logrus.Fields{
+				"endpoint":    endpoint,
+				"status_code": res.StatusCode,
+			}).Debug("Mempool node details unavailable")
+			return map[string]interface{}{}, nil
+		}
+
 		logger.Logger.WithFields(logrus.Fields{
 			"endpoint":    endpoint,
 			"status_code": res.StatusCode,
@@ -1540,7 +1548,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.VssSupported = backendType == config.LDKBackendType && api.cfg.GetEnv().LDKVssUrl != ""
 	info.LdkVssUrl = api.cfg.GetEnv().LDKVssUrl
 	info.DatabaseType = api.db.Dialector.Name()
-	info.SupportsBolt12 = backendType == config.LDKBackendType || backendType == config.CLNBackendType
+	info.SupportsBolt12 = backendType == config.LDKBackendType || backendType == config.CLNBackendType || backendType == config.LDKServerBackendType
 	info.AutoUnlockPasswordEnabled = autoUnlockPassword != ""
 	info.AutoUnlockPasswordSupported = api.cfg.GetEnv().IsDefaultClientId()
 	info.Relays = []InfoResponseRelay{}
@@ -1837,6 +1845,33 @@ func (api *api) setupInternal(ctx context.Context, setupRequest *SetupRequest) e
 		err = api.cfg.SetUpdate("PhoenixdAuthorization", setupRequest.PhoenixdAuthorization, setupRequest.UnlockPassword)
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to save phoenix auth")
+			return err
+		}
+	}
+
+	if setupRequest.LDKServerAddress != "" {
+		err = api.cfg.SetUpdate("LDKServerAddress", setupRequest.LDKServerAddress, setupRequest.UnlockPassword)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to save ldk-server address")
+			return err
+		}
+	}
+	if setupRequest.LDKServerTlsCertFile != "" {
+		certBytes, err := os.ReadFile(setupRequest.LDKServerTlsCertFile)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to read ldk-server TLS cert file")
+			return err
+		}
+		err = api.cfg.SetUpdate("LDKServerTlsCertPem", string(certBytes), setupRequest.UnlockPassword)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to save ldk-server TLS cert")
+			return err
+		}
+	}
+	if setupRequest.LDKServerApiKey != "" {
+		err = api.cfg.SetUpdate("LDKServerApiKey", setupRequest.LDKServerApiKey, setupRequest.UnlockPassword)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to save ldk-server API key")
 			return err
 		}
 	}

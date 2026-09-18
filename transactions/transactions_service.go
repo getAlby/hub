@@ -877,7 +877,10 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 			logger.Logger.WithField("event", event).Error("Transaction has no settle deadline")
 			return
 		}
-		svc.markHoldInvoiceAccepted(lnClientTransaction.Invoice, lnClientTransaction.PaymentHash, *lnClientTransaction.SettleDeadline, false)
+		err := svc.markHoldInvoiceAccepted(lnClientTransaction.Invoice, lnClientTransaction.PaymentHash, *lnClientTransaction.SettleDeadline, false)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			svc.createAcceptedHoldInvoiceFromNotification(lnClientTransaction, false)
+		}
 
 	case "nwc_lnclient_payment_sent":
 		lnClientTransaction, ok := event.Properties.(*lnclient.Transaction)
@@ -990,7 +993,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 	}
 }
 
-func (svc *transactionsService) markHoldInvoiceAccepted(paymentRequest string, paymentHash string, settleDeadline uint32, selfPayment bool) {
+func (svc *transactionsService) markHoldInvoiceAccepted(paymentRequest string, paymentHash string, settleDeadline uint32, selfPayment bool) error {
 	logger.Logger.WithFields(logrus.Fields{
 		"payment_request": paymentRequest,
 		"payment_hash":    paymentHash,
@@ -999,15 +1002,35 @@ func (svc *transactionsService) markHoldInvoiceAccepted(paymentRequest string, p
 
 	var dbTransaction db.Transaction
 	err := svc.db.Transaction(func(tx *gorm.DB) error {
-		// NOTE: filter by payment hash so the payment hash index is used,
-		// but also match the payment request as wrapped invoices share the same hash
-		result := tx.Where("payment_hash = ? AND payment_request = ? AND type = ? AND state = ?", paymentHash, paymentRequest, constants.TRANSACTION_TYPE_INCOMING, constants.TRANSACTION_STATE_PENDING).First(&dbTransaction)
+		var result *gorm.DB
+		if paymentRequest != "" {
+			// Filter by payment hash so the payment hash index is used, but also match the
+			// payment request as wrapped invoices share the same hash.
+			result = tx.Where("payment_hash = ? AND payment_request = ? AND type = ? AND state = ?", paymentHash, paymentRequest, constants.TRANSACTION_TYPE_INCOMING, constants.TRANSACTION_STATE_PENDING).First(&dbTransaction)
+		} else {
+			// ldk-server's PaymentClaimable event identifies the payment by hash but does not
+			// include the original invoice. Only fall back to the hash when it identifies one
+			// pending hold invoice unambiguously.
+			var candidates []db.Transaction
+			result = tx.Where("payment_hash = ? AND type = ? AND state = ? AND hold = ?", paymentHash, constants.TRANSACTION_TYPE_INCOMING, constants.TRANSACTION_STATE_PENDING, true).Limit(2).Find(&candidates)
+			if result.Error == nil {
+				switch len(candidates) {
+				case 0:
+					result.Error = gorm.ErrRecordNotFound
+				case 1:
+					dbTransaction = candidates[0]
+				default:
+					return fmt.Errorf("multiple pending hold invoices found for payment hash %s", paymentHash)
+				}
+			}
+		}
 		if result.Error != nil {
 			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 				logger.Logger.WithFields(logrus.Fields{
 					"payment_request": paymentRequest,
 					"payment_hash":    paymentHash,
-				}).Warn("No corresponding pending incoming transaction found in DB for accepted hold invoice")
+				}).Debug("No corresponding pending incoming transaction found in DB for accepted hold invoice")
+				return result.Error
 			}
 			logger.Logger.WithFields(logrus.Fields{
 				"payment_request": paymentRequest,
@@ -1039,17 +1062,66 @@ func (svc *transactionsService) markHoldInvoiceAccepted(paymentRequest string, p
 		return nil
 	})
 	if err != nil {
-		logger.Logger.WithFields(logrus.Fields{
-			"payment_request": paymentRequest,
-			"payment_hash":    paymentHash,
-			"id":              dbTransaction.ID,
-		}).WithError(err).Error("Failed DB transaction for hold invoice accepted event")
-	} else {
-		svc.eventPublisher.Publish(&events.Event{
-			Event:      "nwc_hold_invoice_accepted",
-			Properties: &dbTransaction,
-		})
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			logger.Logger.WithFields(logrus.Fields{
+				"payment_request": paymentRequest,
+				"payment_hash":    paymentHash,
+				"id":              dbTransaction.ID,
+			}).WithError(err).Error("Failed DB transaction for hold invoice accepted event")
+		}
+		return err
 	}
+	svc.eventPublisher.Publish(&events.Event{
+		Event:      "nwc_hold_invoice_accepted",
+		Properties: &dbTransaction,
+	})
+	return nil
+}
+
+func (svc *transactionsService) createAcceptedHoldInvoiceFromNotification(transaction *lnclient.Transaction, selfPayment bool) {
+	if transaction.PaymentHash == "" {
+		logger.Logger.Error("Cannot create accepted hold invoice transaction without payment hash")
+		return
+	}
+
+	var existing db.Transaction
+	result := svc.db.Where("type = ? AND payment_hash = ?", constants.TRANSACTION_TYPE_INCOMING, transaction.PaymentHash).First(&existing)
+	if result.Error == nil {
+		return
+	}
+	if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		logger.Logger.WithField("payment_hash", transaction.PaymentHash).WithError(result.Error).Error("Failed to check accepted hold invoice transaction")
+		return
+	}
+
+	metadata, err := json.Marshal(transaction.Metadata)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to serialize accepted hold invoice metadata")
+		return
+	}
+
+	dbTransaction := db.Transaction{
+		Type:            constants.TRANSACTION_TYPE_INCOMING,
+		State:           constants.TRANSACTION_STATE_ACCEPTED,
+		AmountMsat:      uint64(transaction.AmountMsat),
+		PaymentRequest:  transaction.Invoice,
+		PaymentHash:     transaction.PaymentHash,
+		Description:     transaction.Description,
+		DescriptionHash: transaction.DescriptionHash,
+		Metadata:        datatypes.JSON(metadata),
+		SelfPayment:     selfPayment,
+		Hold:            true,
+		SettleDeadline:  transaction.SettleDeadline,
+	}
+	if err := svc.db.Create(&dbTransaction).Error; err != nil {
+		logger.Logger.WithField("payment_hash", transaction.PaymentHash).WithError(err).Error("Failed to create accepted hold invoice transaction")
+		return
+	}
+
+	svc.eventPublisher.Publish(&events.Event{
+		Event:      "nwc_hold_invoice_accepted",
+		Properties: &dbTransaction,
+	})
 }
 
 func (svc *transactionsService) interceptSelfPayment(paymentRequest string, paymentHash string, lnClient lnclient.LNClient) (*lnclient.PayInvoiceResponse, error) {
@@ -1468,7 +1540,7 @@ func (svc *transactionsService) SetTransactionUserLabels(ctx context.Context, id
 // database transaction and publishes the corresponding events after it
 // commits, so subscribers never observe uncommitted state.
 func (svc *transactionsService) markTransactionSettled(dbTransaction *db.Transaction, preimage string, feeMsat uint64, selfPayment bool) (*db.Transaction, error) {
-	if preimage == "" {
+	if preimage == "" && dbTransaction.Type != constants.TRANSACTION_TYPE_INCOMING {
 		return nil, errors.New("no preimage in payment")
 	}
 
@@ -1486,14 +1558,17 @@ func (svc *transactionsService) markTransactionSettled(dbTransaction *db.Transac
 		}
 
 		settledAt := time.Now()
-		err = tx.Model(dbTransaction).Updates(map[string]interface{}{
+		updates := map[string]interface{}{
 			"State":          constants.TRANSACTION_STATE_SETTLED,
-			"Preimage":       &preimage,
 			"FeeMsat":        feeMsat,
 			"FeeReserveMsat": 0,
 			"SettledAt":      &settledAt,
 			"SelfPayment":    selfPayment,
-		}).Error
+		}
+		if preimage != "" {
+			updates["Preimage"] = &preimage
+		}
+		err = tx.Model(dbTransaction).Updates(updates).Error
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"payment_hash": dbTransaction.PaymentHash,
@@ -1526,7 +1601,7 @@ func (svc *transactionsService) markTransactionSettled(dbTransaction *db.Transac
 // or received outside of Alby Hub, or a received keysend, which has no
 // invoice created upfront).
 func (svc *transactionsService) createSettledTransactionFromNotification(dbTransaction *db.Transaction, preimage string, feeMsat uint64, selfPayment bool) (*db.Transaction, error) {
-	if preimage == "" {
+	if preimage == "" && dbTransaction.Type != constants.TRANSACTION_TYPE_INCOMING {
 		return nil, errors.New("no preimage in payment")
 	}
 
@@ -1545,7 +1620,9 @@ func (svc *transactionsService) createSettledTransactionFromNotification(dbTrans
 
 		settledAt := time.Now()
 		dbTransaction.State = constants.TRANSACTION_STATE_SETTLED
-		dbTransaction.Preimage = &preimage
+		if preimage != "" {
+			dbTransaction.Preimage = &preimage
+		}
 		dbTransaction.FeeMsat = feeMsat
 		dbTransaction.FeeReserveMsat = 0
 		dbTransaction.SettledAt = &settledAt
