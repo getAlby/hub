@@ -25,6 +25,15 @@ const nip47PayInvoiceJson = `
 	}
 }
 `
+const nip47PayInvoiceMaxFeeJson = `
+{
+	"method": "pay_invoice",
+	"params": {
+		"invoice": "lntbs1230n1pnkqautdqyw3jsnp4q09a0z84kg4a2m38zjllw43h953fx5zvqe8qxfgw694ymkq26u8zcpp5yvnh6hsnlnj4xnuh2trzlnunx732dv8ta2wjr75pdfxf6p2vlyassp5hyeg97a3ft5u769kjwsn7p0e85h79pzz8kladmnqhpcypz2uawjs9qyysgqcqpcxq8zals8sq9yeg2pa9eywkgj50cyzxd5elatujuc0c0wh6j9nat5mn34pgk8u9ufpgs99tw9ldlfk42cqlkr48au3lmuh09269prg4qkggh4a8cyqpfl0y6j",
+		"max_fee": 555000
+	}
+}
+`
 const nip47PayInvoiceZeroAmountJson = `
 {
 	"method": "pay_invoice",
@@ -101,6 +110,48 @@ func TestHandlePayInvoiceEvent(t *testing.T) {
 	err = json.Unmarshal(transaction.Metadata, &decodedMetadata)
 	assert.NoError(t, err)
 	assert.Equal(t, 123, decodedMetadata.A)
+}
+
+func TestHandlePayInvoiceEvent_MaxFee(t *testing.T) {
+	ctx := context.TODO()
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	app, _, err := tests.CreateApp(svc)
+	assert.NoError(t, err)
+
+	appPermission := &db.AppPermission{
+		AppId: app.ID,
+		App:   *app,
+		Scope: constants.PAY_INVOICE_SCOPE,
+	}
+	err = svc.DB.Create(appPermission).Error
+	assert.NoError(t, err)
+
+	nip47Request := &models.Request{}
+	err = json.Unmarshal([]byte(nip47PayInvoiceMaxFeeJson), nip47Request)
+	assert.NoError(t, err)
+
+	dbRequestEvent := &db.RequestEvent{}
+	err = svc.DB.Create(&dbRequestEvent).Error
+	assert.NoError(t, err)
+
+	var publishedResponse *models.Response
+
+	publishResponse := func(response *models.Response, tags nostr.Tags) {
+		publishedResponse = response
+	}
+
+	NewTestNip47Controller(svc).
+		HandlePayInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse, nostr.Tags{})
+
+	require.NotNil(t, publishedResponse)
+	require.Nil(t, publishedResponse.Error)
+	mockLn, ok := svc.LNClient.(*tests.MockLn)
+	require.True(t, ok)
+	require.NotNil(t, mockLn.LastSendPaymentMaxFeeMsat)
+	assert.Equal(t, uint64(555000), *mockLn.LastSendPaymentMaxFeeMsat)
 }
 
 func TestHandlePayInvoiceEvent_ZeroAmount(t *testing.T) {

@@ -1216,7 +1216,7 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 						"swap_id": swap.SwapId,
 					}
 					logger.Logger.WithField("swapId", swap.SwapId).Info("Initiating swap invoice payment")
-					_, err = svc.transactionsService.SendPaymentSync(swap.Invoice, nil, metadata, svc.lnClient, nil, nil)
+					_, err = svc.transactionsService.SendPaymentSync(swap.Invoice, nil, nil, metadata, svc.lnClient, nil, nil)
 					if err != nil {
 						logger.Logger.WithError(err).WithFields(logrus.Fields{
 							"swapId": swap.SwapId,
