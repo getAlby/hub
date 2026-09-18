@@ -1,3 +1,4 @@
+import { AlertTriangleIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -7,6 +8,7 @@ import { FixedFloatSwapInFlow } from "src/components/FixedFloatSwapInFlow";
 import Loading from "src/components/Loading";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import { MempoolAlert } from "src/components/MempoolAlert";
+import { Alert, AlertDescription } from "src/components/ui/alert";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
@@ -26,7 +28,7 @@ import { request } from "src/utils/request";
 export default function ReceiveOnchain() {
   const { data: info, hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
-  const { data: swapInfo } = useSwapInfo("in");
+  const { data: swapInfo, error: swapInfoError } = useSwapInfo("in");
   const { data: recommendedFees, error: mempoolError } = useMempoolApi<{
     fastestFee: number;
     halfHourFee: number;
@@ -35,7 +37,7 @@ export default function ReceiveOnchain() {
   }>("/v1/fees/recommended");
   const navigate = useNavigate();
 
-  const [swapFrom, setSwapFrom] = useState<"bitcoin" | "crypto">("bitcoin");
+  const [swapFrom, setSwapFrom] = useState<"bitcoin" | "crypto">("crypto");
   const [swapAmountSat, setSwapAmountSat] = useState("");
   const [loading, setLoading] = useState(false);
   const [feeRate, setFeeRate] = useState("");
@@ -75,6 +77,10 @@ export default function ReceiveOnchain() {
         return;
       }
 
+      if (!swapInfo) {
+        throw new Error("Bitcoin swaps are temporarily unavailable");
+      }
+
       const payload: InitiateSwapRequest = {
         swapAmountSat: parseInt(swapAmountSat),
       };
@@ -101,7 +107,7 @@ export default function ReceiveOnchain() {
     }
   };
 
-  if (!info || !balances || !swapInfo || (!recommendedFees && !mempoolError)) {
+  if (!info || !balances || (!recommendedFees && !mempoolError)) {
     return <Loading />;
   }
 
@@ -130,10 +136,12 @@ export default function ReceiveOnchain() {
                 valueSat={swapAmountSat}
                 onValueSatChange={setSwapAmountSat}
                 minSat={
-                  swapFrom === "bitcoin" ? swapInfo.minAmountSat : undefined
+                  swapFrom === "bitcoin" && swapInfo
+                    ? swapInfo.minAmountSat
+                    : undefined
                 }
                 maxSat={
-                  swapFrom === "bitcoin"
+                  swapFrom === "bitcoin" && swapInfo
                     ? hasChannelManagement
                       ? Math.min(
                           swapInfo.maxAmountSat,
@@ -159,7 +167,7 @@ export default function ReceiveOnchain() {
               <div className="flex flex-col gap-4">
                 <Label>Swap from</Label>
                 <RadioGroup
-                  defaultValue="bitcoin"
+                  defaultValue="crypto"
                   value={swapFrom}
                   onValueChange={(value) => {
                     setSwapFrom(value as "bitcoin" | "crypto");
@@ -195,7 +203,12 @@ export default function ReceiveOnchain() {
             <BitcoinSwapFlow
               feeRate={feeRate}
               loading={loading}
-              swapFee={swapInfo.albyServiceFee + swapInfo.boltzServiceFee}
+              swapFee={
+                swapInfo
+                  ? swapInfo.albyServiceFee + swapInfo.boltzServiceFee
+                  : undefined
+              }
+              swapInfoError={swapInfoError}
             />
           ) : (
             <FixedFloatSwapInFlow
@@ -218,11 +231,25 @@ function BitcoinSwapFlow({
   feeRate,
   loading,
   swapFee,
+  swapInfoError,
 }: {
   feeRate: string;
   loading: boolean;
-  swapFee: number;
+  swapFee?: number;
+  swapInfoError?: unknown;
 }) {
+  if (swapInfoError) {
+    return (
+      <Alert variant="warning">
+        <AlertTriangleIcon />
+        <AlertDescription>
+          Bitcoin swaps are temporarily unavailable. You can still receive from
+          another cryptocurrency.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
   return (
     <>
       <div className="border-t pt-4 text-sm grid gap-2">
@@ -236,11 +263,19 @@ function BitcoinSwapFlow({
         </div>
         <div className="flex items-center justify-between">
           <Label>Swap Fee</Label>
-          <p className="text-muted-foreground">{swapFee}%</p>
+          {swapFee != null ? (
+            <p className="text-muted-foreground">{swapFee}%</p>
+          ) : (
+            <Loading className="w-4 h-4" />
+          )}
         </div>
       </div>
 
-      <LoadingButton className="w-full" loading={loading}>
+      <LoadingButton
+        className="w-full"
+        loading={loading}
+        disabled={swapFee == null}
+      >
         Continue
       </LoadingButton>
     </>
