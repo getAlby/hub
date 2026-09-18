@@ -30,8 +30,8 @@ type AppConfig struct {
 	LogToFile                          bool   `envconfig:"LOG_TO_FILE" default:"true"`
 	Network                            string `envconfig:"NETWORK"`
 	LDKNetwork                         string `envconfig:"LDK_NETWORK"`
-	LDKEsploraServer                   string `envconfig:"LDK_ESPLORA_SERVER" default:"https://electrs.getalbypro.com"` // TODO: remove LDK prefix
-	LDKElectrumServer                  string `envconfig:"LDK_ELECTRUM_SERVER"`
+	LDKEsploraServer                   string `envconfig:"LDK_ESPLORA_SERVER"`
+	LDKElectrumServer                  string `envconfig:"LDK_ELECTRUM_SERVER" default:"ssl://electrum.getalbypro.com:50002"`
 	LDKGossipSource                    string `envconfig:"LDK_GOSSIP_SOURCE"`
 	LDKLogLevel                        string `envconfig:"LDK_LOG_LEVEL" default:"3"`
 	LDKMaxChannelSaturationPowerOfHalf uint8  `envconfig:"LDK_MAX_CHANNEL_SATURATION" default:"2"`
