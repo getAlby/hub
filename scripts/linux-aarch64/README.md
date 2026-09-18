@@ -29,6 +29,8 @@ Alby Hub listens on port 8080 (standalone) or port 8029 (when run with a systemd
 
 Alby Hub is not designed to be exposed on the public internet. If you need remote access, prefer a VPN such as WireGuard or Tailscale. If you nevertheless run it on a public domain, you do so at your own risk: put it behind an HTTPS reverse proxy such as [Caddy](https://caddyserver.com/) and restrict who can reach it (for example by IP allowlist or client certificates). See [Caddy Example](../caddy-basicauth/README.md)
 
+To access Alby Hub on a remote server without exposing it publicly and without needing an account, see the [Tailcat Example](../tailcat/README.md).
+
 ### Running the services
 
 Either use systemd:
