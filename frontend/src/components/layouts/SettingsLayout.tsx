@@ -110,7 +110,7 @@ export default function SettingsLayout() {
         }
       />
 
-      <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-4 lg:space-y-0 h-full">
+      <div className="flex flex-col gap-4 lg:flex-row h-full">
         <aside className="flex flex-col justify-between lg:w-1/5">
           <nav className="flex overflow-x-auto pb-2 gap-1 lg:flex-col lg:overflow-x-visible lg:pb-0 lg:gap-0 lg:space-y-0.5">
             <MenuItem to="/settings" icon={SlidersHorizontalIcon}>
@@ -182,7 +182,7 @@ export default function SettingsLayout() {
         </aside>
         <Separator orientation="vertical" className="hidden lg:block" />
         <div className="flex-1 lg:max-w-2xl">
-          <div className="grid gap-6">
+          <div className="grid gap-4">
             <Outlet />
           </div>
         </div>
