@@ -221,10 +221,11 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 			return nil, err
 		}
 		builder.SetChainSourceBitcoindRpc(cfg.GetEnv().LDKBitcoindRpcHost, uint16(port), cfg.GetEnv().LDKBitcoindRpcUser, cfg.GetEnv().LDKBitcoindRpcPassword)
-		// bitcoind has no address index, so address lookups still need an electrum server
+		// bitcoind has no address index, so address lookups still need an esplora or electrum server
 		logger.Logger.WithFields(logrus.Fields{
+			"esplora_url":  cfg.GetEnv().LDKEsploraServer,
 			"electrum_url": cfg.GetEnv().LDKElectrumServer,
-		}).Warn("Bitcoind chain source does not support address lookups, using electrum server for address lookups. Set LDK_ELECTRUM_SERVER to use your own")
+		}).Warn("Bitcoind chain source does not support address lookups, using alternate server for address lookups. Set LDK_ESPLORA_SERVER or LDK_ELECTRUM_SERVER to use your own")
 		chainSource = "bitcoind"
 	} else if cfg.GetEnv().LDKEsploraServer != "" {
 		logger.Logger.WithFields(logrus.Fields{
