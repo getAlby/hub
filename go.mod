@@ -3,7 +3,6 @@ module github.com/getAlby/hub
 go 1.26.2
 
 require (
-	github.com/BoltzExchange/go-electrum v0.0.0-20241108085421-d6484ac8e978
 	github.com/adrg/xdg v0.5.3
 	github.com/btcsuite/btcd v0.25.1-0.20260310163610-1c55c7c18179
 	github.com/btcsuite/btcd/btcutil v1.2.0
