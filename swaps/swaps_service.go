@@ -8,9 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"math"
-	"net/http"
 	"strconv"
 	"sync"
 	"time"
@@ -20,6 +18,7 @@ import (
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/btcutil/hdkeychain"
 	"github.com/btcsuite/btcd/chaincfg"
+	"github.com/getAlby/hub/chain"
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
@@ -1467,20 +1466,6 @@ func (svc *swapsService) deriveAddressFromXpub(xpub string, index uint32) (strin
 	return address.EncodeAddress(), nil
 }
 
-func (svc *swapsService) checkAddressHasTransactions(address string, esploraApiRequester func(endpoint string) (interface{}, error)) (bool, error) {
-	response, err := esploraApiRequester("/address/" + address + "/txs")
-	if err != nil {
-		return false, fmt.Errorf("failed to get address transactions: %w", err)
-	}
-
-	transactions, ok := response.([]interface{})
-	if !ok {
-		return false, fmt.Errorf("unexpected response format from esplora API")
-	}
-
-	return len(transactions) > 0, nil
-}
-
 func (svc *swapsService) getNextUnusedAddressFromXpub() (string, error) {
 	// Use the decrypted XPUB from memory (already decrypted during EnableAutoSwapOut)
 	svc.autoSwapOutXpubLock.Lock()
@@ -1502,44 +1487,11 @@ func (svc *swapsService) getNextUnusedAddressFromXpub() (string, error) {
 		return "", err
 	}
 
-	esploraApiRequester := func(endpoint string) (interface{}, error) {
-		url := svc.cfg.GetEnv().LDKEsploraServer + endpoint
-
-		client := http.Client{
-			Timeout: time.Second * 10,
-		}
-
-		req, err := http.NewRequestWithContext(svc.ctx, http.MethodGet, url, nil)
-		if err != nil {
-			return nil, err
-		}
-		res, err := client.Do(req)
-		if err != nil {
-			return nil, err
-		}
-		defer res.Body.Close()
-
-		body, err := io.ReadAll(res.Body)
-		if err != nil {
-			return nil, err
-		}
-
-		if res.StatusCode != http.StatusOK {
-			logger.Logger.WithFields(logrus.Fields{
-				"endpoint":    endpoint,
-				"status_code": res.StatusCode,
-				"body":        string(body),
-			}).Error("Swaps esplora endpoint returned non-success code")
-			return nil, fmt.Errorf("swaps esplora endpoint returned non-success code: %s", string(body))
-		}
-
-		var jsonContent interface{}
-		err = json.Unmarshal(body, &jsonContent)
-		if err != nil {
-			return nil, err
-		}
-		return jsonContent, nil
+	addressLookup, err := chain.NewAddressLookup(svc.ctx, svc.cfg)
+	if err != nil {
+		return "", fmt.Errorf("failed to create address lookup: %w", err)
 	}
+	defer addressLookup.Close()
 
 	const addressLookAheadLimit = 100
 
@@ -1549,7 +1501,7 @@ func (svc *swapsService) getNextUnusedAddressFromXpub() (string, error) {
 			return "", fmt.Errorf("failed to derive address at index %d: %w", i, err)
 		}
 
-		hasTransactions, err := svc.checkAddressHasTransactions(address, esploraApiRequester)
+		hasTransactions, err := addressLookup.AddressHasTransactions(svc.ctx, address)
 		if err != nil {
 			return "", fmt.Errorf("failed to check address for transactions at index %d: %w", i, err)
 		}
