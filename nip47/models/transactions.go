@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/transactions"
 	"github.com/sirupsen/logrus"
@@ -26,7 +27,7 @@ func ToNip47Transaction(transaction *transactions.Transaction) *Transaction {
 	}
 
 	state := strings.ToLower(transaction.State)
-	if transaction.SettledAt == nil && transaction.ExpiresAt != nil && time.Now().After(*transaction.ExpiresAt) {
+	if transaction.State == constants.TRANSACTION_STATE_PENDING && transaction.SettledAt == nil && transaction.ExpiresAt != nil && time.Now().After(*transaction.ExpiresAt) {
 		state = "expired"
 	}
 

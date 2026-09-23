@@ -79,6 +79,29 @@ func TestNotifications_ReceivedUnknownPayment(t *testing.T) {
 	assert.Equal(t, int64(1), result.RowsAffected)
 }
 
+func TestNotifications_ReceivedUnknownPaymentWithoutPreimage(t *testing.T) {
+	ctx := context.TODO()
+
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+	transaction := *tests.MockLNClientTransaction
+	transaction.Preimage = ""
+
+	transactionsService.ConsumeEvent(ctx, &events.Event{
+		Event:      "nwc_lnclient_payment_received",
+		Properties: &transaction,
+	}, map[string]interface{}{})
+
+	transactionType := constants.TRANSACTION_TYPE_INCOMING
+	incomingTransaction, err := transactionsService.LookupTransaction(ctx, transaction.PaymentHash, &transactionType, svc.LNClient, nil)
+	require.NoError(t, err)
+	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, incomingTransaction.State)
+	assert.Nil(t, incomingTransaction.Preimage)
+}
+
 func TestNotifications_ReceivedKeysend(t *testing.T) {
 	ctx := context.TODO()
 
