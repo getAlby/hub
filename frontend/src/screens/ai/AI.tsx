@@ -419,7 +419,7 @@ export function AI() {
         {/* Featured services — branded full cards */}
         <div>
           <h2 className="text-2xl font-bold mb-4">Featured Services</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <ExternalLink to="https://www.bitrefill.com/agents">
               <Card className="group relative h-full hover:border-primary/30 transition-colors p-0">
                 <CardContent className="p-4 flex flex-col h-full">
