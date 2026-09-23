@@ -20,6 +20,7 @@ import (
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/notifications"
+	"github.com/getAlby/hub/version"
 )
 
 const (
@@ -126,9 +127,19 @@ func NewBarkService(ctx context.Context, eventPublisher events.EventPublisher, w
 	// Usually, you have two wait 2 blocks. You can set nb_min_round_confirmations=0 to make it go faster.
 	roundTxRequiredConfirmations := uint32(0)
 
+	// Identify ourselves to the Ark server, the server rejects any client identifier that is not a
+	// strict `<name>/<version>` with a lowercase name and a non-empty version, so untagged development
+	// builds report a placeholder version.
+	hubVersion := version.Tag
+	if hubVersion == "" {
+		hubVersion = "dev"
+	}
+	userAgent := "albyhub/" + hubVersion
+
 	cfg := bark.Config{
 		ServerAddress:                config.ServerAddress,
 		RoundTxRequiredConfirmations: &roundTxRequiredConfirmations,
+		UserAgent:                    &userAgent,
 	}
 	esploraAddress := config.EsploraAddress
 	if esploraAddress != "" {
