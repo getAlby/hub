@@ -51,6 +51,7 @@ type API interface {
 	SetTransactionUserLabels(ctx context.Context, id uint, labels map[string]string) error
 	RequestMempoolApi(ctx context.Context, endpoint string) (interface{}, error)
 	GetInfo(ctx context.Context) (*InfoResponse, error)
+	GetJitChannelsInfo(ctx context.Context) (*JitChannelsInfoResponse, error)
 	GetMnemonic(unlockPassword string) (*MnemonicResponse, error)
 	SetNextBackupReminder(backupReminderRequest *BackupReminderRequest) error
 	Start(startRequest *StartRequest)
@@ -304,41 +305,44 @@ type InfoResponseRelay struct {
 }
 
 type InfoResponse struct {
-	BackendType                   string              `json:"backendType"`
-	SetupCompleted                bool                `json:"setupCompleted"`
-	OAuthRedirect                 bool                `json:"oauthRedirect"`
-	Running                       bool                `json:"running"`
-	Unlocked                      bool                `json:"unlocked"`
-	AlbyAuthUrl                   string              `json:"albyAuthUrl"`
-	NextBackupReminder            string              `json:"nextBackupReminder"`
-	AlbyUserIdentifier            string              `json:"albyUserIdentifier"`
-	AlbyAccountConnected          bool                `json:"albyAccountConnected"`
-	Version                       string              `json:"version"`
-	Network                       string              `json:"network"`
-	EnableAdvancedSetup           bool                `json:"enableAdvancedSetup"`
-	LdkVssEnabled                 bool                `json:"ldkVssEnabled"`
-	LdkVssUrl                     string              `json:"ldkVssUrl"`
-	VssSupported                  bool                `json:"vssSupported"`
-	DatabaseType                  string              `json:"databaseType"`
-	StartupState                  string              `json:"startupState"`
-	StartupError                  string              `json:"startupError"`
-	StartupErrorTime              time.Time           `json:"startupErrorTime"`
-	AutoUnlockPasswordSupported   bool                `json:"autoUnlockPasswordSupported"`
-	AutoUnlockPasswordEnabled     bool                `json:"autoUnlockPasswordEnabled"`
-	Currency                      string              `json:"currency"`
-	BitcoinDisplayFormat          string              `json:"bitcoinDisplayFormat"`
-	Relays                        []InfoResponseRelay `json:"relays"`
-	NodeAlias                     string              `json:"nodeAlias"`
-	MempoolUrl                    string              `json:"mempoolUrl"`
-	ChainDataSourceType           string              `json:"chainDataSourceType,omitempty"`
-	ChainDataSourceAddress        string              `json:"chainDataSourceAddress,omitempty"`
-	JitChannelsLiquiditySource    string              `json:"jitChannelsLiquiditySource,omitempty"`
-	JitChannelsMinPaymentSizeMsat *uint64             `json:"jitChannelsMinPaymentSizeMsat,omitempty"`
-	JitChannelsMaxPaymentSizeMsat *uint64             `json:"jitChannelsMaxPaymentSizeMsat,omitempty"`
-	JitChannelsEnabled            bool                `json:"jitChannelsEnabled"`
-	HideUpdateBanner              bool                `json:"hideUpdateBanner"`
-	SupportsBolt12                bool                `json:"supportsBolt12"`
-	NodeMigrationFileCreated      bool                `json:"nodeMigrationFileCreated"`
+	BackendType                 string              `json:"backendType"`
+	SetupCompleted              bool                `json:"setupCompleted"`
+	OAuthRedirect               bool                `json:"oauthRedirect"`
+	Running                     bool                `json:"running"`
+	Unlocked                    bool                `json:"unlocked"`
+	AlbyAuthUrl                 string              `json:"albyAuthUrl"`
+	NextBackupReminder          string              `json:"nextBackupReminder"`
+	AlbyUserIdentifier          string              `json:"albyUserIdentifier"`
+	AlbyAccountConnected        bool                `json:"albyAccountConnected"`
+	Version                     string              `json:"version"`
+	Network                     string              `json:"network"`
+	EnableAdvancedSetup         bool                `json:"enableAdvancedSetup"`
+	LdkVssEnabled               bool                `json:"ldkVssEnabled"`
+	LdkVssUrl                   string              `json:"ldkVssUrl"`
+	VssSupported                bool                `json:"vssSupported"`
+	DatabaseType                string              `json:"databaseType"`
+	StartupState                string              `json:"startupState"`
+	StartupError                string              `json:"startupError"`
+	StartupErrorTime            time.Time           `json:"startupErrorTime"`
+	AutoUnlockPasswordSupported bool                `json:"autoUnlockPasswordSupported"`
+	AutoUnlockPasswordEnabled   bool                `json:"autoUnlockPasswordEnabled"`
+	Currency                    string              `json:"currency"`
+	BitcoinDisplayFormat        string              `json:"bitcoinDisplayFormat"`
+	Relays                      []InfoResponseRelay `json:"relays"`
+	NodeAlias                   string              `json:"nodeAlias"`
+	MempoolUrl                  string              `json:"mempoolUrl"`
+	ChainDataSourceType         string              `json:"chainDataSourceType,omitempty"`
+	ChainDataSourceAddress      string              `json:"chainDataSourceAddress,omitempty"`
+	JitChannelsLiquiditySource  string              `json:"jitChannelsLiquiditySource,omitempty"`
+	JitChannelsEnabled          bool                `json:"jitChannelsEnabled"`
+	HideUpdateBanner            bool                `json:"hideUpdateBanner"`
+	SupportsBolt12              bool                `json:"supportsBolt12"`
+	NodeMigrationFileCreated    bool                `json:"nodeMigrationFileCreated"`
+}
+
+type JitChannelsInfoResponse struct {
+	MinPaymentSizeMsat *uint64 `json:"minPaymentSizeMsat,omitempty"`
+	MaxPaymentSizeMsat *uint64 `json:"maxPaymentSizeMsat,omitempty"`
 }
 
 type UpdateSettingsRequest struct {
