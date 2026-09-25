@@ -86,9 +86,20 @@ type SwapResponse struct {
 }
 
 func NewSwapsService(ctx context.Context, db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublisher events.EventPublisher,
-	lnClient lnclient.LNClient, transactionsService transactions.TransactionsService, encryptionKey string) SwapsService {
+	lnClient lnclient.LNClient, transactionsService transactions.TransactionsService, encryptionKey string, swapProvider string) SwapsService {
+	apiURL := swapProviderAPIURL(swapProvider, cfg)
+	if apiURL == "" {
+		logger.Logger.WithField("swap_provider", swapProvider).Error("Swap provider API URL not configured, swaps service not started")
+		return nil
+	}
+
+	logger.Logger.WithFields(logrus.Fields{
+		"swap_provider": swapProvider,
+		"swap_api":      apiURL,
+	}).Info("Configured swap provider")
+
 	boltzApi := &boltz.Api{
-		URL: cfg.GetEnv().BoltzApi,
+		URL: apiURL,
 		Client: http.Client{
 			Timeout: 5 * time.Second,
 		},

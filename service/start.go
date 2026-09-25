@@ -361,7 +361,15 @@ func (svc *service) startAppInternal(encryptionKey string) error {
 		return err
 	}
 
-	svc.swapsService = swaps.NewSwapsService(ctx, svc.db, svc.cfg, svc.keys, svc.eventPublisher, svc.GetLNClient(), svc.transactionsService, encryptionKey)
+	swapProvider := ""
+	albyInfo, err := svc.albySvc.GetInfo(ctx)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch swap provider from Alby info")
+	} else {
+		swapProvider = albyInfo.Hub.SwapProvider
+	}
+
+	svc.swapsService = swaps.NewSwapsService(ctx, svc.db, svc.cfg, svc.keys, svc.eventPublisher, svc.GetLNClient(), svc.transactionsService, encryptionKey, swapProvider)
 
 	svc.publishAllAppInfoEvents()
 
@@ -369,6 +377,7 @@ func (svc *service) startAppInternal(encryptionKey string) error {
 	err = svc.startNostr(ctx)
 	if err != nil {
 		cancelFn()
+		svc.swapsService = nil
 		return err
 	}
 

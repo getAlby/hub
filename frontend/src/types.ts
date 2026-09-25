@@ -537,6 +537,7 @@ export type AlbyInfo = {
   hub: {
     latestVersion: string;
     latestReleaseNotes: string;
+    swapProvider: string;
   };
 };
 
