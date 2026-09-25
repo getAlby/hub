@@ -18,7 +18,7 @@ require (
 	github.com/peterldowns/pgtestdb v0.1.1
 	github.com/stretchr/testify v1.12.1
 	github.com/tyler-smith/go-bip39 v1.1.0
-	github.com/wailsapp/wails/v2 v2.15.0
+	github.com/wailsapp/wails/v2 v2.16.0
 	gitlab.com/ark-bitcoin/bark-ffi-bindings/golang v0.24.0
 	golang.org/x/crypto v0.57.0
 	golang.org/x/oauth2 v0.36.0
