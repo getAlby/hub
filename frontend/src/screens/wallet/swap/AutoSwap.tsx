@@ -15,6 +15,7 @@ import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
 import PasswordInput from "src/components/password/PasswordInput";
 import ResponsiveLinkButton from "src/components/ResponsiveLinkButton";
+import { SwapUnavailableAlert } from "src/components/SwapUnavailableAlert";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -68,7 +69,7 @@ export default function AutoSwap() {
 
 function AutoSwapOutForm() {
   const { mutate } = useAutoSwapsConfig();
-  const { data: swapInfo } = useSwapInfo("out");
+  const { data: swapInfo, error: swapInfoError } = useSwapInfo("out");
 
   const [isInternalSwap, setInternalSwap] = useState(true);
   const [balanceThresholdSat, setBalanceThresholdSat] = useState("");
@@ -140,8 +141,12 @@ function AutoSwapOutForm() {
     setDestination(text.trim());
   };
 
-  if (!swapInfo) {
+  if (!swapInfo && !swapInfoError) {
     return <Loading />;
+  }
+
+  if (!swapInfo) {
+    return <SwapUnavailableAlert />;
   }
 
   return (
