@@ -24,10 +24,19 @@ export function useBanner() {
       info.vssSupported &&
       !info.ldkVssEnabled;
 
-    const upToDate =
-      Boolean(info.version) &&
-      info.version.startsWith("v") &&
-      compare(info.version.substring(1), albyInfo.hub.latestVersion, ">=");
+    // Normalize both versions: info.version is usually "vX.Y.Z" (empty for
+    // source builds), latestVersion comes from getalby.com and may carry a
+    // leading "v" or whitespace. Never throw: an unparseable version must
+    // not nag with a false-positive update banner (#1870).
+    let upToDate: boolean;
+    try {
+      const current = info.version?.trim().replace(/^v/i, "");
+      const latest = albyInfo.hub.latestVersion?.trim().replace(/^v/i, "");
+      upToDate =
+        Boolean(current) && Boolean(latest) && compare(current, latest, ">=");
+    } catch {
+      upToDate = true;
+    }
 
     setShowBanner(!upToDate || vssMigrationRequired);
   }, [info, albyInfo, albyMe?.subscription.plan_code]);

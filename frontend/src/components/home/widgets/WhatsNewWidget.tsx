@@ -23,10 +23,18 @@ export function WhatsNewWidget() {
     return null;
   }
 
-  const upToDate =
-    info.version &&
-    info.version.startsWith("v") &&
-    compare(info.version.substring(1), albyInfo.hub.latestVersion, ">=");
+  // Same normalization as useBanner.tsx: strip leading "v"/whitespace on
+  // both sides and never throw, so an unparseable version cannot render a
+  // false-positive "Update Now" button (#1870).
+  let upToDate: boolean;
+  try {
+    const current = info.version?.trim().replace(/^v/i, "");
+    const latest = albyInfo.hub.latestVersion?.trim().replace(/^v/i, "");
+    upToDate =
+      Boolean(current) && Boolean(latest) && compare(current, latest, ">=");
+  } catch {
+    upToDate = true;
+  }
 
   return (
     <Card>
