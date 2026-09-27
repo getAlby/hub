@@ -26,12 +26,13 @@ export function WhatsNewWidget() {
   // Same normalization as useBanner.tsx: strip leading "v"/whitespace on
   // both sides and never throw, so an unparseable version cannot render a
   // false-positive "Update Now" button (#1870).
+  // Empty latest (unknown release) means up-to-date; empty current
+  // (source build) stays not-up-to-date.
   let upToDate: boolean;
   try {
     const current = info.version?.trim().replace(/^v/i, "");
     const latest = albyInfo.hub.latestVersion?.trim().replace(/^v/i, "");
-    upToDate =
-      Boolean(current) && Boolean(latest) && compare(current, latest, ">=");
+    upToDate = Boolean(current) && (!latest || compare(current, latest, ">="));
   } catch {
     upToDate = true;
   }

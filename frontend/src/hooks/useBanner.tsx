@@ -28,12 +28,14 @@ export function useBanner() {
     // source builds), latestVersion comes from getalby.com and may carry a
     // leading "v" or whitespace. Never throw: an unparseable version must
     // not nag with a false-positive update banner (#1870).
+    // Empty latest (unknown release) means up-to-date; empty current
+    // (source build) stays not-up-to-date.
     let upToDate: boolean;
     try {
       const current = info.version?.trim().replace(/^v/i, "");
       const latest = albyInfo.hub.latestVersion?.trim().replace(/^v/i, "");
       upToDate =
-        Boolean(current) && Boolean(latest) && compare(current, latest, ">=");
+        Boolean(current) && (!latest || compare(current, latest, ">="));
     } catch {
       upToDate = true;
     }
