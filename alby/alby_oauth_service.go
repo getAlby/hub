@@ -189,9 +189,9 @@ func (svc *albyOAuthService) saveToken(token *oauth2.Token) {
 }
 
 func (svc *albyOAuthService) persistToken(token *oauth2.Token) error {
-	err := svc.cfg.SetUpdate(accessTokenExpiryKey, strconv.FormatInt(token.Expiry.Unix(), 10), "")
+	err := svc.cfg.SetUpdate(refreshTokenKey, token.RefreshToken, "")
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to save access token expiry")
+		logger.Logger.WithError(err).Error("Failed to save refresh token")
 		return err
 	}
 	err = svc.cfg.SetUpdate(accessTokenKey, token.AccessToken, "")
@@ -199,9 +199,9 @@ func (svc *albyOAuthService) persistToken(token *oauth2.Token) error {
 		logger.Logger.WithError(err).Error("Failed to save access token")
 		return err
 	}
-	err = svc.cfg.SetUpdate(refreshTokenKey, token.RefreshToken, "")
+	err = svc.cfg.SetUpdate(accessTokenExpiryKey, strconv.FormatInt(token.Expiry.Unix(), 10), "")
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to save refresh token")
+		logger.Logger.WithError(err).Error("Failed to save access token expiry")
 		return err
 	}
 	return nil

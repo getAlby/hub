@@ -93,8 +93,38 @@ func TestFetchUserTokenRetriesPersistence(t *testing.T) {
 
 func TestSaveTokenStopsAfterBoundedRetries(t *testing.T) {
 	logger.Init("4")
-	cfg := &oauthRetryConfig{failedKey: accessTokenExpiryKey, failCount: tokenSaveAttempts}
+	cfg := &oauthRetryConfig{values: map[string]string{}, failedKey: accessTokenExpiryKey, failCount: tokenSaveAttempts}
 	svc := &albyOAuthService{cfg: cfg}
 	svc.saveToken(&oauth2.Token{Expiry: time.Now().Add(time.Hour)})
 	require.Equal(t, tokenSaveAttempts, cfg.failedWrites)
+}
+
+func TestSaveTokenFailureKeepsExpiredToken(t *testing.T) {
+	logger.Init("4")
+	for _, failedKey := range []string{refreshTokenKey, accessTokenKey} {
+		t.Run(failedKey, func(t *testing.T) {
+			expiry := strconv.FormatInt(time.Now().Add(-time.Hour).Unix(), 10)
+			cfg := &oauthRetryConfig{
+				values: map[string]string{
+					accessTokenKey:       "old-access-token",
+					accessTokenExpiryKey: expiry,
+					refreshTokenKey:      "old-refresh-token",
+				},
+				failedKey: failedKey,
+				failCount: tokenSaveAttempts,
+			}
+			svc := &albyOAuthService{cfg: cfg}
+			svc.saveToken(&oauth2.Token{
+				AccessToken:  "new-access-token",
+				RefreshToken: "new-refresh-token",
+				Expiry:       time.Now().Add(time.Hour),
+			})
+			require.Equal(t, tokenSaveAttempts, cfg.failedWrites)
+			require.Equal(t, "old-access-token", cfg.values[accessTokenKey])
+			require.Equal(t, expiry, cfg.values[accessTokenExpiryKey])
+			if failedKey == accessTokenKey {
+				require.Equal(t, "new-refresh-token", cfg.values[refreshTokenKey])
+			}
+		})
+	}
 }
