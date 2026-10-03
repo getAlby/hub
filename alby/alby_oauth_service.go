@@ -35,13 +35,11 @@ import (
 )
 
 type albyOAuthService struct {
-	cfg                config.Config
-	oauthConf          *oauth2.Config
-	db                 *gorm.DB
-	keys               keys.Keys
-	eventPublisher     events.EventPublisher
-	latestToken        *oauth2.Token
-	pendingRefreshFrom string
+	cfg            config.Config
+	oauthConf      *oauth2.Config
+	db             *gorm.DB
+	keys           keys.Keys
+	eventPublisher events.EventPublisher
 }
 
 const (
@@ -93,7 +91,6 @@ func NewAlbyOAuthService(db *gorm.DB, cfg config.Config, keys keys.Keys, eventPu
 }
 
 func (svc *albyOAuthService) RemoveOAuthAccessToken() error {
-	svc.lockAndClearTokenState()
 	err := svc.cfg.SetUpdate(accessTokenKey, "", "")
 	if err != nil {
 		logger.Logger.WithError(err).Error("failed to remove access token")
@@ -107,15 +104,12 @@ func (svc *albyOAuthService) CallbackHandler(ctx context.Context, code string) e
 		logger.Logger.WithError(err).Error("Failed to exchange token")
 		return err
 	}
-	tokenMutex.Lock()
-	svc.saveToken(token, "")
-	tokenMutex.Unlock()
+	svc.saveToken(token)
 
 	me, err := svc.GetMe(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch user me")
 		// remove token so user can retry
-		svc.lockAndClearTokenState()
 		cfgErr := svc.cfg.SetUpdate(accessTokenKey, "", "")
 		if cfgErr != nil {
 			logger.Logger.WithError(cfgErr).Error("failed to remove existing access token")
@@ -143,7 +137,6 @@ func (svc *albyOAuthService) CallbackHandler(ctx context.Context, code string) e
 		})
 	} else if me.Identifier != existingUserIdentifier {
 		// remove token so user can retry with correct account
-		svc.lockAndClearTokenState()
 		err := svc.cfg.SetUpdate(accessTokenKey, "", "")
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to set user access token")
@@ -180,19 +173,11 @@ func (svc *albyOAuthService) IsConnected(ctx context.Context) bool {
 	return token != nil
 }
 
-func (svc *albyOAuthService) saveToken(token *oauth2.Token, rotatedFrom string) {
-	svc.setLatestToken(token)
-	if rotatedFrom != "" {
-		svc.pendingRefreshFrom = rotatedFrom
-	} else {
-		svc.pendingRefreshFrom = ""
-	}
-
+func (svc *albyOAuthService) saveToken(token *oauth2.Token) {
 	var lastErr error
 	for attempt := 0; attempt < tokenSaveAttempts; attempt++ {
 		lastErr = svc.persistToken(token)
 		if lastErr == nil {
-			svc.pendingRefreshFrom = ""
 			return
 		}
 		if attempt < tokenSaveAttempts-1 {
@@ -220,59 +205,6 @@ func (svc *albyOAuthService) persistToken(token *oauth2.Token) error {
 		return err
 	}
 	return nil
-}
-
-func (svc *albyOAuthService) setLatestToken(token *oauth2.Token) {
-	if token == nil {
-		svc.latestToken = nil
-		return
-	}
-	clone := *token
-	svc.latestToken = &clone
-}
-
-func (svc *albyOAuthService) clearLatestToken() {
-	svc.latestToken = nil
-	svc.pendingRefreshFrom = ""
-}
-
-func (svc *albyOAuthService) lockAndClearTokenState() {
-	tokenMutex.Lock()
-	svc.clearLatestToken()
-	tokenMutex.Unlock()
-}
-
-func (svc *albyOAuthService) reconcileTokenState(dbToken *oauth2.Token) {
-	if svc.latestToken == nil {
-		return
-	}
-	if svc.pendingRefreshFrom == "" {
-		if svc.latestToken.RefreshToken != dbToken.RefreshToken {
-			svc.clearLatestToken()
-		}
-		return
-	}
-	if dbToken.RefreshToken == svc.pendingRefreshFrom {
-		return
-	}
-	if dbToken.RefreshToken == svc.latestToken.RefreshToken {
-		svc.pendingRefreshFrom = ""
-		return
-	}
-	svc.clearLatestToken()
-}
-
-func shouldUseLatestToken(latestToken *oauth2.Token, pendingRefreshFrom string, dbToken *oauth2.Token) bool {
-	if latestToken == nil {
-		return false
-	}
-	if pendingRefreshFrom != "" && dbToken.RefreshToken == pendingRefreshFrom {
-		return true
-	}
-	if latestToken.RefreshToken == dbToken.RefreshToken && latestToken.Expiry.After(dbToken.Expiry) {
-		return true
-	}
-	return false
 }
 
 var tokenMutex sync.Mutex
@@ -317,28 +249,19 @@ func (svc *albyOAuthService) fetchUserToken(ctx context.Context) (*oauth2.Token,
 		RefreshToken: refreshToken,
 	}
 
-	svc.reconcileTokenState(currentToken)
-	if shouldUseLatestToken(svc.latestToken, svc.pendingRefreshFrom, currentToken) {
-		currentToken = svc.latestToken
-	}
-	if svc.pendingRefreshFrom != "" {
-		svc.saveToken(currentToken, svc.pendingRefreshFrom)
-	}
-
 	// only use the current token if it has at least 60 seconds before expiry
 	if currentToken.Expiry.After(time.Now().Add(time.Duration(60) * time.Second)) {
 		logger.Logger.Debug("Using existing Alby OAuth token")
 		return currentToken, nil
 	}
 
-	refreshUsed := currentToken.RefreshToken
 	newToken, err := svc.oauthConf.TokenSource(ctx, currentToken).Token()
 	if err != nil {
 		logger.Logger.WithError(err).Warn("Failed to refresh existing token")
 		return nil, err
 	}
 
-	svc.saveToken(newToken, refreshUsed)
+	svc.saveToken(newToken)
 	return newToken, nil
 }
 
@@ -601,7 +524,6 @@ func (svc *albyOAuthService) UnlinkAccount(ctx context.Context) error {
 	if ldkVssEnabled == "true" {
 		return errors.New("alby account cannot be unlinked while VSS is activated")
 	}
-	svc.lockAndClearTokenState()
 
 	destroyAlbyAccountErr := svc.destroyAlbyAccountNWCNode(ctx)
 	if destroyAlbyAccountErr != nil {
