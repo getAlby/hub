@@ -545,8 +545,13 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToApp_MatchingAmountProvidedOnNo
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
+	mismatchedAmountMsat := uint64(1000)
+	transaction, err := transactionsService.SendPaymentSync(tests.MockInvoice, &mismatchedAmountMsat, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	assert.EqualError(t, err, "amount cannot be specified for an invoice that already has an amount")
+	assert.Nil(t, transaction)
+
 	amountMsat := uint64(123000)
-	transaction, err := transactionsService.SendPaymentSync(tests.MockInvoice, &amountMsat, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	transaction, err = transactionsService.SendPaymentSync(tests.MockInvoice, &amountMsat, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(123000), transaction.AmountMsat)
