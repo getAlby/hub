@@ -349,8 +349,15 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 
 	var dbTransaction db.Transaction
 
+	if amountMsat != nil && paymentRequest.MSatoshi != 0 {
+		if *amountMsat != uint64(paymentRequest.MSatoshi) {
+			return nil, errors.New("amount cannot be specified for an invoice that already has an amount")
+		}
+		amountMsat = nil
+	}
+
 	paymentAmountMsat := uint64(paymentRequest.MSatoshi)
-	if amountMsat != nil && paymentRequest.MSatoshi == 0 {
+	if amountMsat != nil {
 		paymentAmountMsat = *amountMsat
 	}
 

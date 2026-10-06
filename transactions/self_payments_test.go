@@ -494,7 +494,7 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToSelf(t *testing.T) {
 	assert.Equal(t, int64(123000), balanceMsat)
 }
 
-func TestSendPaymentSync_SelfPayment_IsolatedAppToApp_AmountProvidedIgnoredOnNonZeroAmountInvoice(t *testing.T) {
+func TestSendPaymentSync_SelfPayment_IsolatedAppToApp_MatchingAmountProvidedOnNonZeroAmountInvoice(t *testing.T) {
 	ctx := context.TODO()
 
 	svc, err := tests.CreateTestService(t)
@@ -545,8 +545,7 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToApp_AmountProvidedIgnoredOnNon
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
-	// this amount is wrong, it will just be ignored
-	amountMsat := uint64(1000)
+	amountMsat := uint64(123000)
 	transaction, err := transactionsService.SendPaymentSync(tests.MockInvoice, &amountMsat, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.NoError(t, err)
