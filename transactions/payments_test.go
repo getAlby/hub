@@ -80,8 +80,24 @@ func TestSendPaymentSync_AmountOnNonZeroAmountInvoice(t *testing.T) {
 	amount := uint64(1234)
 	transaction, err := transactionsService.SendPaymentSync(tests.MockInvoice, &amount, metadata, svc.LNClient, nil, nil)
 
+	assert.EqualError(t, err, "amount cannot be specified for an invoice that already has an amount")
+	assert.Nil(t, transaction)
+
+	var count int64
+	require.NoError(t, svc.DB.Model(&db.Transaction{}).Count(&count).Error)
+	assert.Zero(t, count)
+}
+
+func TestSendPaymentSync_MatchingAmountOnNonZeroAmountInvoice(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+	amount := uint64(123_000)
+	transaction, err := transactionsService.SendPaymentSync(tests.MockInvoice, &amount, nil, svc.LNClient, nil, nil)
+
 	assert.NoError(t, err)
-	// amount is from the invoice, not what was specified
 	assert.Equal(t, uint64(123_000), transaction.AmountMsat)
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, transaction.State)
 	assert.Zero(t, transaction.FeeReserveMsat)
