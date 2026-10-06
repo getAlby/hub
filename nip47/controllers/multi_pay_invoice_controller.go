@@ -69,7 +69,7 @@ func (controller *nip47Controller) HandleMultiPayInvoiceEvent(ctx context.Contex
 			dTag := []string{"d", invoiceDTagValue}
 
 			controller.
-				pay(bolt11, invoiceInfo.Amount, metadata, &paymentRequest, nip47Request, requestEventId, app, publishResponse, nostr.Tags{dTag})
+				pay(bolt11, invoiceInfo.Amount, invoiceInfo.MaxFee, metadata, &paymentRequest, nip47Request, requestEventId, app, publishResponse, nostr.Tags{dTag})
 		}(invoiceInfo)
 	}
 

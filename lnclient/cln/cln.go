@@ -2312,10 +2312,11 @@ func (c *CLNService) SendPaymentProbes(ctx context.Context, invoice string) erro
 	return nil
 }
 
-func (c *CLNService) SendPaymentSync(payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
+func (c *CLNService) SendPaymentSync(payReq string, amount *uint64, maxFeeMsat *uint64) (*lnclient.PayInvoiceResponse, error) {
 	logger.Logger.WithFields(logrus.Fields{
-		"payReq": payReq,
-		"amount": amount,
+		"payReq":       payReq,
+		"amount":       amount,
+		"max_fee_msat": maxFeeMsat,
 	}).Debug("Send Payment Sync")
 
 	dec_req := &clngrpc.DecodeRequest{
@@ -2341,9 +2342,17 @@ func (c *CLNService) SendPaymentSync(payReq string, amount *uint64) (*lnclient.P
 		}
 	}
 
+	var maxFee *clngrpc.Amount
+	if maxFeeMsat != nil {
+		maxFee = &clngrpc.Amount{
+			Msat: *maxFeeMsat,
+		}
+	}
+
 	req := &clngrpc.XpayRequest{
 		Invstring:  payReq,
 		AmountMsat: amountMsat,
+		Maxfee:     maxFee,
 	}
 
 	resp, err := c.client.Xpay(c.ctx, req)
