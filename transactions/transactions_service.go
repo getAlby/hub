@@ -1480,7 +1480,7 @@ func (svc *transactionsService) SetTransactionUserLabels(ctx context.Context, id
 // payment: the payer can pay more than the invoice amount (or any amount for
 // an amountless invoice).
 func applyReceivedAmount(dbTransaction *db.Transaction, lnClientTransaction *lnclient.Transaction) {
-	if dbTransaction.Type != constants.TRANSACTION_TYPE_INCOMING {
+	if dbTransaction.Type != constants.TRANSACTION_TYPE_INCOMING || lnClientTransaction.AmountMsat <= 0 {
 		return
 	}
 	if receivedMsat := uint64(lnClientTransaction.AmountMsat); receivedMsat > dbTransaction.AmountMsat {

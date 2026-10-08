@@ -83,6 +83,20 @@ func TestNotifications_ReceivedKnownPaymentOverpaid(t *testing.T) {
 	assert.Equal(t, uint64(31_000_000), incomingTransaction.AmountMsat)
 }
 
+func TestApplyReceivedAmount(t *testing.T) {
+	incoming := db.Transaction{Type: constants.TRANSACTION_TYPE_INCOMING, AmountMsat: 20_000}
+	applyReceivedAmount(&incoming, &lnclient.Transaction{AmountMsat: -1})
+	assert.Equal(t, uint64(20_000), incoming.AmountMsat)
+	applyReceivedAmount(&incoming, &lnclient.Transaction{AmountMsat: 10_000})
+	assert.Equal(t, uint64(20_000), incoming.AmountMsat)
+	applyReceivedAmount(&incoming, &lnclient.Transaction{AmountMsat: 31_000})
+	assert.Equal(t, uint64(31_000), incoming.AmountMsat)
+
+	outgoing := db.Transaction{Type: constants.TRANSACTION_TYPE_OUTGOING, AmountMsat: 20_000}
+	applyReceivedAmount(&outgoing, &lnclient.Transaction{AmountMsat: 31_000})
+	assert.Equal(t, uint64(20_000), outgoing.AmountMsat)
+}
+
 func TestNotifications_ReceivedUnknownPayment(t *testing.T) {
 	ctx := context.TODO()
 
