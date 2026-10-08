@@ -84,17 +84,25 @@ func TestNotifications_ReceivedKnownPaymentOverpaid(t *testing.T) {
 }
 
 func TestApplyReceivedAmount(t *testing.T) {
-	incoming := db.Transaction{Type: constants.TRANSACTION_TYPE_INCOMING, AmountMsat: 20_000}
-	applyReceivedAmount(&incoming, &lnclient.Transaction{AmountMsat: -1})
-	assert.Equal(t, uint64(20_000), incoming.AmountMsat)
-	applyReceivedAmount(&incoming, &lnclient.Transaction{AmountMsat: 10_000})
-	assert.Equal(t, uint64(20_000), incoming.AmountMsat)
-	applyReceivedAmount(&incoming, &lnclient.Transaction{AmountMsat: 31_000})
-	assert.Equal(t, uint64(31_000), incoming.AmountMsat)
-
-	outgoing := db.Transaction{Type: constants.TRANSACTION_TYPE_OUTGOING, AmountMsat: 20_000}
-	applyReceivedAmount(&outgoing, &lnclient.Transaction{AmountMsat: 31_000})
-	assert.Equal(t, uint64(20_000), outgoing.AmountMsat)
+	cases := []struct {
+		name            string
+		transactionType string
+		receivedMsat    int64
+		expectedMsat    uint64
+	}{
+		{"negative is ignored", constants.TRANSACTION_TYPE_INCOMING, -1, 20_000},
+		{"zero is ignored", constants.TRANSACTION_TYPE_INCOMING, 0, 20_000},
+		{"lower is ignored", constants.TRANSACTION_TYPE_INCOMING, 10_000, 20_000},
+		{"overpayment is recorded", constants.TRANSACTION_TYPE_INCOMING, 31_000, 31_000},
+		{"outgoing is untouched", constants.TRANSACTION_TYPE_OUTGOING, 31_000, 20_000},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			transaction := db.Transaction{Type: c.transactionType, AmountMsat: 20_000}
+			applyReceivedAmount(&transaction, &lnclient.Transaction{AmountMsat: c.receivedMsat})
+			assert.Equal(t, c.expectedMsat, transaction.AmountMsat)
+		})
+	}
 }
 
 func TestNotifications_ReceivedUnknownPayment(t *testing.T) {
