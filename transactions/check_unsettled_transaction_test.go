@@ -52,6 +52,36 @@ func TestCheckUnsettledTransaction(t *testing.T) {
 	assert.Equal(t, &dbTransaction, settledTransaction)
 }
 
+func TestCheckUnsettledTransaction_IncomingOverpaid(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	dbTransaction := db.Transaction{
+		State:       constants.TRANSACTION_STATE_PENDING,
+		Type:        constants.TRANSACTION_TYPE_INCOMING,
+		PaymentHash: tests.MockLNClientTransaction.PaymentHash,
+		AmountMsat:  20_000_000,
+	}
+	svc.DB.Create(&dbTransaction)
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+	settledAt := time.Now().Unix()
+	svc.LNClient.(*tests.MockLn).SupportedNotificationTypes = &[]string{}
+	svc.LNClient.(*tests.MockLn).MockTransaction = &lnclient.Transaction{
+		SettledAt:  &settledAt,
+		Preimage:   "dummy",
+		AmountMsat: 31_000_000,
+	}
+
+	transactionsService.checkUnsettledTransaction(context.TODO(), &dbTransaction, svc.LNClient)
+
+	var stored db.Transaction
+	require.NoError(t, svc.DB.First(&stored, dbTransaction.ID).Error)
+	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, stored.State)
+	assert.Equal(t, uint64(31_000_000), stored.AmountMsat)
+}
+
 func TestCheckUnsettledTransactions(t *testing.T) {
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)

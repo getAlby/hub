@@ -791,6 +791,7 @@ func (svc *transactionsService) checkUnsettledTransaction(ctx context.Context, t
 	}
 	// update transaction state
 	if lnClientTransaction.SettledAt != nil {
+		applyReceivedAmount(transaction, lnClientTransaction)
 		_, err = svc.markTransactionSettled(transaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaidMsat), false)
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to mark payment sent when checking unsettled transaction")
@@ -868,6 +869,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 			return
 		}
 
+		applyReceivedAmount(&dbTransaction, lnClientTransaction)
 		if _, err := svc.markTransactionSettled(&dbTransaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaidMsat), false); err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"payment_hash": lnClientTransaction.PaymentHash,
@@ -1474,6 +1476,18 @@ func (svc *transactionsService) SetTransactionUserLabels(ctx context.Context, id
 // markTransactionSettled marks an existing transaction as settled in its own
 // database transaction and publishes the corresponding events after it
 // commits, so subscribers never observe uncommitted state.
+// applyReceivedAmount records the amount actually received for an incoming
+// payment: the payer can pay more than the invoice amount (or any amount for
+// an amountless invoice).
+func applyReceivedAmount(dbTransaction *db.Transaction, lnClientTransaction *lnclient.Transaction) {
+	if dbTransaction.Type != constants.TRANSACTION_TYPE_INCOMING {
+		return
+	}
+	if receivedMsat := uint64(lnClientTransaction.AmountMsat); receivedMsat > dbTransaction.AmountMsat {
+		dbTransaction.AmountMsat = receivedMsat
+	}
+}
+
 func (svc *transactionsService) markTransactionSettled(dbTransaction *db.Transaction, preimage string, feeMsat uint64, selfPayment bool) (*db.Transaction, error) {
 	if preimage == "" {
 		return nil, errors.New("no preimage in payment")
@@ -1493,14 +1507,18 @@ func (svc *transactionsService) markTransactionSettled(dbTransaction *db.Transac
 		}
 
 		settledAt := time.Now()
-		err = tx.Model(dbTransaction).Updates(map[string]interface{}{
+		updates := map[string]interface{}{
 			"State":          constants.TRANSACTION_STATE_SETTLED,
 			"Preimage":       &preimage,
 			"FeeMsat":        feeMsat,
 			"FeeReserveMsat": 0,
 			"SettledAt":      &settledAt,
 			"SelfPayment":    selfPayment,
-		}).Error
+		}
+		if dbTransaction.Type == constants.TRANSACTION_TYPE_INCOMING {
+			updates["AmountMsat"] = dbTransaction.AmountMsat
+		}
+		err = tx.Model(dbTransaction).Updates(updates).Error
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"payment_hash": dbTransaction.PaymentHash,

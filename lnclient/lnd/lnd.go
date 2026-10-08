@@ -1570,8 +1570,14 @@ func lndInvoiceToTransaction(invoice *lnrpc.Invoice) *lnclient.Transaction {
 	preimage := hex.EncodeToString(invoice.RPreimage)
 	metadata := map[string]interface{}{}
 
+	amountMsat := invoice.ValueMsat
 	if invoice.State == lnrpc.Invoice_SETTLED {
 		settledAt = &invoice.SettleDate
+		// the payer can pay more than the invoice amount (or any amount for an
+		// amountless invoice), so report what was actually received
+		if invoice.AmtPaidMsat > 0 {
+			amountMsat = invoice.AmtPaidMsat
+		}
 	}
 	var expiresAt *int64
 	if invoice.Expiry > 0 {
@@ -1599,7 +1605,7 @@ func lndInvoiceToTransaction(invoice *lnrpc.Invoice) *lnclient.Transaction {
 		DescriptionHash: hex.EncodeToString(invoice.DescriptionHash),
 		Preimage:        preimage,
 		PaymentHash:     hex.EncodeToString(invoice.RHash),
-		AmountMsat:      invoice.ValueMsat,
+		AmountMsat:      amountMsat,
 		CreatedAt:       invoice.CreationDate,
 		SettledAt:       settledAt,
 		ExpiresAt:       expiresAt,

@@ -52,6 +52,37 @@ func TestNotifications_ReceivedKnownPayment(t *testing.T) {
 	assert.Equal(t, int64(1), result.RowsAffected)
 }
 
+func TestNotifications_ReceivedKnownPaymentOverpaid(t *testing.T) {
+	ctx := context.TODO()
+
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	svc.DB.Create(&db.Transaction{
+		State:          constants.TRANSACTION_STATE_PENDING,
+		Type:           constants.TRANSACTION_TYPE_INCOMING,
+		PaymentRequest: tests.MockLNClientTransaction.Invoice,
+		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
+		AmountMsat:     20_000_000,
+	})
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+
+	// the payer paid 31k sats for a 20k sat invoice
+	received := *tests.MockLNClientTransaction
+	received.AmountMsat = 31_000_000
+	transactionsService.ConsumeEvent(ctx, &events.Event{
+		Event:      "nwc_lnclient_payment_received",
+		Properties: &received,
+	}, map[string]interface{}{})
+
+	incomingTransaction, err := transactionsService.LookupTransaction(ctx, tests.MockLNClientTransaction.PaymentHash, nil, svc.LNClient, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, incomingTransaction.State)
+	assert.Equal(t, uint64(31_000_000), incomingTransaction.AmountMsat)
+}
+
 func TestNotifications_ReceivedUnknownPayment(t *testing.T) {
 	ctx := context.TODO()
 
