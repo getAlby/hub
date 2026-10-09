@@ -82,6 +82,14 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 	go lndService.subscribeChannelEvents(lndCtx)
 	go lndService.subscribeOpenHoldInvoices(lndCtx)
 	go lndService.trackForwardedPayments(lndCtx)
+	// The streams above only deliver events while the hub is attached.
+	// Replay terminal payments and invoices that settled while we were away,
+	// otherwise they stay stuck as pending in the hub database.
+	go func() {
+		if err := lndService.reconcileMissedPayments(lndCtx); err != nil {
+			logger.Logger.WithError(err).Error("Failed to reconcile missed LND payments")
+		}
+	}()
 
 	logger.Logger.WithField("alias", nodeInfo.Alias).Info("Connected to LND")
 
