@@ -249,6 +249,33 @@ func TestSetUpdate_EncryptionKeyToNoEncryptionKey(t *testing.T) {
 	assert.Equal(t, "value2", updatedValue)
 }
 
+func TestPhoenixdEnvUpdatedOnRestart(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	_, err = config.NewConfig(&config.AppConfig{
+		PhoenixdAddress:       "http://localhost:9740",
+		PhoenixdAuthorization: "old-password",
+	}, svc.DB)
+	require.NoError(t, err)
+
+	// restart with the phoenixd settings changed in the environment
+	cfg, err := config.NewConfig(&config.AppConfig{
+		PhoenixdAddress:       "http://phoenixd:9740",
+		PhoenixdAuthorization: "new-password",
+	}, svc.DB)
+	require.NoError(t, err)
+
+	address, err := cfg.Get("PhoenixdAddress", "")
+	require.NoError(t, err)
+	assert.Equal(t, "http://phoenixd:9740", address)
+
+	authorization, err := cfg.Get("PhoenixdAuthorization", "")
+	require.NoError(t, err)
+	assert.Equal(t, "new-password", authorization)
+}
+
 func TestJWTSecret_GeneratedOnLoad(t *testing.T) {
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
