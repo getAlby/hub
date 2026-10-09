@@ -1,0 +1,3 @@
+{$DOMAIN} {
+	reverse_proxy albyhub:8080
+}
