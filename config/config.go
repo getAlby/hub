@@ -112,6 +112,31 @@ func (cfg *config) init(env *AppConfig) error {
 		}
 	}
 
+	// ldk-server specific to support env variables
+	if cfg.Env.LDKServerAddress != "" {
+		err := cfg.SetUpdate("LDKServerAddress", cfg.Env.LDKServerAddress, "")
+		if err != nil {
+			return err
+		}
+	}
+	if cfg.Env.LDKServerTlsCertFile != "" {
+		certBytes, err := os.ReadFile(cfg.Env.LDKServerTlsCertFile)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to read ldk-server TLS cert file")
+			return err
+		}
+		err = cfg.SetUpdate("LDKServerTlsCertPem", string(certBytes), "")
+		if err != nil {
+			return err
+		}
+	}
+	if cfg.Env.LDKServerApiKey != "" {
+		err := cfg.SetUpdate("LDKServerApiKey", cfg.Env.LDKServerApiKey, "")
+		if err != nil {
+			return err
+		}
+	}
+
 	// CLN specific to support env variables
 	if cfg.Env.CLNAddress != "" {
 		err := cfg.SetUpdate("CLNAddress", cfg.Env.CLNAddress, "")

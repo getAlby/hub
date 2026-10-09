@@ -273,6 +273,11 @@ type SetupRequest struct {
 	PhoenixdAddress       string `json:"phoenixdAddress"`
 	PhoenixdAuthorization string `json:"phoenixdAuthorization"`
 
+	// ldk-server fields
+	LDKServerAddress     string `json:"ldkServerAddress"`
+	LDKServerTlsCertFile string `json:"ldkServerTlsCertFile"`
+	LDKServerApiKey      string `json:"ldkServerApiKey"`
+
 	// Cashu fields
 	CashuMintUrl string `json:"cashuMintUrl"`
 
