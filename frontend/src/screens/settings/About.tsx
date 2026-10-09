@@ -4,15 +4,18 @@ import Loading from "src/components/Loading";
 import SettingsHeader from "src/components/SettingsHeader";
 import { Badge } from "src/components/ui/badge";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
+import { useInfo } from "src/hooks/useInfo";
+import { useJitChannelsInfo } from "src/hooks/useJitChannelsInfo";
 import { useNodeDetails } from "src/hooks/useNodeDetails";
 import { backendTypeConfigs } from "src/lib/backendType";
-
-import { useInfo } from "src/hooks/useInfo";
 
 export function About() {
   const { data: info } = useInfo();
   const { data: albyMe, error: albyMeError } = useAlbyMe();
   const lsps2Source = info?.jitChannelsLiquiditySource;
+  const { data: jitChannelsInfo } = useJitChannelsInfo(
+    !!info?.jitChannelsEnabled && !!lsps2Source
+  );
   const lsps2Pubkey = lsps2Source?.includes("@")
     ? lsps2Source.split("@")[0]
     : undefined;
@@ -20,11 +23,11 @@ export function About() {
   const lsps2Label =
     lsps2NodeDetails?.alias ||
     (lsps2Pubkey ? lsps2Pubkey.slice(0, 8) + "..." : lsps2Source);
-  const lsps2MinPaymentSizeSat = info?.jitChannelsMinPaymentSizeMsat
-    ? Math.ceil(info.jitChannelsMinPaymentSizeMsat / 1000)
+  const lsps2MinPaymentSizeSat = jitChannelsInfo?.minPaymentSizeMsat
+    ? Math.ceil(jitChannelsInfo.minPaymentSizeMsat / 1000)
     : undefined;
-  const lsps2MaxPaymentSizeSat = info?.jitChannelsMaxPaymentSizeMsat
-    ? Math.floor(info.jitChannelsMaxPaymentSizeMsat / 1000)
+  const lsps2MaxPaymentSizeSat = jitChannelsInfo?.maxPaymentSizeMsat
+    ? Math.floor(jitChannelsInfo.maxPaymentSizeMsat / 1000)
     : undefined;
 
   if (!info || (info.albyAccountConnected && !albyMe && !albyMeError)) {
