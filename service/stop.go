@@ -26,6 +26,7 @@ func (svc *service) stopAppInternal() {
 		logger.Logger.Info("Stopping app...")
 		svc.appCancelFn()
 		svc.wg.Wait()
+		svc.swapsService = nil
 		logger.Logger.Info("app stopped")
 	}
 }

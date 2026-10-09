@@ -15,6 +15,7 @@ import { FixedFloatSwapInFlow } from "src/components/FixedFloatSwapInFlow";
 import Loading from "src/components/Loading";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import ResponsiveLinkButton from "src/components/ResponsiveLinkButton";
+import { SwapUnavailableAlert } from "src/components/SwapUnavailableAlert";
 import { Button } from "src/components/ui/button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
@@ -93,7 +94,7 @@ function SwapInForm() {
   );
   const { data: info, hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
-  const { data: swapInfo } = useSwapInfo("in");
+  const { data: swapInfo, error: swapInfoError } = useSwapInfo("in");
   const navigate = useNavigate();
 
   const [swapAmountSat, setSwapAmountSat] = useState("");
@@ -154,8 +155,12 @@ function SwapInForm() {
     }
   };
 
-  if (!info || !balances || !swapInfo) {
+  if (!info || !balances || (!swapInfo && !swapInfoError)) {
     return <Loading />;
+  }
+
+  if (!swapInfo) {
+    return <SwapUnavailableAlert />;
   }
 
   const spendableOnchainBalance = balances.onchain.spendableSat;
@@ -309,7 +314,7 @@ function SwapInForm() {
 }
 
 function SwapOutForm() {
-  const { data: swapInfo } = useSwapInfo("out");
+  const { data: swapInfo, error: swapInfoError } = useSwapInfo("out");
   const navigate = useNavigate();
   const { data: balances } = useBalances();
 
@@ -353,8 +358,12 @@ function SwapOutForm() {
     setDestination(text.trim());
   };
 
-  if (!balances || !swapInfo) {
+  if (!balances || (!swapInfo && !swapInfoError)) {
     return <Loading />;
+  }
+
+  if (!swapInfo) {
+    return <SwapUnavailableAlert />;
   }
 
   return (

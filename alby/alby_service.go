@@ -199,6 +199,7 @@ func (svc *albyService) GetInfo(ctx context.Context) (*AlbyInfo, error) {
 	type albyInfoHub struct {
 		LatestVersion      string `json:"latest_version"`
 		LatestReleaseNotes string `json:"latest_release_notes"`
+		SwapProvider       string `json:"swap_provider"`
 	}
 
 	type albyInfoIncident struct {
@@ -253,6 +254,7 @@ func (svc *albyService) GetInfo(ctx context.Context) (*AlbyInfo, error) {
 		Hub: AlbyInfoHub{
 			LatestVersion:      info.Hub.LatestVersion,
 			LatestReleaseNotes: info.Hub.LatestReleaseNotes,
+			SwapProvider:       info.Hub.SwapProvider,
 		},
 		Status:           info.Status,
 		Healthy:          info.Healthy,

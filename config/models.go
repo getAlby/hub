@@ -61,6 +61,7 @@ type AppConfig struct {
 	AutoUnlockPassword                 string `envconfig:"AUTO_UNLOCK_PASSWORD"`
 	LogDBQueries                       bool   `envconfig:"LOG_DB_QUERIES" default:"false"`
 	BoltzApi                           string `envconfig:"BOLTZ_API" default:"https://api.boltz.exchange"`
+	SatsRoutingApi                     string `envconfig:"SATS_ROUTING_API" default:"https://api.satsrouting.exchange"`
 	HideUpdateBanner                   bool   `envconfig:"HIDE_UPDATE_BANNER" default:"false"`
 	CLNAddress                         string `envconfig:"CLN_ADDRESS"`
 	CLNLightningDir                    string `envconfig:"CLN_LIGHTNING_DIR"`

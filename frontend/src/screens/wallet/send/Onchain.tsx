@@ -15,6 +15,7 @@ import ExternalLink from "src/components/ExternalLink";
 import { InsufficientLightningBalanceAlert } from "src/components/InsufficientLightningBalanceAlert";
 import Loading from "src/components/Loading";
 import { MempoolAlert } from "src/components/MempoolAlert";
+import { SwapUnavailableAlert } from "src/components/SwapUnavailableAlert";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import { LinkButton } from "src/components/ui/custom/link-button";
@@ -315,7 +316,7 @@ function SwapForm({
 }) {
   const navigate = useNavigate();
   const { data: balances } = useBalances();
-  const { data: swapInfo } = useSwapInfo("out");
+  const { data: swapInfo, error: swapInfoError } = useSwapInfo("out");
 
   const [isLoading, setLoading] = React.useState(false);
 
@@ -352,8 +353,12 @@ function SwapForm({
     fastestFee: number;
   }>("/v1/fees/recommended");
 
-  if (!balances || !swapInfo) {
+  if (!balances || (!swapInfo && !swapInfoError)) {
     return <Loading />;
+  }
+
+  if (!swapInfo) {
+    return <SwapUnavailableAlert />;
   }
 
   return (
