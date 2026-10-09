@@ -39,6 +39,7 @@ import satoraLogo from "src/assets/suggested-apps/satora.png";
 import sats4ai from "src/assets/suggested-apps/sats4ai.png";
 import simpleboost from "src/assets/suggested-apps/simple-boost.png";
 import snort from "src/assets/suggested-apps/snort.png";
+import sovereigncast from "src/assets/suggested-apps/sovereigncast.png";
 import stackernews from "src/assets/suggested-apps/stacker-news.png";
 import takemysats from "src/assets/suggested-apps/takemysats.png";
 import tictactoe from "src/assets/suggested-apps/tictactoe.png";
@@ -2497,6 +2498,60 @@ export const appStoreApps: AppStoreApp[] = (
       ),
       categories: ["payment-tools"],
       addedDate: "2026-04-10",
+    },
+    {
+      id: "sovereigncast",
+      title: "Sovereigncast",
+      description: "Self-hosted Podcasting 2.0 management suite",
+      webLink: "https://sovereigncast.space",
+      logo: sovereigncast,
+      extendedDescription:
+        "Sovereigncast is an open-source, self-hosted suite for running a Podcasting 2.0 show: episode production, Value4Value accounting over Lightning, and donation-driven release scheduling, with AI integration woven throughout. Connect a wallet via NWC to automatically track incoming boosts and donations.",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Install{" "}
+            <span className="font-medium text-foreground">Sovereigncast</span>{" "}
+            on Umbrel/StartOS, or self-host it via the{" "}
+            <ExternalLink
+              to="https://gitlab.com/nodesignal/podcasting_tools"
+              className="font-medium text-foreground underline"
+            >
+              podcasting_tools
+            </ExternalLink>{" "}
+            repo
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In Sovereigncast</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Go to{" "}
+                <span className="font-medium text-foreground">Wallets</span> and
+                click{" "}
+                <span className="font-medium text-foreground">
+                  Add new Wallet
+                </span>
+              </li>
+              <li>
+                Paste the connection secret from Alby Hub into{" "}
+                <span className="font-medium text-foreground">
+                  NWC Connection String
+                </span>
+              </li>
+              <li>
+                Save — Sovereigncast will start tracking boosts and donations to
+                this wallet
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["audio"],
+      addedDate: "2026-08-04",
     },
   ] satisfies AppStoreApp[]
 ).sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));
