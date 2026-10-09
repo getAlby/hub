@@ -29,6 +29,14 @@ export function parseBip21(uri: string): Bip21Data {
     const params = new Map<string, string>();
     for (const [key, value] of rawParams) {
       const lower = key.toLowerCase();
+      // BIP-21: "req-" parameters are required; if the client does not
+      // support them the entire URI must be considered invalid.
+      // We currently do not support any req-* parameters.
+      if (lower.startsWith("req-")) {
+        throw new Error(
+          `Invalid BIP21 URI: unsupported required parameter "${key}"`
+        );
+      }
       if (!params.has(lower)) {
         params.set(lower, value);
       }
