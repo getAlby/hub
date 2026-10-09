@@ -26,7 +26,7 @@
     "@getalby/lightning-tools": "^8.1.0",
     "@getalby/sdk": "^8.0.3",
     "@scure/bip39": "^2.2.0",
-    "@stepperize/react": "^6.1.0",
+    "@stepperize/react": "^8.0.0",
     "bitcoin-address-validation": "^3.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

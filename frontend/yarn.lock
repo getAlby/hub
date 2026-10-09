@@ -2426,17 +2426,17 @@
   resolved "https://registry.yarnpkg.com/@simple-libs/stream-utils/-/stream-utils-2.0.0.tgz#758d2a0876b4d672dac1eae212cdbab452670d3c"
   integrity sha512-fCTuZK4QBa+39Oz9l4OGfJfz+GpwCp3AqO7Zch3to99xHPgstVsRFpeQ8LNd2o1Gv8raL2mCFwiaHh7bFSp5DQ==
 
-"@stepperize/core@2.1.0":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@stepperize/core/-/core-2.1.0.tgz#7d28d8d35780b065458214ba8f4c1d7424fc8f42"
-  integrity sha512-edzIlkAUDrqan3G7XhY32PvciyQoJtyX3Fz8G1LBgSHIg2rMTBsZk8oz39NxT7XFxqibRXf2rvsH81iwg+Dd6w==
+"@stepperize/core@4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@stepperize/core/-/core-4.0.0.tgz#afe8f03ae6c2fe6359a12f8bcbf70e8d4aff772f"
+  integrity sha512-ciSSDJnylQNAZIudFJHXsDG3sPlYEA3XAmRrogeJTdxGwM7R/HnH3aNoWoPn7+hstHpHuzMx6xN9GVWyAnvXAQ==
 
-"@stepperize/react@^6.1.0":
-  version "6.1.0"
-  resolved "https://registry.yarnpkg.com/@stepperize/react/-/react-6.1.0.tgz#f2183fd559329da72937c4c10badff08818972ee"
-  integrity sha512-ywTt0OQDoBKcdzeBK9V1hTsMAQ+zAoIF/au9fcATspdGWfYr/z+mDGZm2cA2rzMJF79J+fUbjZPb+7Js4PtKBA==
+"@stepperize/react@^8.0.0":
+  version "8.0.0"
+  resolved "https://registry.yarnpkg.com/@stepperize/react/-/react-8.0.0.tgz#4522600a09062eed4dc6aa188e56047f8bda3161"
+  integrity sha512-KYgEC2wRhMXMNg3Gku15ZCZpI10y0aKhXGcFblC249byjd9pcCANKF1qAE75xCmLtum6ySfgu/l1OIrz1Fgm7g==
   dependencies:
-    "@stepperize/core" "2.1.0"
+    "@stepperize/core" "4.0.0"
 
 "@swc/core-darwin-arm64@1.16.2":
   version "1.16.2"
