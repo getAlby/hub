@@ -209,6 +209,74 @@ func (_c *MockLNClient_ConnectPeer_Call) RunAndReturn(run func(ctx context.Conte
 	return _c
 }
 
+// DecodeOffer provides a mock function for the type MockLNClient
+func (_mock *MockLNClient) DecodeOffer(ctx context.Context, offer string) (*lnclient.OfferInfo, error) {
+	ret := _mock.Called(ctx, offer)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DecodeOffer")
+	}
+
+	var r0 *lnclient.OfferInfo
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*lnclient.OfferInfo, error)); ok {
+		return returnFunc(ctx, offer)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *lnclient.OfferInfo); ok {
+		r0 = returnFunc(ctx, offer)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*lnclient.OfferInfo)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, offer)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockLNClient_DecodeOffer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DecodeOffer'
+type MockLNClient_DecodeOffer_Call struct {
+	*mock.Call
+}
+
+// DecodeOffer is a helper method to define mock.On call
+//   - ctx context.Context
+//   - offer string
+func (_e *MockLNClient_Expecter) DecodeOffer(ctx interface{}, offer interface{}) *MockLNClient_DecodeOffer_Call {
+	return &MockLNClient_DecodeOffer_Call{Call: _e.mock.On("DecodeOffer", ctx, offer)}
+}
+
+func (_c *MockLNClient_DecodeOffer_Call) Run(run func(ctx context.Context, offer string)) *MockLNClient_DecodeOffer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockLNClient_DecodeOffer_Call) Return(offerInfo *lnclient.OfferInfo, err error) *MockLNClient_DecodeOffer_Call {
+	_c.Call.Return(offerInfo, err)
+	return _c
+}
+
+func (_c *MockLNClient_DecodeOffer_Call) RunAndReturn(run func(ctx context.Context, offer string) (*lnclient.OfferInfo, error)) *MockLNClient_DecodeOffer_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // DisconnectPeer provides a mock function for the type MockLNClient
 func (_mock *MockLNClient) DisconnectPeer(ctx context.Context, peerId string) error {
 	ret := _mock.Called(ctx, peerId)
@@ -1587,6 +1655,86 @@ func (_c *MockLNClient_MakeOffer_Call) Return(s string, err error) *MockLNClient
 }
 
 func (_c *MockLNClient_MakeOffer_Call) RunAndReturn(run func(ctx context.Context, description string) (string, error)) *MockLNClient_MakeOffer_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// PayOfferSync provides a mock function for the type MockLNClient
+func (_mock *MockLNClient) PayOfferSync(ctx context.Context, offer string, amountMsat *uint64, payerNote string) (*lnclient.PayOfferResponse, error) {
+	ret := _mock.Called(ctx, offer, amountMsat, payerNote)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PayOfferSync")
+	}
+
+	var r0 *lnclient.PayOfferResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *uint64, string) (*lnclient.PayOfferResponse, error)); ok {
+		return returnFunc(ctx, offer, amountMsat, payerNote)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *uint64, string) *lnclient.PayOfferResponse); ok {
+		r0 = returnFunc(ctx, offer, amountMsat, payerNote)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*lnclient.PayOfferResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, *uint64, string) error); ok {
+		r1 = returnFunc(ctx, offer, amountMsat, payerNote)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockLNClient_PayOfferSync_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PayOfferSync'
+type MockLNClient_PayOfferSync_Call struct {
+	*mock.Call
+}
+
+// PayOfferSync is a helper method to define mock.On call
+//   - ctx context.Context
+//   - offer string
+//   - amountMsat *uint64
+//   - payerNote string
+func (_e *MockLNClient_Expecter) PayOfferSync(ctx interface{}, offer interface{}, amountMsat interface{}, payerNote interface{}) *MockLNClient_PayOfferSync_Call {
+	return &MockLNClient_PayOfferSync_Call{Call: _e.mock.On("PayOfferSync", ctx, offer, amountMsat, payerNote)}
+}
+
+func (_c *MockLNClient_PayOfferSync_Call) Run(run func(ctx context.Context, offer string, amountMsat *uint64, payerNote string)) *MockLNClient_PayOfferSync_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 *uint64
+		if args[2] != nil {
+			arg2 = args[2].(*uint64)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockLNClient_PayOfferSync_Call) Return(payOfferResponse *lnclient.PayOfferResponse, err error) *MockLNClient_PayOfferSync_Call {
+	_c.Call.Return(payOfferResponse, err)
+	return _c
+}
+
+func (_c *MockLNClient_PayOfferSync_Call) RunAndReturn(run func(ctx context.Context, offer string, amountMsat *uint64, payerNote string) (*lnclient.PayOfferResponse, error)) *MockLNClient_PayOfferSync_Call {
 	_c.Call.Return(run)
 	return _c
 }

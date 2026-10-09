@@ -23,6 +23,9 @@ type NodeInfo struct {
 	Network     string
 	BlockHeight uint32
 	BlockHash   string
+	// SupportsBolt12 is true for backends that can pay BOLT-12 offers and
+	// create BOLT-12 offers (LNClient DecodeOffer, PayOfferSync and MakeOffer).
+	SupportsBolt12 bool
 }
 
 // TODO: use uint for fields that cannot be negative
@@ -93,6 +96,12 @@ type LNClient interface {
 	GetSupportedNIP47NotificationTypes() []string
 	GetCustomNodeCommandDefinitions() []CustomNodeCommandDef
 	ExecuteCustomNodeCommand(ctx context.Context, command *CustomNodeCommandRequest) (*CustomNodeCommandResponse, error)
+	// DecodeOffer decodes a BOLT-12 offer. Backends without BOLT-12 support
+	// must return ErrBolt12Unsupported.
+	DecodeOffer(ctx context.Context, offer string) (*OfferInfo, error)
+	// PayOfferSync pays a BOLT-12 offer. Backends without BOLT-12 support
+	// must return ErrBolt12Unsupported.
+	PayOfferSync(ctx context.Context, offer string, amountMsat *uint64, payerNote string) (*PayOfferResponse, error)
 }
 
 type Channel struct {
@@ -248,6 +257,29 @@ func NewCustomNodeCommandResponseEmpty() *CustomNodeCommandResponse {
 }
 
 var ErrUnknownCustomNodeCommand = errors.New("unknown custom node command")
+
+// ErrBolt12Unsupported is returned by BOLT-12 methods (DecodeOffer,
+// PayOfferSync, MakeOffer) of backends without BOLT-12 support.
+var ErrBolt12Unsupported = errors.New("bolt12 is not supported by this LN backend")
+
+// ErrOfferWrongNetwork is returned when a BOLT-12 offer is restricted to a
+// different Bitcoin network than the node is running on.
+var ErrOfferWrongNetwork = errors.New("the offer is for a different network than this node")
+
+// OfferInfo contains the data decoded from a BOLT-12 offer relevant for
+// validating a payment to be made.
+type OfferInfo struct {
+	// AmountMsat is set for offers with a fixed amount, nil for
+	// variable-amount offers.
+	AmountMsat *uint64
+	// Chains lists the Bitcoin networks the offer is restricted to
+	// (e.g. "bitcoin", "testnet", "signet", "regtest"). Empty means the offer
+	// works on any network.
+	Chains      []string
+	Description string
+	// Expired is true if the offer has an absolute expiry in the past.
+	Expired bool
+}
 
 // default invoice expiry in seconds (1 day)
 const DEFAULT_INVOICE_EXPIRY = 86400
