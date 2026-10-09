@@ -17,8 +17,8 @@ import {
 
 function AppCard(app: AppStoreApp) {
   return (
-    <Link to={getAppStoreUrl(app)}>
-      <Card className="h-full">
+    <Link to={getAppStoreUrl(app)} className="min-w-0">
+      <Card className="h-full min-w-0">
         <CardContent>
           <div className="flex gap-3 items-center">
             <img
@@ -26,7 +26,7 @@ function AppCard(app: AppStoreApp) {
               alt={`${app.title} logo`}
               className="inline rounded-lg size-12"
             />
-            <div className="grow">
+            <div className="grow min-w-0">
               <CardTitle>{app.title}</CardTitle>
               <CardDescription>
                 {app.description}
@@ -53,7 +53,7 @@ export default function SuggestedApps() {
 
   return (
     <>
-      <div className="flex gap-2 flex-wrap mt-6 mb-2">
+      <div className="flex gap-2 flex-wrap">
         {sortedAppStoreCategories.map(([categoryId, category]) => (
           <Badge
             key={categoryId}
@@ -77,7 +77,7 @@ export default function SuggestedApps() {
           </Badge>
         ))}
       </div>
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-4">
         {sortedAppStoreCategories
           .filter(
             ([categoryId]) =>
@@ -86,9 +86,9 @@ export default function SuggestedApps() {
           )
           .map(([categoryId, category]) => {
             return (
-              <div key={categoryId} className="pt-4">
+              <div key={categoryId}>
                 <h3 className="font-semibold text-xl">{category.title}</h3>
-                <div className="grid md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 mt-4">
+                <div className="grid md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
                   {appStoreApps
                     .filter((app) =>
                       (app.categories as string[]).includes(categoryId)
