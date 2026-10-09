@@ -55,6 +55,11 @@ const (
 	albyOAuthAuthUrl = "https://getalby.com/oauth"
 )
 
+const (
+	tokenSaveAttempts   = 3
+	tokenSaveRetryDelay = 200 * time.Millisecond
+)
+
 const ALBY_ACCOUNT_APP_NAME = "getalby.com"
 
 func NewAlbyOAuthService(db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublisher events.EventPublisher) *albyOAuthService {
@@ -169,18 +174,37 @@ func (svc *albyOAuthService) IsConnected(ctx context.Context) bool {
 }
 
 func (svc *albyOAuthService) saveToken(token *oauth2.Token) {
-	err := svc.cfg.SetUpdate(accessTokenExpiryKey, strconv.FormatInt(token.Expiry.Unix(), 10), "")
+	var lastErr error
+	for attempt := 0; attempt < tokenSaveAttempts; attempt++ {
+		lastErr = svc.persistToken(token)
+		if lastErr == nil {
+			return
+		}
+		if attempt < tokenSaveAttempts-1 {
+			time.Sleep(tokenSaveRetryDelay)
+		}
+	}
+
+	logger.Logger.WithError(lastErr).Error("Failed to persist oauth token after retries")
+}
+
+func (svc *albyOAuthService) persistToken(token *oauth2.Token) error {
+	err := svc.cfg.SetUpdate(refreshTokenKey, token.RefreshToken, "")
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to save access token expiry")
+		logger.Logger.WithError(err).Error("Failed to save refresh token")
+		return err
 	}
 	err = svc.cfg.SetUpdate(accessTokenKey, token.AccessToken, "")
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to save access token")
+		return err
 	}
-	err = svc.cfg.SetUpdate(refreshTokenKey, token.RefreshToken, "")
+	err = svc.cfg.SetUpdate(accessTokenExpiryKey, strconv.FormatInt(token.Expiry.Unix(), 10), "")
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to save refresh token")
+		logger.Logger.WithError(err).Error("Failed to save access token expiry")
+		return err
 	}
+	return nil
 }
 
 var tokenMutex sync.Mutex
