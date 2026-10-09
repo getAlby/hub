@@ -22,7 +22,7 @@ var MockNodeInfo = lnclient.NodeInfo{
 	Alias:       "bob",
 	Color:       "#3399FF",
 	Pubkey:      "123pubkey",
-	Network:     "testnet",
+	Network:     "signet", // MockInvoice etc. are signet ("lntbs") invoices
 	BlockHeight: 12,
 	BlockHash:   "123blockhash",
 }
@@ -238,7 +238,9 @@ func (mln *MockLn) UpdateChannel(ctx context.Context, updateChannelRequest *lncl
 }
 
 func (mln *MockLn) GetSupportedNIP47Methods() []string {
-	return []string{"pay_invoice", "pay_keysend", "get_balance", "get_budget", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice", "multi_pay_keysend", "sign_message"}
+	// NOTE: string literals because the tests package cannot import
+	// nip47/models without creating an import cycle in test binaries
+	return []string{"pay_invoice", "pay_keysend", "get_balance", "get_budget", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice", "multi_pay_keysend", "sign_message", "pay", "receive"}
 }
 func (mln *MockLn) GetSupportedNIP47NotificationTypes() []string {
 	if mln.SupportedNotificationTypes != nil {
