@@ -3,6 +3,7 @@ package api
 import (
 	"testing"
 
+	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/tests"
 	"github.com/getAlby/hub/tests/mocks"
@@ -53,6 +54,8 @@ func TestCreateApp_LightningAddress(t *testing.T) {
 	for _, isolated := range []bool{false, true} {
 		testSvc, err := tests.CreateTestService(t)
 		require.NoError(t, err)
+		// isolated apps require a backend that supports sub-wallets
+		testSvc.Cfg.SetUpdate("LNBackendType", config.LDKBackendType, "")
 
 		albyOAuthSvc := mocks.NewMockAlbyOAuthService(t)
 		albyOAuthSvc.On("GetLightningAddress").Return("owner@getalby.com", nil)
