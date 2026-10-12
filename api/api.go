@@ -132,7 +132,10 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 	responseBody.PairingSecret = pairingSecretKey
 	responseBody.WalletPubkey = *app.WalletPubkey
 	responseBody.RelayUrls = relayUrls
-	responseBody.Lud16 = lightningAddress
+	// isolated apps must not learn the owner's main lightning address
+	if !app.Isolated {
+		responseBody.Lud16 = lightningAddress
+	}
 
 	responseBody.ReturnTo = buildReturnToUrl(createAppRequest.ReturnTo, relayUrls, *app.WalletPubkey, lightningAddress, app.Isolated)
 
