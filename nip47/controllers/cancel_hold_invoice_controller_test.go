@@ -133,3 +133,29 @@ func TestHandleCancelHoldInvoiceEvent_InvoiceNotFound(t *testing.T) {
 	require.NotNil(t, setup.response.Error)
 	assert.Equal(t, constants.ERROR_NOT_FOUND, setup.response.Error.Code)
 }
+
+func TestHandleCancelHoldInvoiceEvent_OtherApp(t *testing.T) {
+	initialState := constants.TRANSACTION_STATE_ACCEPTED
+	setup := setupCancelHoldInvoiceTest(t, testCancelPaymentHash, &initialState)
+	defer setup.TearDown()
+
+	otherApp, _, err := tests.CreateApp(setup.svc)
+	require.NoError(t, err)
+	err = setup.svc.DB.Create(&db.AppPermission{
+		AppId: otherApp.ID,
+		Scope: constants.MAKE_INVOICE_SCOPE,
+	}).Error
+	require.NoError(t, err)
+
+	NewTestNip47Controller(setup.svc).
+		HandleCancelHoldInvoiceEvent(setup.ctx, setup.nip47Request, setup.dbRequestEvent.ID, otherApp.ID, setup.PublishResponse)
+
+	assert.True(t, setup.publishCalled)
+	require.NotNil(t, setup.response.Error)
+	assert.Equal(t, constants.ERROR_NOT_FOUND, setup.response.Error.Code)
+
+	var transaction db.Transaction
+	err = setup.svc.DB.First(&transaction, "payment_hash = ?", testCancelPaymentHash).Error
+	require.NoError(t, err)
+	assert.Equal(t, constants.TRANSACTION_STATE_ACCEPTED, transaction.State)
+}
