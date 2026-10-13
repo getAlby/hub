@@ -243,6 +243,10 @@ func (svc *swapsService) EnableAutoSwapOut(encryptionKey string) error {
 					"destination": actualDestination,
 				}).Info("Initiating swap")
 				_, err = svc.SwapOut(amountSat, actualDestination, true, usedXpubDerivation)
+				if errors.Is(err, ErrSwapProviderChanged) {
+					logger.Logger.WithError(err).Error("Stopping auto swap workflow")
+					return
+				}
 				if err != nil {
 					logger.Logger.WithError(err).Error("Failed to initiate swap")
 					continue
