@@ -3,7 +3,6 @@ import { CopyIcon, ExternalLinkIcon } from "lucide-react";
 import React from "react";
 import { FixedFloatButton } from "src/components/FixedFloatButton";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
-import { LightningIcon } from "src/components/icons/Lightning";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
 import { Button } from "src/components/ui/button";
@@ -28,16 +27,13 @@ export function PayLightningInvoice({ invoice }: PayLightningInvoiceProps) {
   };
 
   return (
-    <div className="w-96 flex flex-col gap-6 p-6 items-center justify-center">
-      <div className="flex items-center justify-center gap-2 text-muted-foreground">
+    <div className="flex w-full flex-col items-center justify-center gap-6">
+      <div className="flex items-center justify-center gap-2 font-semibold leading-none">
         <Loading variant="loader" />
-        <p>Waiting for lightning payment...</p>
+        <p>Waiting for Payment...</p>
       </div>
-      <div className="w-full relative flex items-center justify-center">
-        <QRCode value={invoice} className="w-full" />
-        <div className="bg-white absolute rounded-full p-1">
-          <LightningIcon className="w-12 h-12" />
-        </div>
+      <div className="relative flex w-full items-center justify-center">
+        <QRCode value={invoice} className="w-full" paymentType="lightning" />
       </div>
       <div>
         <p className="text-lg font-semibold">
@@ -50,23 +46,19 @@ export function PayLightningInvoice({ invoice }: PayLightningInvoiceProps) {
           }).format(fiatAmount)}
         </p>
       </div>
-      <div className="flex flex-col gap-2 w-full">
-        <Button
-          onClick={copy}
-          variant="outline"
-          className="flex-1 flex gap-2 items-center justify-center"
-        >
+      <div className="flex w-full flex-col gap-3">
+        <Button onClick={copy} variant="secondary" className="w-full">
           <CopyIcon />
           Copy Invoice
         </Button>
         <FixedFloatButton
           to="BTCLN"
           address={invoice}
-          className="flex-1 flex gap-2 items-center justify-center"
-          variant="secondary"
+          className="w-full"
+          variant="outline"
         >
-          Pay with other Cryptocurrency
           <ExternalLinkIcon className="size-4" />
+          Pay with Crypto
         </FixedFloatButton>
       </div>
     </div>

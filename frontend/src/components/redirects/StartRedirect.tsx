@@ -9,6 +9,12 @@ export function StartRedirect({ children }: React.PropsWithChildren) {
   const navigate = useNavigate();
 
   React.useEffect(() => {
+    if (info?.nodeMigrationFileCreated) {
+      // the hub is halted after creating a migration file and should not be
+      // used anymore, so keep showing the migration success instructions
+      navigate("/create-node-migration-file-success", { replace: true });
+      return;
+    }
     if (!info || (info.setupCompleted && !info.running)) {
       if (info && !info.albyAccountConnected && info.albyUserIdentifier) {
         navigate("/alby/auth");

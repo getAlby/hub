@@ -1,7 +1,6 @@
 import { AlertTriangleIcon, CopyIcon, ExternalLinkIcon } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
-import buzzpay from "src/assets/suggested-apps/buzzpay.png";
 import { AppDetailConnectedApps } from "src/components/connections/AppDetailConnectedApps";
 import { AppStoreDetailHeader } from "src/components/connections/AppStoreDetailHeader";
 import { appStoreApps } from "src/components/connections/SuggestedAppData";
@@ -82,20 +81,24 @@ export function BuzzPay() {
             </AlertDescription>
           </Alert>
 
-          <div className="flex flex-col items-center relative">
+          <div className="flex flex-col items-center">
             <QRCode value={posUrl} />
-            <img
-              src={buzzpay}
-              className="absolute w-12 h-12 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-muted p-1 rounded-xl"
-            />
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-3">
             <Input disabled readOnly type="text" value={posUrl} />
-            <Button onClick={() => copyToClipboard(posUrl)} variant="outline">
+            <Button
+              className="w-full"
+              onClick={() => copyToClipboard(posUrl)}
+              variant="outline"
+            >
               <CopyIcon />
               Copy
             </Button>
-            <Button onClick={() => openLink(posUrl)} variant="outline">
+            <Button
+              className="w-full"
+              onClick={() => openLink(posUrl)}
+              variant="outline"
+            >
               <ExternalLinkIcon />
               Open
             </Button>

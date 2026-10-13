@@ -6,6 +6,7 @@ import (
 	"github.com/getAlby/go-nostr"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/models"
+	"github.com/getAlby/hub/transactions"
 	"github.com/sirupsen/logrus"
 )
 
@@ -50,7 +51,9 @@ func (controller *nip47Controller) HandleListTransactionsEvent(ctx context.Conte
 		transactionType = &listParams.Type
 	}
 
-	dbTransactions, totalCount, err := controller.transactionsService.ListTransactions(ctx, listParams.From, listParams.Until, limit, listParams.Offset, listParams.Unpaid || listParams.UnpaidOutgoing, listParams.Unpaid || listParams.UnpaidIncoming, transactionType, controller.lnClient, &appId, false)
+	dbTransactions, totalCount, err := controller.transactionsService.ListTransactions(ctx, listParams.From, listParams.Until, limit, listParams.Offset, listParams.Unpaid || listParams.UnpaidOutgoing, listParams.Unpaid || listParams.UnpaidIncoming, controller.lnClient, &appId, false, &transactions.ListTransactionsFilters{
+		Type: transactionType,
+	})
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"params":           listParams,

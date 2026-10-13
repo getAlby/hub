@@ -335,7 +335,7 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
                 </DialogHeader>
                 <div className="flex flex-row justify-center p-3">
                   <a href={`bitcoin:${onchainAddress}`} target="_blank">
-                    <QRCode value={onchainAddress} />
+                    <QRCode value={onchainAddress} paymentType="onchain" />
                   </a>
                 </div>
               </DialogContent>

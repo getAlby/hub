@@ -5,13 +5,13 @@ import {
   HandCoinsIcon,
   RefreshCwIcon,
 } from "lucide-react";
-import TickSVG from "public/images/illustrations/tick.svg";
 import { useEffect, useRef, useState } from "react";
 import { FixedFloatButton } from "src/components/FixedFloatButton";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import LottieLoading from "src/components/LottieLoading";
+import LottieSuccess from "src/components/LottieSuccess";
 import OnchainAddressDisplay from "src/components/OnchainAddressDisplay";
 import QRCode from "src/components/QRCode";
 import { Button } from "src/components/ui/button";
@@ -120,13 +120,13 @@ export function ReceiveToOnchain() {
               target="_blank"
               className="flex justify-center"
             >
-              <QRCode value={onchainAddress} />
+              <QRCode value={onchainAddress} paymentType="onchain" />
             </a>
             <div className="flex flex-wrap max-w-64 gap-2 items-center justify-center">
               <OnchainAddressDisplay address={onchainAddress} />
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col gap-2 pt-2">
+          <CardFooter className="flex flex-col gap-3 pt-2">
             <Button
               className="w-full"
               onClick={() => {
@@ -150,10 +150,10 @@ export function ReceiveToOnchain() {
               to="BTC"
               address={onchainAddress}
               className="w-full"
-              variant="secondary"
+              variant="outline"
             >
               <ExternalLinkIcon className="size-4" />
-              Top up using other Cryptocurrency
+              Top Up with Crypto
             </FixedFloatButton>
           </CardFooter>
         </Card>
@@ -174,8 +174,7 @@ function DepositPending({
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="flex items-center justify-center gap-2">
-          <Loading className="w-4 h-4" />
+        <CardTitle className="text-center">
           Waiting for On-chain Confirmation...
         </CardTitle>
       </CardHeader>
@@ -190,13 +189,13 @@ function DepositPending({
           </div>
         )}
       </CardContent>
-      <CardFooter className="flex flex-col gap-2 pt-2">
+      <CardFooter className="flex flex-col gap-3 pt-2">
         <ExternalLinkButton
           to={`${info?.mempoolUrl}/tx/${txId}`}
           variant="outline"
           className="w-full"
         >
-          <ExternalLinkIcon className="w-4 h-4 mr-2" />
+          <ExternalLinkIcon className="size-4" />
           View on Mempool
         </ExternalLinkButton>
       </CardFooter>
@@ -221,7 +220,7 @@ function DepositSuccess({
         <CardTitle className="text-center">Transaction Received!</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col items-center gap-6">
-        <img src={TickSVG} className="w-48" />
+        <LottieSuccess />
         <div className="flex flex-col gap-1 items-center">
           <p className="text-2xl font-medium slashed-zero">
             <FormattedBitcoinAmount amountMsat={amountSat * 1000} />
@@ -229,13 +228,13 @@ function DepositSuccess({
           <FormattedFiatAmount amountSat={amountSat} className="text-xl" />
         </div>
       </CardContent>
-      <CardFooter className="flex flex-col gap-2 pt-2">
+      <CardFooter className="flex flex-col gap-3 pt-2">
         <ExternalLinkButton
           to={`${info?.mempoolUrl}/tx/${txId}`}
           variant="outline"
           className="w-full"
         >
-          <ExternalLinkIcon className="w-4 h-4 mr-2" />
+          <ExternalLinkIcon className="size-4" />
           View on Mempool
         </ExternalLinkButton>
         <Button
@@ -244,11 +243,11 @@ function DepositSuccess({
           className="w-full"
           onClick={onReceiveAnother}
         >
-          <HandCoinsIcon className="w-4 h-4 mr-2" />
+          <HandCoinsIcon className="size-4" />
           Receive Another Payment
         </Button>
         <LinkButton to="/wallet" variant="link" className="w-full">
-          <ArrowLeftIcon className="w-4 h-4 mr-2" />
+          <ArrowLeftIcon className="size-4" />
           Back to Wallet
         </LinkButton>
       </CardFooter>

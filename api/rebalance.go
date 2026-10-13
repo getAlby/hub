@@ -122,7 +122,7 @@ func (api *api) RebalanceChannel(ctx context.Context, rebalanceChannelRequest *R
 		return nil, err
 	}
 
-	if paymentRequest.MSatoshi > int64(float64(amountSat)*float64(1000)*float64(1.003)+1 /*0.3% fees*/) {
+	if paymentRequest.MSatoshi > int64(float64(amountSat)*float64(1000)*float64(1.005)+1 /*0.5% fees*/) {
 		return nil, errors.New("rebalance payment is more expensive than expected")
 	}
 

@@ -198,6 +198,9 @@ export function StoriesWidget() {
                     src={youTubeEmbedUrl(activeStory.videoId)}
                     title={activeStory.title}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    // the server's global no-referrer policy breaks YouTube
+                    // embeds (error 153); send the origin for this frame only
+                    referrerPolicy="strict-origin-when-cross-origin"
                     allowFullScreen
                   />
                   <DialogClose asChild>

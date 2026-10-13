@@ -14,7 +14,7 @@ The application can run in two modes:
 
 Ideally the app runs 24/7 (on a node, VPS or always-online desktop/laptop machine) so it can be connected to a lightning address and receive online payments.
 
-## Run on Alby Cloud
+## Learn more about Alby Hub
 
 Visit [albyhub.com](https://albyhub.com) to learn more and get started and get Alby Hub running in minutes.
 
@@ -94,7 +94,7 @@ _If you get a blank screen, try running in your normal terminal (outside of vsco
 ### Run dockerfile locally (HTTP mode)
 
     $ docker build . -t nwc-local --progress=plain
-    $ docker run -v $(pwd)/.data/docker:/data -e WORK_DIR='/data' -p 8080:8080 nwc-local
+    $ docker run -v $(pwd)/.data/docker:/data -e WORK_DIR='/data' -p 127.0.0.1:8080:8080 nwc-local
 
 ### Debugging
 
@@ -207,6 +207,12 @@ Migration of the database is currently experimental. Please make a backup before
 
    go run cmd/db_migrate/main.go -from .data/nwc.db -to postgresql://myuser:mypass@localhost:5432/nwc
 
+#### Migration from Postgres to Sqlite
+
+No manual steps are needed: create a migration file from Settings -> Migrate Alby Hub. The contents of the Postgres database will automatically be copied into a Sqlite database which is included in the migration file. Alternatively, run the migration tool manually:
+
+go run cmd/db_migrate/main.go -from postgresql://myuser:mypass@localhost:5432/nwc -to .data/nwc.db
+
 ## Node-specific backend parameters
 
 - `ENABLE_ADVANCED_SETUP`: set to `false` to force a specific backend type (combined with backend parameters below)
@@ -238,7 +244,9 @@ _To configure via env, the following parameters must be provided:_
 
 ### LDK Backend parameters
 
-- `LDK_ESPLORA_SERVER`: By default the optimized Alby esplora is used. You can configure your own esplora server (note: the public blockstream one is slow and can cause onchain syncing and issues with opening channels)
+- `LDK_ELECTRUM_SERVER`: By default the optimized Alby electrum server is used. You can configure your own electrum server (e.g. `ssl://host:50002` or `tcp://host:50001`).
+- `LDK_ESPLORA_SERVER`: Use an esplora server as the chain source instead of electrum (note: the public blockstream one is slow and can cause onchain syncing and issues with opening channels)
+- The configured electrum or esplora server is also used for onchain address lookups. Bitcoind has no address index, so when using `LDK_BITCOIND_RPC_HOST` these lookups go to `LDK_ESPLORA_SERVER` if configured, otherwise to `LDK_ELECTRUM_SERVER`.
 - `LDK_VSS_URL`: Use VSS (encrypted remote storage) rather than local sqlite store for lightning and bitcoin data. Currently this feature only works for brand new Alby Hub instances that are connected to Alby Accounts with an active subscription plan.
 - `LDK_LISTENING_ADDRESSES`: configure listening addresses, required for public channels, and ideally reachable if you would like others to be able to initiate peering with your node.
 - `LDK_ANNOUNCEMENT_ADDRESSES`: configure announcement addresses (only required if you use a VPN)
@@ -254,12 +262,12 @@ _To configure via env, the following parameters must be provided:_
 
 - `MEMPOOL_API=https://mutinynet.com/api`
 - `NETWORK=signet`
-- `LDK_ESPLORA_SERVER=https://mutinynet.com/api`
+- `LDK_ELECTRUM_SERVER=electrum.mutinynet.com:50001`
 - `LDK_GOSSIP_SOURCE=https://rgs.mutinynet.com/snapshot` (NOTE: by default ALby Hub does not use RGS)
 
-(or electrum instead of esplora)
+(or esplora instead of electrum)
 
-- `LDK_ELECTRUM_SERVER=electrum.mutinynet.com:50001`
+- `LDK_ESPLORA_SERVER=https://mutinynet.com/api`
 
 ##### Signet
 
@@ -396,6 +404,8 @@ Once the user has authorized the app connection a `nwc:success` message is sent 
 If you need help contact support@getalby.com or reach out on Nostr: npub1getal6ykt05fsz5nqu4uld09nfj3y3qxmv8crys4aeut53unfvlqr80nfm
 You can also visit the chat of our Community on [Telegram](https://t.me/getalby).
 
+For security vulnerabilities, please follow our [security policy](SECURITY.md).
+
 ## ⚡️Donations
 
 Want to support the work on Alby?
@@ -454,6 +464,9 @@ Run NWC on your own node!
 - [https://github.com/horologger/nostr-wallet-connect-startos](Start9)
 
 ## Deploy it yourself
+
+> [!WARNING]
+> Alby Hub is intended to run on a secure, private network (for example your home network or behind a VPN). Do not expose it directly to the public internet. By default the HTTP server listens on **all network interfaces**, so restrict access with a firewall or bind it to a private address. For remote access without exposing it publicly, see the [Tailcat example](scripts/tailcat/README.md).
 
 ### Requirements
 
@@ -535,15 +548,17 @@ LDK logs:
 
 Alby provides container images for each release. Please make sure to use a persistent volume. The lightning state and application state is persisted to disk.
 
+The examples below publish the port on `127.0.0.1` only, so Alby Hub is reachable from the Docker host but not from other machines. To reach it from other devices on your local network, use `-p 8080:8080` instead and make sure your firewall blocks the port from the internet.
+
 #### From Alby's Container Registry
 
 _Tested on Linux only_
 
-`docker run -v ~/.local/share/albyhub:/data -e WORK_DIR='/data' -p 8080:8080 --pull always ghcr.io/getalby/hub:latest`
+`docker run -v ~/.local/share/albyhub:/data -e WORK_DIR='/data' -p 127.0.0.1:8080:8080 --pull always ghcr.io/getalby/hub:latest`
 
 ##### Build the image locally
 
-`docker run -v ~/.local/share/albyhub:/data -e WORK_DIR='/data' -p 8080:8080 $(docker build -q .)`
+`docker run -v ~/.local/share/albyhub:/data -e WORK_DIR='/data' -p 127.0.0.1:8080:8080 $(docker build -q .)`
 
 ##### Docker Compose
 
@@ -633,7 +648,7 @@ Sensitive data such as the seed phrase are saved AES-encrypted by the user's unl
 All requests to the wallet service are made with one of the following ways:
 
 - NIP-47 - requests encrypted by NIP-04 using randomly-generated keypairs (one per app connection) and sent via websocket through the configured relay.
-- HTTP - requests encrypted by JWT and ideally HTTPS (except self-hosted, which can be protected by firewall)
+- HTTP - requests authenticated by JWT. Alby Hub is intended for secure local networks and should not be exposed to the public internet. If remote access is needed, use a VPN or an HTTPS reverse proxy with restricted access.
 - Desktop mode - requests are made internally through the Wails router, without any kind of network traffic.
 
 ## Alby Hub Origin

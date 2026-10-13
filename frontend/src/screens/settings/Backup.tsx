@@ -125,16 +125,6 @@ export default function Backup() {
                   phrase, you will lose access to your funds.
                 </AlertDescription>
               </Alert>
-              {info?.backendType === "BARK" && (
-                <Alert variant="destructive">
-                  <AlertTriangleIcon />
-                  <AlertTitle>Bark Support Coming Soon</AlertTitle>
-                  <AlertDescription>
-                    During the beta period, your recovery phrase is not
-                    sufficient to restore your funds.
-                  </AlertDescription>
-                </Alert>
-              )}
               {info?.backendType === "CASHU" && <CashuMnemonicWarning />}
 
               <div>

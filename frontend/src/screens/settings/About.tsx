@@ -5,6 +5,7 @@ import SettingsHeader from "src/components/SettingsHeader";
 import { Badge } from "src/components/ui/badge";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useNodeDetails } from "src/hooks/useNodeDetails";
+import { backendTypeConfigs } from "src/lib/backendType";
 
 import { useInfo } from "src/hooks/useInfo";
 
@@ -58,10 +59,33 @@ export function About() {
         </div>
         <div className="grid gap-2">
           <p className="font-medium text-sm">Lightning Node Backend</p>
-          <p className="text-muted-foreground text-sm slashed-zero">
-            {info.backendType}
-          </p>
+          <div className="flex items-center gap-2 text-muted-foreground text-sm">
+            <div className="h-6 w-6">
+              {backendTypeConfigs[info.backendType].icon}
+            </div>
+            <p>{backendTypeConfigs[info.backendType].title}</p>
+          </div>
         </div>
+        {info.databaseType && (
+          <div className="grid gap-2">
+            <p className="font-medium text-sm">Database Storage</p>
+            <p className="text-muted-foreground text-sm">
+              {info.databaseType === "postgres"
+                ? "PostgreSQL"
+                : info.databaseType === "sqlite"
+                  ? "SQLite"
+                  : info.databaseType}
+            </p>
+          </div>
+        )}
+        {info.backendType === "LDK" && (
+          <div className="grid gap-2">
+            <p className="font-medium text-sm">VSS</p>
+            <p className="text-muted-foreground text-sm break-all">
+              {info.ldkVssEnabled ? `Enabled (${info.ldkVssUrl})` : "Disabled"}
+            </p>
+          </div>
+        )}
         {info.chainDataSourceType && (
           <div className="grid gap-2">
             <p className="font-medium text-sm">Chain Data Source</p>
@@ -73,6 +97,16 @@ export function About() {
             </div>
           </div>
         )}
+        <div className="grid gap-2">
+          <p className="font-medium text-sm">Mempool Data Source</p>
+          <ExternalLink
+            to={info.mempoolUrl}
+            className="inline-flex items-center gap-1 underline w-fit text-muted-foreground text-sm break-all"
+          >
+            {info.mempoolUrl}
+            <ExternalLinkIcon className="size-4" />
+          </ExternalLink>
+        </div>
         {info.jitChannelsLiquiditySource && (
           <div className="grid gap-2">
             <p className="font-medium text-sm">

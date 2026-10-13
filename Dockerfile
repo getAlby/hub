@@ -1,4 +1,4 @@
-FROM node:20-alpine AS frontend
+FROM node:22-alpine AS frontend
 
 # Set the base path for the frontend build
 # This can be overridden at build time with --build-arg BASE_PATH=<url> e.g. --build-arg BASE_PATH=/hub

@@ -110,6 +110,38 @@ func TestGenerateNewMnemonic(t *testing.T) {
 	assert.Equal(t, encryptedChannelsBackupKey.String(), derivedKeyFromKeys.String())
 }
 
+func TestInit_WrongPasswordDoesNotOverwriteNostrKey(t *testing.T) {
+	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
+	gormDb, err := db.NewDB(t)
+	require.NoError(t, err)
+	defer db.CloseDB(gormDb)
+
+	unlockPassword := "correct"
+
+	cfg, err := config.NewConfig(&config.AppConfig{}, gormDb)
+	require.NoError(t, err)
+
+	// initialise keys under the correct password, storing an encrypted NostrSecretKey
+	keys := NewKeys()
+	err = keys.Init(cfg, unlockPassword)
+	require.NoError(t, err)
+
+	originalSecret, err := cfg.Get("NostrSecretKey", unlockPassword)
+	require.NoError(t, err)
+	require.NotEmpty(t, originalSecret)
+
+	// a wrong password must abort instead of mistaking the failed decrypt for
+	// "no key yet" and overwriting the stored key with a freshly generated one
+	keys2 := NewKeys()
+	err = keys2.Init(cfg, "wrong")
+	require.Error(t, err)
+
+	// the stored key, decrypted with the correct password, must be unchanged
+	secretAfter, err := cfg.Get("NostrSecretKey", unlockPassword)
+	require.NoError(t, err)
+	assert.Equal(t, originalSecret, secretAfter)
+}
+
 func TestGenerateSwapMnemonic(t *testing.T) {
 	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
 	gormDb, err := db.NewDB(t)

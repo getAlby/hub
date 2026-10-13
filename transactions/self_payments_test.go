@@ -399,11 +399,11 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToIsolatedApp(t *testing.T) {
 	assert.Equal(t, int64(0), balanceMsat)
 
 	// check notifications
-	assert.Equal(t, 2, len(mockEventConsumer.GetConsumedEvents()))
+	consumedEvents := mockEventConsumer.WaitForConsumedEvents(2)
+	assert.Equal(t, 2, len(consumedEvents))
 
 	// we can't guarantee which notification was processed first because events are published async
 	// so swap them if they are back to front
-	consumedEvents := mockEventConsumer.GetConsumedEvents()
 	if consumedEvents[1].Event == "nwc_payment_received" {
 		consumedEvents[0], consumedEvents[1] = consumedEvents[1], consumedEvents[0]
 	}
@@ -494,7 +494,7 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToSelf(t *testing.T) {
 	assert.Equal(t, int64(123000), balanceMsat)
 }
 
-func TestSendPaymentSync_SelfPayment_IsolatedAppToApp_AmountProvidedIgnoredOnNonZeroAmountInvoice(t *testing.T) {
+func TestSendPaymentSync_SelfPayment_IsolatedAppToApp_MatchingAmountProvidedOnNonZeroAmountInvoice(t *testing.T) {
 	ctx := context.TODO()
 
 	svc, err := tests.CreateTestService(t)
@@ -545,9 +545,13 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToApp_AmountProvidedIgnoredOnNon
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
-	// this amount is wrong, it will just be ignored
-	amountMsat := uint64(1000)
-	transaction, err := transactionsService.SendPaymentSync(tests.MockInvoice, &amountMsat, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	mismatchedAmountMsat := uint64(1000)
+	transaction, err := transactionsService.SendPaymentSync(tests.MockInvoice, &mismatchedAmountMsat, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	assert.EqualError(t, err, "amount cannot be specified for an invoice that already has an amount")
+	assert.Nil(t, transaction)
+
+	amountMsat := uint64(123000)
+	transaction, err = transactionsService.SendPaymentSync(tests.MockInvoice, &amountMsat, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(123000), transaction.AmountMsat)

@@ -3,13 +3,11 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { defineConfig, Plugin } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
-import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig(({ command }) => ({
   plugins: [
     react(),
     tailwindcss(),
-    tsconfigPaths(),
     VitePWA({
       registerType: "autoUpdate",
       // disable service worker - Alby Hub cannot be used offline (and also breaks oauth callback)
@@ -50,7 +48,7 @@ export default defineConfig(({ command }) => ({
         maximumFileSizeToCacheInBytes: 3000000, // 3MB
       },
     }),
-    ...(command === "serve" ? [insertDevCSPPlugin] : []),
+    ...(command === "serve" ? [insertDevCSPPlugin] : [insertProdCSPPlugin]),
   ],
   server: {
     port: process.env.VITE_PORT ? parseInt(process.env.VITE_PORT) : undefined,
@@ -66,13 +64,18 @@ export default defineConfig(({ command }) => ({
     },
   },
   resolve: {
+    tsconfigPaths: true,
     alias: {
-      src: path.resolve(__dirname, "./src"),
-      wailsjs: path.resolve(__dirname, "./wailsjs"),
+      src: path.resolve(import.meta.dirname, "./src"),
+      wailsjs: path.resolve(import.meta.dirname, "./wailsjs"),
       // used to refrence public assets when importing images or other
       // assets from the public folder
       // this is necessary to inject the base path during build
       public: "",
+      // lottie-react's `browser` field points to a UMD build, which breaks
+      // under Vite 8's Node-style CJS interop (default import resolves to the
+      // whole exports object); force the ESM build instead
+      "lottie-react": "lottie-react/build/index.es.js",
     },
   },
   build: {
@@ -89,17 +92,39 @@ export default defineConfig(({ command }) => ({
 
 const DEVELOPMENT_NONCE = "'nonce-DEVELOPMENT'";
 
+// when making changes here, also update the CSP header in http_service.go
+const buildCSP = (nonce?: string) =>
+  `default-src 'self'${nonce ? " " + nonce : ""}; img-src 'self' https://uploads.getalby-assets.com https://cdn.getalby-assets.com https://getalby.com; connect-src 'self' https://api.getalby.com https://getalby.com https://zapplanner.albylabs.com wss://relay.getalby.com wss://relay2.getalby.com; frame-src https://www.youtube-nocookie.com`;
+
+const insertCSPMetaTag = (comment: string, csp: string) => (html: string) =>
+  html.replace(
+    "<head>",
+    `<head>
+        <!-- ${comment} -->
+        <meta http-equiv="Content-Security-Policy" content="${csp}" />`
+  );
+
 const insertDevCSPPlugin: Plugin = {
   name: "dev-csp",
   transformIndexHtml: {
     order: "pre",
-    handler: (html) => {
-      return html.replace(
-        "<head>",
-        `<head>
-        <!-- DEV-ONLY CSP - when making changes here, also update the CSP header in http_service.go (without the nonce!) -->
-        <meta http-equiv="Content-Security-Policy" content="default-src 'self' ${DEVELOPMENT_NONCE}; img-src 'self' https://uploads.getalby-assets.com https://cdn.getalby-assets.com https://getalby.com; connect-src 'self' https://api.getalby.com https://getalby.com https://zapplanner.albylabs.com wss://relay.getalby.com wss://relay2.getalby.com; frame-src https://www.youtube-nocookie.com" />`
-      );
-    },
+    handler: insertCSPMetaTag(
+      "DEV-ONLY CSP - when making changes here, also update the CSP header in http_service.go (without the nonce!)",
+      buildCSP(DEVELOPMENT_NONCE)
+    ),
+  },
+};
+
+// the same CSP is served as a HTTP header in http mode (see http_service.go).
+// The meta tag ensures the policy also applies where no HTTP headers are set,
+// e.g. in the desktop app.
+const insertProdCSPPlugin: Plugin = {
+  name: "prod-csp",
+  transformIndexHtml: {
+    order: "pre",
+    handler: insertCSPMetaTag(
+      "when making changes here, also update the CSP header in http_service.go",
+      buildCSP()
+    ),
   },
 };

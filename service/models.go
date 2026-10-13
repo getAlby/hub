@@ -1,6 +1,8 @@
 package service
 
 import (
+	"errors"
+
 	"gorm.io/gorm"
 
 	"github.com/getAlby/hub/alby"
@@ -12,6 +14,19 @@ import (
 	"github.com/getAlby/hub/transactions"
 )
 
+var (
+	// ErrAppBusy is returned when another start or stop operation is already in progress.
+	ErrAppBusy = errors.New("app is busy")
+	// ErrAlreadyStarted is returned when the app is already unlocked and running.
+	ErrAlreadyStarted = errors.New("app already started")
+	// ErrAppNotStarted is returned when trying to stop an app that is not running.
+	ErrAppNotStarted = errors.New("app not started")
+	// ErrInvalidPassword is returned when the provided unlock password is incorrect.
+	ErrInvalidPassword = errors.New("invalid password")
+	// ErrIncompleteWalletData is returned when the unlock password check is missing from the database.
+	ErrIncompleteWalletData = errors.New("your wallet data is incomplete and cannot be unlocked. Please restore from a backup")
+)
+
 type RelayStatus struct {
 	Url    string
 	Online bool
@@ -19,7 +34,10 @@ type RelayStatus struct {
 
 type Service interface {
 	StartApp(encryptionKey string) error
-	StopApp()
+	StopApp() error
+	// WithStartLock runs fn while holding the start/stop lock,
+	// returning ErrAppBusy if a start or stop is already in progress.
+	WithStartLock(fn func() error) error
 	Shutdown()
 
 	// TODO: remove getters (currently used by http / wails services)

@@ -32,3 +32,7 @@ glalby
 *.db-journal
 albyhub-data
 .claude/worktrees
+
+# local copies of Caddyfile.example and generated secrets
+scripts/caddy-*/Caddyfile
+scripts/caddy-basicauth/gate.env

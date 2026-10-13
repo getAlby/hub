@@ -4,20 +4,29 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/transactions"
 	"github.com/sirupsen/logrus"
 )
 
-func (api *api) CreateInvoice(ctx context.Context, amountMsat uint64, description string) (*MakeInvoiceResponse, error) {
+func (api *api) CreateInvoice(ctx context.Context, amountMsat uint64, description string, toAppId *uint) (*MakeInvoiceResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
 		return nil, ErrLNClientNotStarted
 	}
-	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amountMsat, description, "", 0, nil, lnClient, nil, nil, nil)
+
+	if toAppId != nil && api.appsSvc.GetAppById(*toAppId) == nil {
+		return nil, errors.New("app does not exist")
+	}
+
+	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amountMsat, description, "", 0, nil, lnClient, toAppId, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +49,47 @@ func (api *api) SetTransactionUserLabels(ctx context.Context, id uint, labels ma
 	return api.svc.GetTransactionsService().SetTransactionUserLabels(ctx, id, labels)
 }
 
-func (api *api) ListTransactions(ctx context.Context, appId *uint, limit uint64, offset uint64) (*ListTransactionsResponse, error) {
+// ParseListTransactionsFilters parses transaction filter query parameters
+// shared by the HTTP and Wails transports. Invalid values return an error.
+func ParseListTransactionsFilters(query url.Values) (ListTransactionsFilters, error) {
+	filters := ListTransactionsFilters{}
+
+	if transactionType := query.Get("type"); transactionType != "" {
+		if transactionType != constants.TRANSACTION_TYPE_INCOMING && transactionType != constants.TRANSACTION_TYPE_OUTGOING {
+			return filters, fmt.Errorf("invalid type: %s", transactionType)
+		}
+		filters.Type = &transactionType
+	}
+
+	if minAmountSatParam := query.Get("minAmountSat"); minAmountSatParam != "" {
+		minAmountSat, err := strconv.ParseUint(minAmountSatParam, 10, 64)
+		if err != nil || minAmountSat == 0 {
+			return filters, fmt.Errorf("invalid minAmountSat: %s", minAmountSatParam)
+		}
+
+		const msatPerSat = uint64(1000)
+		if minAmountSat > ^uint64(0)/msatPerSat {
+			return filters, fmt.Errorf("minAmountSat is too large")
+		}
+
+		minAmountMsat := minAmountSat * msatPerSat
+		filters.MinAmountMsat = &minAmountMsat
+	}
+
+	if hideFailedParam := query.Get("hideFailed"); hideFailedParam != "" {
+		hideFailed, err := strconv.ParseBool(hideFailedParam)
+		if err != nil {
+			return filters, fmt.Errorf("invalid hideFailed: %s", hideFailedParam)
+		}
+		filters.HideFailed = hideFailed
+	}
+
+	filters.SearchTerm = strings.TrimSpace(query.Get("search"))
+
+	return filters, nil
+}
+
+func (api *api) ListTransactions(ctx context.Context, appId *uint, limit uint64, offset uint64, filters ListTransactionsFilters) (*ListTransactionsResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
 		return nil, ErrLNClientNotStarted
@@ -51,13 +100,18 @@ func (api *api) ListTransactions(ctx context.Context, appId *uint, limit uint64,
 		forceFilterByAppId = true
 	}
 
-	transactions, totalCount, err := api.svc.GetTransactionsService().ListTransactions(ctx, 0, 0, limit, offset, true, false, nil, lnClient, appId, forceFilterByAppId)
+	dbTransactions, totalCount, err := api.svc.GetTransactionsService().ListTransactions(ctx, 0, 0, limit, offset, true, false, lnClient, appId, forceFilterByAppId, &transactions.ListTransactionsFilters{
+		Type:          filters.Type,
+		MinAmountMsat: filters.MinAmountMsat,
+		HideFailed:    filters.HideFailed,
+		SearchTerm:    filters.SearchTerm,
+	})
 	if err != nil {
 		return nil, err
 	}
 
 	apiTransactions := []Transaction{}
-	for _, transaction := range transactions {
+	for _, transaction := range dbTransactions {
 		apiTransactions = append(apiTransactions, *toApiTransaction(&transaction))
 	}
 

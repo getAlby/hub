@@ -134,7 +134,7 @@ export function RebalanceChannelDialogContent({
               }}
             />
             <p className="mt-2 text-xs text-muted-foreground">
-              Fee: 0.3%
+              Fee: 0.5%
               {!!amountSat && (
                 <>
                   &nbsp;(

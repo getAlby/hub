@@ -52,9 +52,9 @@ export function RestoreNode() {
         />
         <PowerCircleIcon className="w-32 h-32" />
         <p className="max-w-sm text-center">
-          If you're running in the cloud, your Alby Hub will restart
-          automatically. Otherwise, please manually restart your Alby Hub to
-          finish the restore process.
+          If you're running in a cloud VM or linux service, your Alby Hub will
+          restart automatically. Otherwise, please manually restart your Alby
+          Hub to finish the restore process.
         </p>
         <div className="flex items-center gap-2 text-muted-foreground">
           <Loading /> <p>Waiting for restart...</p>
@@ -158,9 +158,9 @@ export function RestoreNode() {
                   down.
                 </p>
                 <p className="mt-4">
-                  If you're running in the cloud, your Alby Hub will restart
-                  automatically. Otherwise, please manually restart your Alby
-                  Hub to finish the restore process.
+                  If you're running in a cloud VM or linux service, your Alby
+                  Hub will restart automatically. Otherwise, please manually
+                  restart your Alby Hub to finish the restore process.
                 </p>
               </div>
             </AlertDialogDescription>

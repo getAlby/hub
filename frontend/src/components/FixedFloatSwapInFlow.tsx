@@ -4,12 +4,12 @@ import {
   ExternalLinkIcon,
   HandCoinsIcon,
 } from "lucide-react";
-import TickSVG from "public/images/illustrations/tick.svg";
 import { useEffect, useState } from "react";
 import { FixedFloatButton } from "src/components/FixedFloatButton";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import LottieLoading from "src/components/LottieLoading";
+import LottieSuccess from "src/components/LottieSuccess";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -77,7 +77,7 @@ export function FixedFloatSwapInFlow({
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-center">Waiting for Payment</CardTitle>
+          <CardTitle className="text-center">Waiting for Payment...</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-6">
           <LottieLoading size={288} />
@@ -91,7 +91,7 @@ export function FixedFloatSwapInFlow({
             />
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col gap-2 pt-2">
+        <CardFooter className="flex flex-col gap-3 pt-2">
           <Button
             type="button"
             className="w-full"
@@ -123,7 +123,7 @@ export function FixedFloatSwapInFlow({
         <CardTitle className="text-center">Transaction Received!</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col items-center gap-6">
-        <img src={TickSVG} className="w-48" />
+        <LottieSuccess />
         <div className="flex flex-col gap-1 items-center">
           <p className="text-2xl font-medium slashed-zero">
             <FormattedBitcoinAmount amountMsat={transaction.amountMsat} />
@@ -134,7 +134,7 @@ export function FixedFloatSwapInFlow({
           />
         </div>
       </CardContent>
-      <CardFooter className="flex flex-col gap-2 pt-2">
+      <CardFooter className="flex flex-col gap-3 pt-2">
         <Button
           type="button"
           onClick={() => {
@@ -144,11 +144,11 @@ export function FixedFloatSwapInFlow({
           variant="outline"
           className="w-full"
         >
-          <HandCoinsIcon className="w-4 h-4 mr-2" />
+          <HandCoinsIcon className="size-4" />
           {resetLabel}
         </Button>
         <LinkButton to="/wallet" variant="link" className="w-full">
-          <ArrowLeftIcon className="w-4 h-4 mr-2" />
+          <ArrowLeftIcon className="size-4" />
           Back to Wallet
         </LinkButton>
       </CardFooter>

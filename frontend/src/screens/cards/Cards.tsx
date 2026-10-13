@@ -12,10 +12,11 @@ import {
   ZapIcon,
 } from "lucide-react";
 import React from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import twoFiatLogo from "src/assets/cards/2fiat.png";
 import freedomiaLogo from "src/assets/cards/freedomia.png";
 import redotpayLogo from "src/assets/cards/redotpay.png";
+import solvocardLogo from "src/assets/cards/solvocard.png";
 import bringinLogo from "src/assets/suggested-apps/bringin.png";
 import wavespaceLogo from "src/assets/suggested-apps/wave-space.png";
 import AppHeader from "src/components/AppHeader";
@@ -33,6 +34,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "src/components/ui/dialog";
+import { FieldError } from "src/components/ui/field";
+import { Input } from "src/components/ui/input";
+import { Label } from "src/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -75,7 +79,7 @@ type Provider = {
   url: string;
   logo: string;
   initials: string;
-  network: "Visa" | "Mastercard";
+  networks: ("Visa" | "Mastercard")[];
   cardType: "Physical" | "Virtual" | "Both";
   regions: Region[];
   applePay: boolean;
@@ -101,7 +105,7 @@ const providers: Provider[] = [
     url: "https://wap.redotpay.com/en/invite/?referralId=qr1a5",
     logo: redotpayLogo,
     initials: "RP",
-    network: "Visa",
+    networks: ["Visa"],
     cardType: "Virtual",
     regions: ["Global"],
     applePay: true,
@@ -120,7 +124,7 @@ const providers: Provider[] = [
     url: "https://2fiat.com/getalby",
     logo: twoFiatLogo,
     initials: "2F",
-    network: "Mastercard",
+    networks: ["Mastercard"],
     cardType: "Virtual",
     regions: ["Global"],
     applePay: true,
@@ -139,17 +143,36 @@ const providers: Provider[] = [
     url: "https://www.freedomia.io/a/getalby",
     logo: freedomiaLogo,
     initials: "FR",
-    network: "Visa",
+    networks: ["Visa"],
     cardType: "Virtual",
     regions: ["Global"],
     applePay: false,
     googlePay: true,
     selfCustody: false,
-    lightningNative: false,
+    lightningNative: true,
     kyc: false,
     timeToGet: "Instant",
     cardCost: "$5–30 / mo",
     fees: "1.3–4.3%",
+    appStoreId: "bitcoin-card-topup",
+  },
+  {
+    id: "solvocard",
+    name: "Solvocard",
+    url: "https://www.solvocard.com/auth/sign-up?ref=77CEM87Q",
+    logo: solvocardLogo,
+    initials: "SC",
+    networks: ["Visa", "Mastercard"],
+    cardType: "Virtual",
+    regions: ["Global"],
+    applePay: true,
+    googlePay: true,
+    selfCustody: false,
+    lightningNative: false,
+    kyc: false,
+    timeToGet: "Instant",
+    cardCost: "$99",
+    fees: "4% deposit + $1 card topup",
     appStoreId: "bitcoin-card-topup",
   },
   {
@@ -158,7 +181,7 @@ const providers: Provider[] = [
     url: "https://bringin.app",
     logo: bringinLogo,
     initials: "BR",
-    network: "Visa",
+    networks: ["Visa"],
     cardType: "Both",
     regions: ["EU"],
     // Direct Apple Pay isn't live — usable today via Curve only, so don't
@@ -178,10 +201,10 @@ const providers: Provider[] = [
   {
     id: "wavespace",
     name: "wavecard by wave.space",
-    url: "https://app.wave.space/spend/?utm_source=albyhub&affiliate=AlbyHub",
+    url: "https://app.wave.space/?utm_source=albyhub&affiliate=AlbyHub",
     logo: wavespaceLogo,
     initials: "WS",
-    network: "Visa",
+    networks: ["Visa"],
     cardType: "Both",
     // Card is accepted worldwide, but issuance requires EEA residency.
     regions: ["EU"],
@@ -583,7 +606,9 @@ function ProviderRow({ provider }: { provider: Provider }) {
                 </Tooltip>
               )}
             </div>
-            <p className="text-xs text-muted-foreground">{provider.network}</p>
+            <p className="text-xs text-muted-foreground">
+              {provider.networks.join(" / ")}
+            </p>
           </div>
         </div>
       </TableCell>
@@ -679,7 +704,7 @@ function ProviderCard({ provider }: { provider: Provider }) {
             )}
           </div>
           <p className="text-xs text-muted-foreground">
-            {provider.network} · {provider.cardType}
+            {provider.networks.join(" / ")} · {provider.cardType}
           </p>
         </div>
       </div>
@@ -761,8 +786,100 @@ function ConnectCardDialog({
   onOpenChange: (open: boolean) => void;
   providers: Provider[];
 }) {
+  const navigate = useNavigate();
+  const [showOtherCardForm, setShowOtherCardForm] = React.useState(false);
+  const [otherCardName, setOtherCardName] = React.useState("");
+  const [otherCardNameError, setOtherCardNameError] = React.useState("");
+
+  // The dialog is controlled and opened programmatically (no DialogTrigger),
+  // so onOpenChange never fires with true — reset the form here instead.
+  React.useEffect(() => {
+    if (open) {
+      setShowOtherCardForm(false);
+      setOtherCardName("");
+      setOtherCardNameError("");
+    }
+  }, [open]);
+
+  const handleOpenChange = (o: boolean) => {
+    if (o) {
+      setShowOtherCardForm(false);
+      setOtherCardName("");
+      setOtherCardNameError("");
+    }
+    onOpenChange(o);
+  };
+
+  const handleOtherCardSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const cardName = otherCardName.trim();
+    if (!cardName) {
+      setOtherCardNameError("Enter a card name");
+      return;
+    }
+    sendEvent("debit_card_connect", { name: cardName });
+    onOpenChange(false);
+    navigate(
+      `/apps/new?app=bitcoin-card-topup&name=${encodeURIComponent(`${cardName} - Bitcoin Card Topup`)}`
+    );
+  };
+
+  if (showOtherCardForm) {
+    return (
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Name your card</DialogTitle>
+            <DialogDescription>
+              We'll use it to label your top-up connection.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form
+            onSubmit={handleOtherCardSubmit}
+            className="flex flex-col gap-4"
+          >
+            <div className="grid gap-1.5">
+              <Label htmlFor="other-card-name">Card name</Label>
+              <Input
+                autoFocus
+                type="text"
+                id="other-card-name"
+                value={otherCardName}
+                onChange={(e) => {
+                  setOtherCardName(e.target.value);
+                  setOtherCardNameError("");
+                }}
+                placeholder="e.g. Moon"
+                required
+                autoComplete="off"
+                aria-invalid={!!otherCardNameError || undefined}
+                aria-describedby={
+                  otherCardNameError ? "other-card-name-error" : undefined
+                }
+              />
+              <FieldError id="other-card-name-error">
+                {otherCardNameError}
+              </FieldError>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setShowOtherCardForm(false)}
+              >
+                Back
+              </Button>
+              <Button type="submit">Continue</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Pick your card provider</DialogTitle>
@@ -780,7 +897,7 @@ function ConnectCardDialog({
             // query param; pass the selected provider so its preset is applied.
             const to =
               p.appStoreId === "bitcoin-card-topup"
-                ? `/apps/new?app=${p.appStoreId}&provider=${encodeURIComponent(p.id)}`
+                ? `/apps/new?app=${p.appStoreId}&provider=${encodeURIComponent(p.id)}&name=${encodeURIComponent(`${p.name} - Bitcoin Card Topup`)}`
                 : `/apps/new?app=${p.appStoreId}`;
             return (
               <Link
@@ -805,7 +922,7 @@ function ConnectCardDialog({
                 <div className="min-w-0 flex-1">
                   <p className="font-medium truncate">{p.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {p.network} · {p.cardType}
+                    {p.networks.join(" / ")} · {p.cardType}
                   </p>
                 </div>
                 <ArrowUpRightIcon className="size-4 text-muted-foreground" />
@@ -813,13 +930,11 @@ function ConnectCardDialog({
             );
           })}
 
-          <Link
-            to="/apps/new?app=bitcoin-card-topup"
-            onClick={() => {
-              sendEvent("debit_card_connect", { name: "Other" });
-              onOpenChange(false);
-            }}
-            className="flex items-center gap-3 rounded-lg border border-dashed border-border p-3 hover:bg-accent/40 transition-colors"
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => setShowOtherCardForm(true)}
+            className="h-auto w-full justify-start gap-3 whitespace-normal rounded-lg border border-dashed border-border p-3 text-left text-base font-normal hover:bg-accent/40 dark:hover:bg-accent/40"
           >
             <div className="flex items-center justify-center size-10 rounded-lg shrink-0 bg-secondary text-secondary-foreground">
               <CreditCardIcon className="size-5" />
@@ -831,7 +946,7 @@ function ConnectCardDialog({
               </p>
             </div>
             <ArrowUpRightIcon className="size-4 text-muted-foreground" />
-          </Link>
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

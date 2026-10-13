@@ -81,6 +81,8 @@ type MockLn struct {
 	MakeInvoiceErrors          []error
 	PayInvoiceResponses        []*lnclient.PayInvoiceResponse
 	PayInvoiceErrors           []error
+	PayKeysendResponses        []*lnclient.PayKeysendResponse
+	PayKeysendErrors           []error
 	PaymentDelay               *time.Duration
 	Pubkey                     string
 	MockTransaction            *lnclient.Transaction
@@ -110,6 +112,13 @@ func (mln *MockLn) SendPaymentSync(payReq string, amountMsat *uint64) (*lnclient
 }
 
 func (mln *MockLn) SendKeysend(amountMsat uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
+	if len(mln.PayKeysendResponses) > 0 {
+		response := mln.PayKeysendResponses[0]
+		err := mln.PayKeysendErrors[0]
+		mln.PayKeysendResponses = mln.PayKeysendResponses[1:]
+		mln.PayKeysendErrors = mln.PayKeysendErrors[1:]
+		return response, err
+	}
 	return &lnclient.PayKeysendResponse{
 		FeeMsat: 1,
 	}, nil
