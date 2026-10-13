@@ -71,6 +71,14 @@ export default function Channels() {
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
   const { data: info, hasChannelManagement } = useInfo();
   const { data: balances } = useBalances(true);
+  const incomingOnchainSat = balances
+    ? Math.max(
+        0,
+        balances.onchain.totalSat -
+          balances.onchain.spendableSat -
+          balances.onchain.reservedSat
+      )
+    : 0;
   const navigate = useNavigate();
   const [longUnconfirmedZeroConfChannels, setLongUnconfirmedZeroConfChannels] =
     React.useState<LongUnconfirmedZeroConfChannel[]>([]);
@@ -524,16 +532,19 @@ export default function Channels() {
                         amountSat={balances.onchain.spendableSat}
                         className="mb-1"
                       />
-                      {balances.onchain.totalSat >
-                        balances.onchain.spendableSat && (
+                      {balances.onchain.reservedSat > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          <FormattedBitcoinAmount
+                            amountMsat={balances.onchain.reservedSat * 1000}
+                          />{" "}
+                          reserved for channel closing fees
+                        </p>
+                      )}
+                      {incomingOnchainSat > 0 && (
                         <p className="text-xs text-muted-foreground animate-pulse">
                           +
                           <FormattedBitcoinAmount
-                            amountMsat={
-                              (balances.onchain.totalSat -
-                                balances.onchain.spendableSat) *
-                              1000
-                            }
+                            amountMsat={incomingOnchainSat * 1000}
                           />{" "}
                           incoming
                         </p>

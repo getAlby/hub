@@ -1,12 +1,13 @@
 package config
 
 const (
-	LNDBackendType     = "LND"
-	LDKBackendType     = "LDK"
-	PhoenixBackendType = "PHOENIX"
-	CashuBackendType   = "CASHU"
-	CLNBackendType     = "CLN"
-	BarkBackendType    = "BARK"
+	LNDBackendType       = "LND"
+	LDKBackendType       = "LDK"
+	LDKServerBackendType = "LDK_SERVER"
+	PhoenixBackendType   = "PHOENIX"
+	CashuBackendType     = "CASHU"
+	CLNBackendType       = "CLN"
+	BarkBackendType      = "BARK"
 )
 
 const (
@@ -47,6 +48,9 @@ type AppConfig struct {
 	LDKBitcoindRpcPort                 string `envconfig:"LDK_BITCOIND_RPC_PORT"`
 	LDKBitcoindRpcUser                 string `envconfig:"LDK_BITCOIND_RPC_USER"`
 	LDKBitcoindRpcPassword             string `envconfig:"LDK_BITCOIND_RPC_PASSWORD"`
+	LDKServerAddress                   string `envconfig:"LDK_SERVER_GRPC_ADDRESS"`
+	LDKServerTlsCertFile               string `envconfig:"LDK_SERVER_TLS_CERT_FILE"`
+	LDKServerApiKey                    string `envconfig:"LDK_SERVER_API_KEY"`
 	MempoolApi                         string `envconfig:"MEMPOOL_API" default:"https://mempool.space/api"`
 	AlbyClientId                       string `envconfig:"ALBY_OAUTH_CLIENT_ID" default:"J2PbXS1yOf"`
 	AlbyClientSecret                   string `envconfig:"ALBY_OAUTH_CLIENT_SECRET" default:"rABK2n16IWjLTZ9M1uKU"`

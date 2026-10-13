@@ -18,8 +18,8 @@ export function PendingClosedChannelsAlert({
   }
 
   const pendingDetails = [
-    ...balance.pendingBalancesDetails,
-    ...balance.pendingSweepBalancesDetails,
+    ...(balance.pendingBalancesDetails ?? []),
+    ...(balance.pendingSweepBalancesDetails ?? []),
   ];
 
   return (

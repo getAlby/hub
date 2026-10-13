@@ -67,6 +67,7 @@ import { BarkForm } from "src/screens/setup/node/BarkForm";
 import { CLNForm } from "src/screens/setup/node/CLNForm";
 import { CashuForm } from "src/screens/setup/node/CashuForm";
 import { LDKForm } from "src/screens/setup/node/LDKForm";
+import { LDKServerForm } from "src/screens/setup/node/LDKServerForm";
 import { LNDForm } from "src/screens/setup/node/LNDForm";
 import { PhoenixdForm } from "src/screens/setup/node/PhoenixdForm";
 import { PresetNodeForm } from "src/screens/setup/node/PresetNodeForm";
@@ -557,6 +558,10 @@ const routes: RouteObject[] = [
               {
                 path: "ldk",
                 element: <LDKForm />,
+              },
+              {
+                path: "ldk_server",
+                element: <LDKServerForm />,
               },
               {
                 path: "cln",
