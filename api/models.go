@@ -243,6 +243,7 @@ type Swap struct {
 	CreatedAt          string `json:"createdAt"`
 	UpdatedAt          string `json:"updatedAt"`
 	UsedXpub           bool   `json:"usedXpub"`
+	ApiUrl             string `json:"apiUrl"`
 }
 
 type StartRequest struct {

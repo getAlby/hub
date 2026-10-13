@@ -958,6 +958,7 @@ func toApiSwap(swap *swaps.Swap) *Swap {
 		CreatedAt:          swap.CreatedAt.Format(time.RFC3339),
 		UpdatedAt:          swap.UpdatedAt.Format(time.RFC3339),
 		UsedXpub:           swap.UsedXpub,
+		ApiUrl:             swap.ApiUrl,
 	}
 }
 
