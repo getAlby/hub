@@ -19,6 +19,7 @@ import (
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/btcutil/hdkeychain"
 	"github.com/btcsuite/btcd/chaincfg"
+	"github.com/getAlby/hub/alby"
 	"github.com/getAlby/hub/chain"
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/constants"
@@ -45,6 +46,7 @@ type swapsService struct {
 	keys                     keys.Keys
 	eventPublisher           events.EventPublisher
 	transactionsService      transactions.TransactionsService
+	albySvc                  alby.AlbyService
 	boltzApi                 *boltz.Api
 	boltzWs                  *boltz.Websocket
 	swapListeners            map[string]chan boltz.SwapUpdate
@@ -86,17 +88,21 @@ type SwapResponse struct {
 }
 
 func NewSwapsService(ctx context.Context, db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublisher events.EventPublisher,
-	lnClient lnclient.LNClient, transactionsService transactions.TransactionsService, encryptionKey string, swapProvider string) SwapsService {
-	apiURL := swapProviderAPIURL(swapProvider, cfg)
+	lnClient lnclient.LNClient, transactionsService transactions.TransactionsService, albySvc alby.AlbyService, encryptionKey string) SwapsService {
+	apiURL := cfg.GetEnv().BoltzApi
 	if apiURL == "" {
-		logger.Logger.WithField("swap_provider", swapProvider).Error("Swap provider API URL not configured, swaps service not started")
+		fetchedApiURL, err := fetchSwapProviderAPIURL(ctx, albySvc, cfg)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to fetch swap provider")
+		}
+		apiURL = fetchedApiURL
+	}
+	if apiURL == "" {
+		logger.Logger.Error("Swap provider not available, swaps service not started")
 		return nil
 	}
 
-	logger.Logger.WithFields(logrus.Fields{
-		"swap_provider": swapProvider,
-		"swap_api":      apiURL,
-	}).Info("Configured swap provider")
+	logger.Logger.WithField("swap_api", apiURL).Info("Configured swap provider")
 
 	boltzApi := &boltz.Api{
 		URL: apiURL,
@@ -113,6 +119,7 @@ func NewSwapsService(ctx context.Context, db *gorm.DB, cfg config.Config, keys k
 		keys:                keys,
 		eventPublisher:      eventPublisher,
 		transactionsService: transactionsService,
+		albySvc:             albySvc,
 		lnClient:            lnClient,
 		boltzApi:            boltzApi,
 		boltzWs:             boltzWs,
@@ -253,6 +260,10 @@ func (svc *swapsService) EnableAutoSwapOut(encryptionKey string) error {
 }
 
 func (svc *swapsService) SwapOut(amountSat uint64, destination string, autoSwap, usedXpubDerivation bool) (*SwapResponse, error) {
+	if err := svc.checkSwapProvider(); err != nil {
+		return nil, err
+	}
+
 	if destination == "" {
 		var err error
 		destination, err = svc.lnClient.GetNewOnchainAddress(svc.ctx)
@@ -437,6 +448,10 @@ func verifySwapOutInvoice(invoice string, expectedPaymentHash string, maxSendAmo
 }
 
 func (svc *swapsService) SwapIn(amountSat uint64, autoSwap bool, internalPayment bool, feeRate *uint64) (*SwapResponse, error) {
+	if err := svc.checkSwapProvider(); err != nil {
+		return nil, err
+	}
+
 	amountMsat := amountSat * 1000
 	invoice, err := svc.transactionsService.MakeInvoice(svc.ctx, amountMsat, "On-chain to lightning swap", "", 0, nil, svc.lnClient, nil, nil, nil)
 	if err != nil {
