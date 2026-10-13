@@ -10,11 +10,11 @@ import { useState } from "react";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import { CurrencyInputField } from "src/components/CurrencyInputField";
-import ExternalLink from "src/components/ExternalLink";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
 import PasswordInput from "src/components/password/PasswordInput";
 import ResponsiveLinkButton from "src/components/ResponsiveLinkButton";
+import { SwapProviderAttribution } from "src/components/SwapProviderAttribution";
 import { SwapUnavailableAlert } from "src/components/SwapUnavailableAlert";
 import {
   AlertDialog,
@@ -305,15 +305,7 @@ function AutoSwapOutForm() {
           <LoadingButton className="w-full" loading={loading}>
             Begin Auto Swap
           </LoadingButton>
-          <p className="text-xs text-muted-foreground text-right">
-            powered by{" "}
-            <ExternalLink
-              to="https://boltz.exchange"
-              className="font-medium text-foreground"
-            >
-              boltz.exchange
-            </ExternalLink>
-          </p>
+          <SwapProviderAttribution className="text-right" />
         </div>
       </form>
       <AlertDialog

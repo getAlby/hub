@@ -161,6 +161,7 @@ export interface InfoResponse {
   ldkVssUrl: string;
   vssSupported: boolean;
   databaseType: string;
+  swapApiUrl: string;
   running: boolean;
   albyAuthUrl: string;
   nextBackupReminder: string;

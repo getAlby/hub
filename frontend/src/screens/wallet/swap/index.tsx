@@ -16,6 +16,7 @@ import { FixedFloatSwapInFlow } from "src/components/FixedFloatSwapInFlow";
 import Loading from "src/components/Loading";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import ResponsiveLinkButton from "src/components/ResponsiveLinkButton";
+import { SwapProviderAttribution } from "src/components/SwapProviderAttribution";
 import { SwapUnavailableAlert } from "src/components/SwapUnavailableAlert";
 import { Button } from "src/components/ui/button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
@@ -320,12 +321,7 @@ function SwapInForm() {
             <LoadingButton className="w-full" loading={loading}>
               Swap In
             </LoadingButton>
-            <p className="text-xs text-muted-foreground text-center">
-              powered by{" "}
-              <span className="font-medium text-foreground">
-                boltz.exchange
-              </span>
-            </p>
+            <SwapProviderAttribution className="text-center" />
           </div>
         </>
       )}
@@ -485,10 +481,7 @@ function SwapOutForm() {
         <LoadingButton className="w-full" loading={loading}>
           Swap Out
         </LoadingButton>
-        <p className="text-xs text-muted-foreground text-center">
-          powered by{" "}
-          <span className="font-medium text-foreground">boltz.exchange</span>
-        </p>
+        <SwapProviderAttribution className="text-center" />
       </div>
       <Separator className="my-2" />
       <FixedFloatButton from="BTCLN" className="w-full" variant="secondary">

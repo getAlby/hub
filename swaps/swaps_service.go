@@ -68,6 +68,7 @@ type SwapsService interface {
 	GetDecryptedAutoSwapXpub() string
 	ValidateAddress(address string) error
 	ValidateXpub(xpub string) error
+	GetApiUrl() string
 }
 
 const (
@@ -1641,4 +1642,8 @@ func (svc *swapsService) GetDecryptedAutoSwapXpub() string {
 	defer svc.autoSwapOutXpubLock.Unlock()
 
 	return svc.autoSwapOutDecryptedXpub
+}
+
+func (svc *swapsService) GetApiUrl() string {
+	return svc.boltzApi.URL
 }

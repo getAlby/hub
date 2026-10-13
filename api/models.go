@@ -327,6 +327,7 @@ type InfoResponse struct {
 	LdkVssUrl                     string              `json:"ldkVssUrl"`
 	VssSupported                  bool                `json:"vssSupported"`
 	DatabaseType                  string              `json:"databaseType"`
+	SwapApiUrl                    string              `json:"swapApiUrl"`
 	StartupState                  string              `json:"startupState"`
 	StartupError                  string              `json:"startupError"`
 	StartupErrorTime              time.Time           `json:"startupErrorTime"`

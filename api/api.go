@@ -1538,6 +1538,9 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.VssSupported = backendType == config.LDKBackendType && api.cfg.GetEnv().LDKVssUrl != ""
 	info.LdkVssUrl = api.cfg.GetEnv().LDKVssUrl
 	info.DatabaseType = api.db.Dialector.Name()
+	if swapsService := api.svc.GetSwapsService(); swapsService != nil {
+		info.SwapApiUrl = swapsService.GetApiUrl()
+	}
 	info.SupportsBolt12 = backendType == config.LDKBackendType || backendType == config.CLNBackendType
 	info.AutoUnlockPasswordEnabled = autoUnlockPassword != ""
 	info.AutoUnlockPasswordSupported = api.cfg.GetEnv().IsDefaultClientId()
