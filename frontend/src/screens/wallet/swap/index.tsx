@@ -170,12 +170,12 @@ function SwapInForm() {
     }
   };
 
-  if (!info || !balances || (!swapInfo && !swapInfoError)) {
-    return <Loading />;
+  if (!swapInfo && swapInfoError) {
+    return <SwapUnavailableAlert />;
   }
 
-  if (!swapInfo) {
-    return <SwapUnavailableAlert />;
+  if (!info || !balances || !swapInfo) {
+    return <Loading />;
   }
 
   const spendableOnchainBalance = balances.onchain.spendableSat;
@@ -378,12 +378,12 @@ function SwapOutForm() {
     setDestination(text.trim());
   };
 
-  if (!balances || (!swapInfo && !swapInfoError)) {
-    return <Loading />;
+  if (!swapInfo && swapInfoError) {
+    return <SwapUnavailableAlert />;
   }
 
-  if (!swapInfo) {
-    return <SwapUnavailableAlert />;
+  if (!balances || !swapInfo) {
+    return <Loading />;
   }
 
   return (

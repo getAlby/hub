@@ -263,12 +263,12 @@ function SwapForm({
     fastestFee: number;
   }>("/v1/fees/recommended");
 
-  if (!balances || (!swapInfo && !swapInfoError)) {
-    return <Loading />;
+  if (!swapInfo && swapInfoError) {
+    return <SwapUnavailableAlert />;
   }
 
-  if (!swapInfo) {
-    return <SwapUnavailableAlert />;
+  if (!balances || !swapInfo) {
+    return <Loading />;
   }
 
   return (
