@@ -131,12 +131,16 @@ function SwapInForm() {
         return;
       }
 
+      if (swapFrom === "internal" && !feeRate) {
+        throw new Error("No fee rate set");
+      }
+
       const payload: InitiateSwapInRequest = {
         swapAmountSat: parseInt(swapAmountSat),
         ...(swapFrom === "internal"
           ? {
               internalPayment: true,
-              ...(feeRate ? { feeRate: +feeRate } : {}),
+              feeRate: +feeRate,
             }
           : {}),
       };
