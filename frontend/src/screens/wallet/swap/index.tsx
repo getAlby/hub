@@ -171,11 +171,9 @@ function SwapInForm() {
     }
   };
 
-  if (!swapInfo && swapInfoError) {
-    return <SwapUnavailableAlert />;
-  }
-
-  if (!info || !balances || !swapInfo) {
+  // swap info is only needed for bitcoin swaps, so other cryptocurrency swaps
+  // stay available if it fails to load
+  if (!info || !balances || (!swapInfo && !swapInfoError)) {
     return <Loading />;
   }
 
@@ -213,9 +211,11 @@ function SwapInForm() {
               autoFocus
               valueSat={swapAmountSat}
               onValueSatChange={setSwapAmountSat}
-              minSat={swapFrom !== "crypto" ? swapInfo.minAmountSat : undefined}
+              minSat={
+                swapFrom !== "crypto" ? swapInfo?.minAmountSat : undefined
+              }
               maxSat={
-                swapFrom === "crypto"
+                swapFrom === "crypto" || !swapInfo
                   ? hasChannelManagement
                     ? balances.lightning.totalReceivableSat * 0.99
                     : undefined
@@ -303,6 +303,8 @@ function SwapInForm() {
             setSwapAmountSat("");
           }}
         />
+      ) : !swapInfo ? (
+        <SwapUnavailableAlert />
       ) : (
         <>
           <div className="flex flex-col pt-4 gap-4 border-t">
