@@ -261,7 +261,7 @@ function TransactionItem({ tx, transactionListKey }: Props) {
           {swapId && (
             <TransactionDetailRow label="Swap Id">
               <Link
-                to={`/wallet/swap/${type === "incoming" ? "in" : "out"}/status/${swapId}`}
+                to={`/wallet/swap/${type === "incoming" ? "in" : "out"}/status/${encodeURIComponent(swapId)}`}
                 className="flex items-center gap-1"
               >
                 <p className="underline">{swapId}</p>

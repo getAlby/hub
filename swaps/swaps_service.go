@@ -57,7 +57,7 @@ type SwapsService interface {
 	StopAutoSwapOut()
 	EnableAutoSwapOut(encryptionKey string) error
 	SwapOut(amountSat uint64, destination string, autoSwap, usedXpubDerivation bool) (*SwapResponse, error)
-	SwapIn(amountSat uint64, autoSwap bool) (*SwapResponse, error)
+	SwapIn(amountSat uint64, autoSwap bool, internalPayment bool, feeRate *uint64) (*SwapResponse, error)
 	GetSwapOutInfo() (*SwapInfo, error)
 	GetSwapInInfo() (*SwapInfo, error)
 	RefundSwap(swapId, address string, enableRetries bool) error
@@ -424,7 +424,7 @@ func verifySwapOutInvoice(invoice string, expectedPaymentHash string, maxSendAmo
 	return sendAmountSat, nil
 }
 
-func (svc *swapsService) SwapIn(amountSat uint64, autoSwap bool) (*SwapResponse, error) {
+func (svc *swapsService) SwapIn(amountSat uint64, autoSwap bool, internalPayment bool, feeRate *uint64) (*SwapResponse, error) {
 	amountMsat := amountSat * 1000
 	invoice, err := svc.transactionsService.MakeInvoice(svc.ctx, amountMsat, "On-chain to lightning swap", "", 0, nil, svc.lnClient, nil, nil, nil)
 	if err != nil {
@@ -542,6 +542,26 @@ func (svc *swapsService) SwapIn(amountSat uint64, autoSwap bool) (*SwapResponse,
 	}
 
 	logger.Logger.WithField("swapId", swap.Id).Info("Swap created")
+
+	if internalPayment {
+		_, err = svc.lnClient.RedeemOnchainFunds(svc.ctx, swap.Address, swap.ExpectedAmount, feeRate, false)
+		if errors.Is(err, lnclient.ErrOnchainBroadcastUnverified) {
+			// the lockup may still have been broadcast, so keep the swap pending
+			// and let the swap listener track it rather than marking it as failed
+			logger.Logger.WithError(err).WithFields(logrus.Fields{
+				"swapId":    swap.Id,
+				"amountSat": swap.ExpectedAmount,
+			}).Warn("Could not verify internal swap in lockup broadcast")
+			err = nil
+		}
+		if err != nil {
+			logger.Logger.WithError(err).WithFields(logrus.Fields{
+				"swapId":    swap.Id,
+				"amountSat": swap.ExpectedAmount,
+			}).Error("Failed to fund internal swap in")
+			return nil, err
+		}
+	}
 
 	go svc.startSwapInListener(&dbSwap)
 

@@ -1472,7 +1472,7 @@ func (ls *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string, 
 
 		return txId, nil
 	}
-	return "", errors.New("ran out of attempts to fetch broadcasted transaction")
+	return "", lnclient.ErrOnchainBroadcastUnverified
 }
 
 func (ls *LDKService) ResetRouter(key string) error {

@@ -1096,7 +1096,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}
 		return WailsRequestRouterResponse{Body: swapInInfo, Error: ""}
 	case "POST /api/swaps/out":
-		initiateSwapOutRequest := &api.InitiateSwapRequest{}
+		initiateSwapOutRequest := &api.InitiateSwapOutRequest{}
 		err := json.Unmarshal([]byte(body), initiateSwapOutRequest)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
@@ -1115,7 +1115,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}
 		return WailsRequestRouterResponse{Body: swapOutResponse, Error: ""}
 	case "POST /api/swaps/in":
-		initiateSwapInRequest := &api.InitiateSwapRequest{}
+		initiateSwapInRequest := &api.InitiateSwapInRequest{}
 		err := json.Unmarshal([]byte(body), initiateSwapInRequest)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
