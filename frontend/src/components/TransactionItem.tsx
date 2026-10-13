@@ -64,6 +64,8 @@ function TransactionItem({ tx, transactionListKey }: Props) {
   const { data: app } = useApp(tx.appId);
   const swapId = tx.metadata?.swap_id;
   const { data: swap } = useSwap(swapId);
+  const swapAddress =
+    swap?.type === "out" ? swap.destinationAddress : swap?.lockupAddress;
   const [showDetails, setShowDetails] = React.useState(false);
   const labels = tx.metadata?.user_labels ?? {};
   const labelEntries = Object.entries(labels);
@@ -81,7 +83,7 @@ function TransactionItem({ tx, transactionListKey }: Props) {
         : npub
           ? `zap from ${npub.substring(0, 12)}...`
           : swap
-            ? `swap from ${swap.lockupAddress}`
+            ? "via swap"
             : undefined
       : undefined;
 
@@ -91,7 +93,7 @@ function TransactionItem({ tx, transactionListKey }: Props) {
       ? npub
         ? `zap to ${npub.substring(0, 12)}...`
         : swap?.type === "out"
-          ? `swap to ${swap.destinationAddress}`
+          ? "via swap"
           : recipientIdentifier
             ? `${tx.state === "failed" ? "payment " : ""}to ${recipientIdentifier}`
             : undefined
@@ -268,7 +270,17 @@ function TransactionItem({ tx, transactionListKey }: Props) {
               </Link>
             </TransactionDetailRow>
           )}
-          {to && <TransactionDetailRow label="To">{to}</TransactionDetailRow>}
+          {swapAddress && (
+            <TransactionDetailRow
+              label="Bitcoin Address"
+              copyable={swapAddress}
+            >
+              {swapAddress}
+            </TransactionDetailRow>
+          )}
+          {to && swap?.type !== "out" && (
+            <TransactionDetailRow label="To">{to}</TransactionDetailRow>
+          )}
           {payerName && (
             <TransactionDetailRow label="From">
               {payerName}
