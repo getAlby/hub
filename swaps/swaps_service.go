@@ -305,6 +305,7 @@ func (svc *swapsService) SwapOut(amountSat uint64, destination string, autoSwap,
 		AutoSwap:           autoSwap,
 		UsedXpub:           usedXpubDerivation,
 		ReceiveAmountSat:   amountSat,
+		ApiUrl:             svc.boltzApi.URL,
 	}
 
 	var ourKeys *btcec.PrivateKey
@@ -475,6 +476,7 @@ func (svc *swapsService) SwapIn(amountSat uint64, autoSwap bool, internalPayment
 		Invoice:     invoice.PaymentRequest,
 		PaymentHash: invoice.PaymentHash,
 		AutoSwap:    autoSwap,
+		ApiUrl:      svc.boltzApi.URL,
 	}
 
 	var ourKeys *btcec.PrivateKey
@@ -630,6 +632,16 @@ func (svc *swapsService) GetSwapInInfo() (*SwapInfo, error) {
 	}, nil
 }
 
+// checkSwapApiUrl ensures a swap is only processed by the swap API it was
+// created with. Swaps created with a different API can be processed by
+// running with BOLTZ_API set to that API.
+func (svc *swapsService) checkSwapApiUrl(swap *db.Swap) error {
+	if swap.ApiUrl != svc.boltzApi.URL {
+		return fmt.Errorf("swap was created with swap API %s but the current swap API is %s, set BOLTZ_API=%s to process it", swap.ApiUrl, svc.boltzApi.URL, swap.ApiUrl)
+	}
+	return nil
+}
+
 func (svc *swapsService) markSwapState(dbSwap *db.Swap, state string) {
 	if svc.db.Limit(1).Find(dbSwap, &db.Swap{
 		SwapId: dbSwap.SwapId,
@@ -668,6 +680,10 @@ func (svc *swapsService) RefundSwap(swapId, address string, enableRetries bool) 
 
 	if swap.ClaimTxId != "" {
 		return fmt.Errorf("refund already processed with claim txid: %s", swap.ClaimTxId)
+	}
+
+	if err := svc.checkSwapApiUrl(&swap); err != nil {
+		return err
 	}
 
 	network, err := boltz.ParseChain(svc.cfg.GetNetwork())
@@ -909,6 +925,11 @@ func (svc *swapsService) subscribePendingSwaps() {
 	}
 
 	for _, swap := range swaps {
+		if err := svc.checkSwapApiUrl(&swap); err != nil {
+			logger.Logger.WithField("swapId", swap.SwapId).WithError(err).Error("Skipping pending swap")
+			continue
+		}
+
 		switch swap.Type {
 		case constants.SWAP_TYPE_IN:
 			go svc.startSwapInListener(&swap)

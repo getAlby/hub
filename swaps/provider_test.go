@@ -3,7 +3,9 @@ package swaps
 import (
 	"testing"
 
+	"github.com/BoltzExchange/boltz-client/v2/pkg/boltz"
 	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/db"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -45,4 +47,13 @@ func TestSwapProviderAPIURL(t *testing.T) {
 			assert.Equal(t, tt.expected, swapProviderAPIURL(tt.provider, cfg))
 		})
 	}
+}
+
+func TestCheckSwapApiUrl(t *testing.T) {
+	svc := &swapsService{boltzApi: &boltz.Api{URL: "https://api.satsrouting.exchange"}}
+
+	assert.NoError(t, svc.checkSwapApiUrl(&db.Swap{ApiUrl: "https://api.satsrouting.exchange"}))
+
+	err := svc.checkSwapApiUrl(&db.Swap{ApiUrl: "https://api.boltz.exchange"})
+	assert.EqualError(t, err, "swap was created with swap API https://api.boltz.exchange but the current swap API is https://api.satsrouting.exchange, set BOLTZ_API=https://api.boltz.exchange to process it")
 }
