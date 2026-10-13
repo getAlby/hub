@@ -964,14 +964,11 @@ func (svc *swapsService) startSwapInListener(swap *db.Swap) {
 	svc.swapListeners[swap.SwapId] = updateCh
 	svc.swapListenersLock.Unlock()
 
-	for {
-		err := svc.boltzWs.Subscribe([]string{swap.SwapId})
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to subscribe to boltz websocket, retrying in 2s...")
-			time.Sleep(2 * time.Second)
-			continue
-		}
-		break
+	if err := svc.subscribeToSwapUpdates(swap.SwapId); err != nil {
+		svc.swapListenersLock.Lock()
+		delete(svc.swapListeners, swap.SwapId)
+		svc.swapListenersLock.Unlock()
+		return
 	}
 
 	logger.Logger.WithField("swapId", swap.SwapId).Info("Subscribed to boltz websocket")
@@ -1132,14 +1129,11 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 	svc.swapListeners[swap.SwapId] = updateCh
 	svc.swapListenersLock.Unlock()
 
-	for {
-		err := svc.boltzWs.Subscribe([]string{swap.SwapId})
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to subscribe to boltz websocket, retrying in 2s...")
-			time.Sleep(2 * time.Second)
-			continue
-		}
-		break
+	if err := svc.subscribeToSwapUpdates(swap.SwapId); err != nil {
+		svc.swapListenersLock.Lock()
+		delete(svc.swapListeners, swap.SwapId)
+		svc.swapListenersLock.Unlock()
+		return
 	}
 
 	logger.Logger.WithField("swapId", swap.SwapId).Info("Subscribed to boltz websocket")
@@ -1450,6 +1444,30 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 				return
 			}
 		}
+	}
+}
+
+// subscribeToSwapUpdates subscribes to updates for a swap, retrying with
+// backoff until it succeeds or the swaps service is stopped
+func (svc *swapsService) subscribeToSwapUpdates(swapId string) error {
+	retryDelay := 2 * time.Second
+	for {
+		err := svc.boltzWs.Subscribe([]string{swapId})
+		if err == nil {
+			return nil
+		}
+
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"swapId":     swapId,
+			"retryDelay": retryDelay,
+		}).Error("Failed to subscribe to boltz websocket, retrying...")
+
+		select {
+		case <-svc.ctx.Done():
+			return svc.ctx.Err()
+		case <-time.After(retryDelay):
+		}
+		retryDelay = min(retryDelay*2, 5*time.Minute)
 	}
 }
 
