@@ -37,7 +37,13 @@ export function MigrateNode() {
       setLoading(true);
 
       if (_isHttpMode) {
-        const response = await fetch("/api/backup", {
+        // native fetch because request() parses the response as JSON, but this
+        // returns a binary file. The base path must be added manually.
+        let backupUrl = "/api/backup";
+        if (import.meta.env.BASE_URL !== "/") {
+          backupUrl = import.meta.env.BASE_URL + backupUrl;
+        }
+        const response = await fetch(backupUrl, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

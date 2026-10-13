@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { AnchorReserveAlert } from "src/components/AnchorReserveAlert";
 import AppHeader from "src/components/AppHeader";
 import { CurrencyInputField } from "src/components/CurrencyInputField";
+import { FeeRateField } from "src/components/FeeRateField";
 import { FixedFloatButton } from "src/components/FixedFloatButton";
 import { FixedFloatSwapInFlow } from "src/components/FixedFloatSwapInFlow";
 import Loading from "src/components/Loading";
@@ -33,7 +34,8 @@ import { useInfo } from "src/hooks/useInfo";
 import { useSwapInfo } from "src/hooks/useSwaps";
 import {
   CreateInvoiceRequest,
-  InitiateSwapRequest,
+  InitiateSwapInRequest,
+  InitiateSwapOutRequest,
   SwapResponse,
   Transaction,
 } from "src/types";
@@ -98,6 +100,7 @@ function SwapInForm() {
   const navigate = useNavigate();
 
   const [swapAmountSat, setSwapAmountSat] = useState("");
+  const [feeRate, setFeeRate] = useState("");
   const [loading, setLoading] = useState(false);
   const [cryptoTransaction, setCryptoTransaction] =
     useState<Transaction | null>(null);
@@ -129,8 +132,18 @@ function SwapInForm() {
         return;
       }
 
-      const payload: InitiateSwapRequest = {
+      if (swapFrom === "internal" && !feeRate) {
+        throw new Error("No fee rate set");
+      }
+
+      const payload: InitiateSwapInRequest = {
         swapAmountSat: parseInt(swapAmountSat),
+        ...(swapFrom === "internal"
+          ? {
+              internalPayment: true,
+              feeRate: +feeRate,
+            }
+          : {}),
       };
       const swapInResponse = await request<SwapResponse>("/api/swaps/in", {
         method: "POST",
@@ -143,7 +156,9 @@ function SwapInForm() {
         throw new Error("Error swapping in");
       }
       navigate(
-        `/wallet/swap/in/status/${swapInResponse.swapId}${swapFrom === "internal" ? "?internal=true" : ""}`
+        `/wallet/swap/in/status/${swapInResponse.swapId}${
+          swapFrom === "internal" ? "?internal=true" : ""
+        }`
       );
       toast("Initiated swap");
     } catch (error) {
@@ -289,12 +304,17 @@ function SwapInForm() {
         />
       ) : (
         <>
-          <div className="flex items-center justify-between border-t pt-4">
-            <Label>Fee</Label>
-            <p className="text-muted-foreground text-sm">
-              {swapInfo.albyServiceFee + swapInfo.boltzServiceFee}% + on-chain
-              fees
-            </p>
+          <div className="flex flex-col pt-4 gap-4 border-t">
+            {isInternalSwap && (
+              <FeeRateField feeRate={feeRate} onFeeRateChange={setFeeRate} />
+            )}
+            <div className="flex items-center justify-between">
+              <Label>{isInternalSwap ? "Swap Fee" : "Fee"}</Label>
+              <p className="text-muted-foreground text-sm">
+                {swapInfo.albyServiceFee + swapInfo.boltzServiceFee}% + on-chain
+                fees
+              </p>
+            </div>
           </div>
           <div className="grid gap-2">
             <LoadingButton className="w-full" loading={loading}>
@@ -328,7 +348,7 @@ function SwapOutForm() {
 
     try {
       setLoading(true);
-      const payload: InitiateSwapRequest = {
+      const payload: InitiateSwapOutRequest = {
         swapAmountSat: parseInt(swapAmountSat),
         destination,
       };

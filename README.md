@@ -172,7 +172,7 @@ The following configuration options can be set as environment variables or in a 
 
 There is a boltz regtest fork with mempool service and alby-specific instructions [here](https://github.com/rolznz/boltz-regtest/tree/alby-hub?tab=readme-ov-file#your-first-swap)
 
-Make sure to update your RPC password below, and change your work directory each time you restart boltz (it is ephemeral):
+Make sure to update your RPC password below (`docker exec boltz-bitcoind cat /app/bitcoin/regtest/.cookie | cut -d: -f2`), and change your work directory each time you restart boltz (it is ephemeral):
 
     WORK_DIR=.data/boltz-regtest-1
     LDK_BITCOIND_RPC_HOST="127.0.0.1"
@@ -194,6 +194,15 @@ To test auto-swaps to xpub you can use sparrow wallet in regtest:
     /opt/sparrow/bin/Sparrow -n regtest
 
 Sparrow needs to be connected to regtest boltz setup Bitcoin Core RPC (127.0.0.1:18443 with user:password as `__cookie__:cookiepassword`) with an imported mnemonic and copied the tpub from the settings page
+
+#### Letting an AI agent manage the regtest environment
+
+A coding agent can start boltz regtest, write the `.env` above and run the hub, so you only need to use the UI and ask for things like "send 1M sats to bcrt1...", "give me the LND-1 pubkey", "pay 101251 sats to bcrt1... from an external wallet" or "mine a block". This works well in a sandbox environment that supports docker (e.g. a full VM, not an LXC container) with ~32GB of free disk space for the docker images. The agent should:
+
+- Use a fresh git worktree for the branch being tested, so it starts without an existing `.env` or `.data` directory
+- Run the scripts container helpers non-interactively (the `aliases.sh` helpers use `docker exec -it`, which needs a TTY): `docker exec boltz-scripts bash -c 'source /etc/profile.d/utils.sh && bitcoin-cli-sim-client -generate 1'`
+- Use `lncli-sim 1 getinfo` for the LND-1 pubkey, as it changes on every restart (connect via `<pubkey>@127.0.0.1:29735`)
+- Follow swap progress in the hub logs (`Lockup transaction found in mempool`, `Swap succeeded`)
 
 ### Migrating the database (Sqlite <-> Postgres)
 

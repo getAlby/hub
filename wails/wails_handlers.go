@@ -29,13 +29,13 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 
 	// the grouping is done to avoid other parameters like &unused=true
 	albyCallbackRegex := regexp.MustCompile(
-		`/api/alby/callback\?code=([^&]+)(&.*)?`,
+		`^/api/alby/callback\?code=([^&]+)(&.*)?$`,
 	)
 
 	authCodeMatch := albyCallbackRegex.FindStringSubmatch(route)
 
 	switch {
-	case len(authCodeMatch) > 1:
+	case len(authCodeMatch) > 1 && method == "GET":
 		code := authCodeMatch[1]
 
 		err := app.svc.GetAlbyOAuthSvc().CallbackHandler(ctx, code)
@@ -50,7 +50,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	}
 
 	appv2Regex := regexp.MustCompile(
-		`/api/v2/apps/([0-9a-f]+)`,
+		`^/api/v2/apps/([0-9a-f]+)$`,
 	)
 
 	appv2Match := appv2Regex.FindStringSubmatch(route)
@@ -80,7 +80,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	}
 
 	appRegex := regexp.MustCompile(
-		`/api/apps/([0-9a-f]+)`,
+		`^/api/apps/([0-9a-f]+)$`,
 	)
 
 	appMatch := appRegex.FindStringSubmatch(route)
@@ -125,7 +125,10 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	}
 
 	// list apps
-	if strings.HasPrefix(route, "/api/apps") && method == "GET" {
+	listAppsRegex := regexp.MustCompile(
+		`^/api/apps(\?.*)?$`,
+	)
+	if listAppsRegex.MatchString(route) && method == "GET" {
 		limit := uint64(0)
 		offset := uint64(0)
 		var filtersJSON string
@@ -170,7 +173,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	}
 
 	peerChannelRegex := regexp.MustCompile(
-		`/api/peers/([^/]+)/channels/([^/]+)`,
+		`^/api/peers/([^/]+)/channels/([^/]+)$`,
 	)
 
 	peerChannelMatch := peerChannelRegex.FindStringSubmatch(route)
@@ -217,7 +220,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	}
 
 	peerRegex := regexp.MustCompile(
-		`/api/peers/([^/]+)`,
+		`^/api/peers/([^/]+)$`,
 	)
 
 	peerMatch := peerRegex.FindStringSubmatch(route)
@@ -236,13 +239,13 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	}
 
 	networkGraphRegex := regexp.MustCompile(
-		`/api/node/network-graph\?nodeIds=(.+)`,
+		`^/api/node/network-graph\?nodeIds=(.+)$`,
 	)
 
 	networkGraphMatch := networkGraphRegex.FindStringSubmatch(route)
 
 	switch {
-	case len(networkGraphMatch) == 2:
+	case len(networkGraphMatch) == 2 && method == "GET":
 		nodeIds := networkGraphMatch[1]
 		networkGraphResponse, err := app.api.GetNetworkGraph(ctx, strings.Split(nodeIds, ","))
 		if err != nil {
@@ -252,12 +255,12 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	}
 
 	mempoolApiRegex := regexp.MustCompile(
-		`/api/mempool\?endpoint=(.+)`,
+		`^/api/mempool\?endpoint=(.+)$`,
 	)
 	mempoolApiEndpointMatch := mempoolApiRegex.FindStringSubmatch(route)
 
 	switch {
-	case len(mempoolApiEndpointMatch) > 1:
+	case len(mempoolApiEndpointMatch) > 1 && method == "GET":
 		endpoint := mempoolApiEndpointMatch[1]
 		node, err := app.api.RequestMempoolApi(ctx, endpoint)
 		if err != nil {
@@ -268,7 +271,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	}
 
 	transactionLabelRegex := regexp.MustCompile(
-		`/api/transactions/([0-9]+)/labels`,
+		`^/api/transactions/([0-9]+)/labels$`,
 	)
 	transactionLabelMatch := transactionLabelRegex.FindStringSubmatch(route)
 
@@ -298,12 +301,12 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	}
 
 	transactionRegex := regexp.MustCompile(
-		`/api/transactions/([0-9a-fA-F]+)`,
+		`^/api/transactions/([0-9a-fA-F]+)$`,
 	)
 	paymentHashMatch := transactionRegex.FindStringSubmatch(route)
 
 	switch {
-	case len(paymentHashMatch) > 1:
+	case len(paymentHashMatch) > 1 && method == "GET":
 		paymentHash := paymentHashMatch[1]
 		paymentInfo, err := app.api.LookupInvoice(ctx, paymentHash)
 		if err != nil {
@@ -314,11 +317,11 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	}
 
 	listTransactionsRegex := regexp.MustCompile(
-		`/api/transactions`,
+		`^/api/transactions(\?.*)?$`,
 	)
 
 	switch {
-	case listTransactionsRegex.MatchString(route):
+	case listTransactionsRegex.MatchString(route) && method == "GET":
 		limit := uint64(20)
 		offset := uint64(0)
 		var appId *uint
@@ -361,12 +364,12 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	}
 
 	paymentRegex := regexp.MustCompile(
-		`/api/payments/([0-9a-zA-Z]+)`,
+		`^/api/payments/([0-9a-zA-Z]+)$`,
 	)
 	invoiceMatch := paymentRegex.FindStringSubmatch(route)
 
 	switch {
-	case len(invoiceMatch) > 1:
+	case len(invoiceMatch) > 1 && method == "POST":
 		invoice := invoiceMatch[1]
 		payRequest := &api.PayInvoiceRequest{}
 		if body != "" {
@@ -388,11 +391,11 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		return WailsRequestRouterResponse{Body: paymentResponse, Error: ""}
 	}
 
-	albyRateRegex := regexp.MustCompile(`/api/alby/rates/([^/?]+)`)
+	albyRateRegex := regexp.MustCompile(`^/api/alby/rates/([^/?]+)$`)
 	albyRateMatch := albyRateRegex.FindStringSubmatch(route)
 
 	switch {
-	case len(albyRateMatch) > 1:
+	case len(albyRateMatch) > 1 && method == "GET":
 		currency := albyRateMatch[1]
 		rate, err := app.svc.GetAlbySvc().GetBitcoinRate(ctx, currency)
 		if err != nil {
@@ -406,8 +409,8 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		return WailsRequestRouterResponse{Body: rate, Error: ""}
 	}
 
-	switch route {
-	case "/api/transfers":
+	switch method + " " + route {
+	case "POST /api/transfers":
 		transferRequest := &api.TransferRequest{}
 		err := json.Unmarshal([]byte(body), transferRequest)
 		if err != nil {
@@ -428,7 +431,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
-	case "/api/alby/info":
+	case "GET /api/alby/info":
 		info, err := app.svc.GetAlbySvc().GetInfo(ctx)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
@@ -438,7 +441,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: info, Error: ""}
-	case "/api/alby/me":
+	case "GET /api/alby/me":
 		me, err := app.svc.GetAlbyOAuthSvc().GetMe(ctx)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
@@ -448,13 +451,13 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: me, Error: ""}
-	case "/api/alby/unlink-account":
+	case "POST /api/alby/unlink-account":
 		err := app.svc.GetAlbyOAuthSvc().UnlinkAccount(ctx)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
-	case "/api/alby/currencies":
+	case "GET /api/alby/currencies":
 		currencies, err := app.svc.GetAlbySvc().GetCurrencies(ctx)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
@@ -464,7 +467,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: currencies, Error: ""}
-	case "/api/alby/stories":
+	case "GET /api/alby/stories":
 		stories, err := app.api.GetStories(ctx)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
@@ -474,26 +477,23 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: stories, Error: ""}
-	case "/api/apps":
-		switch method {
-		case "POST":
-			createAppRequest := &api.CreateAppRequest{}
-			err := json.Unmarshal([]byte(body), createAppRequest)
-			if err != nil {
-				logger.Logger.WithFields(logrus.Fields{
-					"route":  route,
-					"method": method,
-				}).WithError(err).Error("Failed to decode request to wails router")
-				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-			}
-
-			createAppResponse, err := app.api.CreateApp(createAppRequest)
-			if err != nil {
-				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-			}
-			return WailsRequestRouterResponse{Body: createAppResponse, Error: ""}
+	case "POST /api/apps":
+		createAppRequest := &api.CreateAppRequest{}
+		err := json.Unmarshal([]byte(body), createAppRequest)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+			}).WithError(err).Error("Failed to decode request to wails router")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-	case "/api/reset-router":
+
+		createAppResponse, err := app.api.CreateApp(createAppRequest)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: createAppResponse, Error: ""}
+	case "POST /api/reset-router":
 		resetRouterRequest := &api.ResetRouterRequest{}
 		err := json.Unmarshal([]byte(body), resetRouterRequest)
 		if err != nil {
@@ -510,53 +510,50 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}
 		res := WailsRequestRouterResponse{Body: nil, Error: ""}
 		return res
-	case "/api/stop":
+	case "POST /api/stop":
 		err := app.api.Stop()
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		res := WailsRequestRouterResponse{Body: nil, Error: ""}
 		return res
-	case "/api/channels":
-		switch method {
-		case "GET":
-			channels, err := app.api.ListChannels(ctx)
-			if err != nil {
-				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-			}
-			res := WailsRequestRouterResponse{Body: channels, Error: ""}
-			return res
-		case "POST":
-			openChannelRequest := &api.OpenChannelRequest{}
-			err := json.Unmarshal([]byte(body), openChannelRequest)
-			if err != nil {
-				logger.Logger.WithFields(logrus.Fields{
-					"route":  route,
-					"method": method,
-				}).WithError(err).Error("Failed to decode request to wails router")
-				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-			}
-			openChannelResponse, err := app.api.OpenChannel(ctx, openChannelRequest)
-			if err != nil {
-				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-			}
-			return WailsRequestRouterResponse{Body: openChannelResponse, Error: ""}
+	case "GET /api/channels":
+		channels, err := app.api.ListChannels(ctx)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-	case "/api/channel-offer":
+		res := WailsRequestRouterResponse{Body: channels, Error: ""}
+		return res
+	case "POST /api/channels":
+		openChannelRequest := &api.OpenChannelRequest{}
+		err := json.Unmarshal([]byte(body), openChannelRequest)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+			}).WithError(err).Error("Failed to decode request to wails router")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		openChannelResponse, err := app.api.OpenChannel(ctx, openChannelRequest)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: openChannelResponse, Error: ""}
+	case "GET /api/channel-offer":
 		offer, err := app.api.GetLSPChannelOffer(ctx)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		res := WailsRequestRouterResponse{Body: offer, Error: ""}
 		return res
-	case "/api/channels/suggestions":
+	case "GET /api/channels/suggestions":
 		suggestions, err := app.api.GetChannelPeerSuggestions(ctx)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		res := WailsRequestRouterResponse{Body: suggestions, Error: ""}
 		return res
-	case "/api/channels/rebalance":
+	case "POST /api/channels/rebalance":
 		rebalanceChannelRequest := &api.RebalanceChannelRequest{}
 		err := json.Unmarshal([]byte(body), rebalanceChannelRequest)
 		if err != nil {
@@ -571,14 +568,14 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: rebalanceChannelResponse, Error: ""}
-	case "/api/balances":
+	case "GET /api/balances":
 		balancesResponse, err := app.api.GetBalances(ctx)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		res := WailsRequestRouterResponse{Body: *balancesResponse, Error: ""}
 		return res
-	case "/api/invoices":
+	case "POST /api/invoices":
 		makeInvoiceRequest := &api.MakeInvoiceRequest{}
 		err := json.Unmarshal([]byte(body), makeInvoiceRequest)
 		if err != nil {
@@ -599,22 +596,22 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}
 		res := WailsRequestRouterResponse{Body: invoice, Error: ""}
 		return res
-	case "/api/wallet/sync":
+	case "POST /api/wallet/sync":
 		app.api.SyncWallet()
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
-	case "/api/wallet/address":
+	case "GET /api/wallet/address":
 		address, err := app.api.GetUnusedOnchainAddress(ctx)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: address, Error: ""}
-	case "/api/wallet/new-address":
+	case "POST /api/wallet/new-address":
 		newAddress, err := app.api.GetNewOnchainAddress(ctx)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: newAddress, Error: ""}
-	case "/api/wallet/redeem-onchain-funds":
+	case "POST /api/wallet/redeem-onchain-funds":
 		redeemOnchainFundsRequest := &api.RedeemOnchainFundsRequest{}
 		err := json.Unmarshal([]byte(body), redeemOnchainFundsRequest)
 		if err != nil {
@@ -636,7 +633,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: *redeemOnchainFundsResponse, Error: ""}
-	case "/api/wallet/sign-message":
+	case "POST /api/wallet/sign-message":
 		signMessageRequest := &api.SignMessageRequest{}
 		err := json.Unmarshal([]byte(body), signMessageRequest)
 		if err != nil {
@@ -647,13 +644,13 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: *signMessageResponse, Error: ""}
-	case "/api/wallet/capabilities":
+	case "GET /api/wallet/capabilities":
 		capabilitiesResponse, err := app.api.GetWalletCapabilities(ctx)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: *capabilitiesResponse, Error: ""}
-	case "/api/lsp-orders":
+	case "POST /api/lsp-orders":
 		newInstantChannelRequest := &api.LSPOrderRequest{}
 		err := json.Unmarshal([]byte(body), newInstantChannelRequest)
 		if err != nil {
@@ -664,37 +661,34 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: *newInstantChannelResponse, Error: ""}
-	case "/api/peers":
-		switch method {
-		case "GET":
-			peers, err := app.api.ListPeers(ctx)
-			if err != nil {
-				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-			}
-			return WailsRequestRouterResponse{Body: peers, Error: ""}
-		case "POST":
-			connectPeerRequest := &api.ConnectPeerRequest{}
-			err := json.Unmarshal([]byte(body), connectPeerRequest)
-			if err != nil {
-				logger.Logger.WithFields(logrus.Fields{
-					"route":  route,
-					"method": method,
-				}).WithError(err).Error("Failed to decode request to wails router")
-				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-			}
-			err = app.api.ConnectPeer(ctx, connectPeerRequest)
-			if err != nil {
-				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-			}
-			return WailsRequestRouterResponse{Body: nil, Error: ""}
+	case "GET /api/peers":
+		peers, err := app.api.ListPeers(ctx)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-	case "/api/node/connection-info":
+		return WailsRequestRouterResponse{Body: peers, Error: ""}
+	case "POST /api/peers":
+		connectPeerRequest := &api.ConnectPeerRequest{}
+		err := json.Unmarshal([]byte(body), connectPeerRequest)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+			}).WithError(err).Error("Failed to decode request to wails router")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		err = app.api.ConnectPeer(ctx, connectPeerRequest)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: nil, Error: ""}
+	case "GET /api/node/connection-info":
 		nodeConnectionInfo, err := app.api.GetNodeConnectionInfo(ctx)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: *nodeConnectionInfo, Error: ""}
-	case "/api/node/status":
+	case "GET /api/node/status":
 		nodeStatus, err := app.api.GetNodeStatus(ctx)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
@@ -703,13 +697,13 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: ""}
 		}
 		return WailsRequestRouterResponse{Body: *nodeStatus, Error: ""}
-	case "/api/node/transactions":
+	case "GET /api/node/transactions":
 		transactions, err := app.api.ListOnchainTransactions(ctx)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: transactions, Error: ""}
-	case "/api/info":
+	case "GET /api/info":
 		infoResponse, err := app.api.GetInfo(ctx)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
@@ -717,7 +711,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		infoResponse.Unlocked = infoResponse.Running
 		res := WailsRequestRouterResponse{Body: *infoResponse, Error: ""}
 		return res
-	case "/api/node/migrate-storage":
+	case "POST /api/node/migrate-storage":
 		migrateNodeStorageRequest := &api.MigrateNodeStorageRequest{}
 		err := json.Unmarshal([]byte(body), migrateNodeStorageRequest)
 		if err != nil {
@@ -732,7 +726,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
-	case "/api/alby/auto-channel":
+	case "POST /api/alby/auto-channel":
 		newAutoChannelRequest := &alby.AutoChannelRequest{}
 		err := json.Unmarshal([]byte(body), newAutoChannelRequest)
 		if err != nil {
@@ -748,7 +742,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}
 		return WailsRequestRouterResponse{Body: *autoChannelResponse, Error: ""}
 
-	case "/api/alby/link-account":
+	case "POST /api/alby/link-account":
 		linkAccountRequest := &alby.AlbyLinkAccountRequest{}
 		err := json.Unmarshal([]byte(body), linkAccountRequest)
 		if err != nil {
@@ -764,7 +758,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}
 		res := WailsRequestRouterResponse{Error: ""}
 		return res
-	case "/api/mnemonic":
+	case "POST /api/mnemonic":
 		mnemonicRequest := &api.MnemonicRequest{}
 		err := json.Unmarshal([]byte(body), mnemonicRequest)
 		if err != nil {
@@ -784,7 +778,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}
 		res := WailsRequestRouterResponse{Body: *mnemonicResponse, Error: ""}
 		return res
-	case "/api/backup-reminder":
+	case "PATCH /api/backup-reminder":
 		backupReminderRequest := &api.BackupReminderRequest{}
 		err := json.Unmarshal([]byte(body), backupReminderRequest)
 		if err != nil {
@@ -804,7 +798,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
-	case "/api/unlock-password":
+	case "PATCH /api/unlock-password":
 		changeUnlockPasswordRequest := &api.ChangeUnlockPasswordRequest{}
 		err := json.Unmarshal([]byte(body), changeUnlockPasswordRequest)
 		if err != nil {
@@ -824,7 +818,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
-	case "/api/settings":
+	case "PATCH /api/settings":
 		updateSettingsRequest := &api.UpdateSettingsRequest{}
 		err := json.Unmarshal([]byte(body), updateSettingsRequest)
 		if err != nil {
@@ -844,7 +838,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
-	case "/api/auto-unlock":
+	case "PATCH /api/auto-unlock":
 		autoUnlockRequest := &api.AutoUnlockRequest{}
 		err := json.Unmarshal([]byte(body), autoUnlockRequest)
 		if err != nil {
@@ -864,7 +858,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
-	case "/api/start":
+	case "POST /api/start":
 		startRequest := &api.StartRequest{}
 		err := json.Unmarshal([]byte(body), startRequest)
 		if err != nil {
@@ -878,7 +872,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		go app.api.Start(startRequest)
 
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
-	case "/api/setup":
+	case "POST /api/setup":
 		setupRequest := &api.SetupRequest{}
 		err := json.Unmarshal([]byte(body), setupRequest)
 		if err != nil {
@@ -897,7 +891,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
-	case "/api/backup":
+	case "POST /api/backup":
 		backupRequest := &api.BasicBackupRequest{}
 		err := json.Unmarshal([]byte(body), backupRequest)
 		if err != nil {
@@ -941,7 +935,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
-	case "/api/restore":
+	case "POST /api/restore":
 		restoreRequest := &api.BasicRestoreWailsRequest{}
 		err := json.Unmarshal([]byte(body), restoreRequest)
 		if err != nil {
@@ -984,7 +978,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
-	case "/api/health":
+	case "GET /api/health":
 		nodeHealth, err := app.api.Health(ctx)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
@@ -994,7 +988,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: *nodeHealth, Error: ""}
-	case "/api/offers":
+	case "POST /api/offers":
 		makeOfferRequest := &api.MakeOfferRequest{}
 		err := json.Unmarshal([]byte(body), makeOfferRequest)
 		if err != nil {
@@ -1013,7 +1007,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: offer, Error: ""}
-	case "/api/commands":
+	case "GET /api/commands":
 		nodeCommandsResponse, err := app.api.GetCustomNodeCommands()
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
@@ -1023,7 +1017,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nodeCommandsResponse, Error: ""}
-	case "/api/command":
+	case "POST /api/command":
 		commandRequest := &api.ExecuteCustomNodeCommandRequest{}
 		err := json.Unmarshal([]byte(body), commandRequest)
 		if err != nil {
@@ -1042,49 +1036,46 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: commandResponse, Error: ""}
-	case "/api/autoswap":
-		switch method {
-		case "GET":
-			autoSwapsConfig, err := app.api.GetAutoSwapConfig()
-			if err != nil {
-				logger.Logger.WithFields(logrus.Fields{
-					"route":  route,
-					"method": method,
-				}).WithError(err).Error("Failed to get auto swap configuration")
-				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-			}
-			return WailsRequestRouterResponse{Body: autoSwapsConfig, Error: ""}
-		case "POST":
-			enableAutoSwapRequest := &api.EnableAutoSwapRequest{}
-			err := json.Unmarshal([]byte(body), enableAutoSwapRequest)
-			if err != nil {
-				logger.Logger.WithFields(logrus.Fields{
-					"route":  route,
-					"method": method,
-				}).WithError(err).Error("Failed to decode request to wails router")
-				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-			}
-			err = app.api.EnableAutoSwapOut(ctx, enableAutoSwapRequest)
-			if err != nil {
-				logger.Logger.WithFields(logrus.Fields{
-					"route":  route,
-					"method": method,
-				}).WithError(err).Error("Failed to enable auto swap")
-				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-			}
-			return WailsRequestRouterResponse{Body: nil, Error: ""}
-		case "DELETE":
-			err := app.api.DisableAutoSwap()
-			if err != nil {
-				logger.Logger.WithFields(logrus.Fields{
-					"route":  route,
-					"method": method,
-				}).WithError(err).Error("Failed to disable auto swap")
-				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-			}
-			return WailsRequestRouterResponse{Body: nil, Error: ""}
+	case "GET /api/autoswap":
+		autoSwapsConfig, err := app.api.GetAutoSwapConfig()
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+			}).WithError(err).Error("Failed to get auto swap configuration")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-	case "/api/swaps/out/info":
+		return WailsRequestRouterResponse{Body: autoSwapsConfig, Error: ""}
+	case "POST /api/autoswap":
+		enableAutoSwapRequest := &api.EnableAutoSwapRequest{}
+		err := json.Unmarshal([]byte(body), enableAutoSwapRequest)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+			}).WithError(err).Error("Failed to decode request to wails router")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		err = app.api.EnableAutoSwapOut(ctx, enableAutoSwapRequest)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+			}).WithError(err).Error("Failed to enable auto swap")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: nil, Error: ""}
+	case "DELETE /api/autoswap":
+		err := app.api.DisableAutoSwap()
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+			}).WithError(err).Error("Failed to disable auto swap")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: nil, Error: ""}
+	case "GET /api/swaps/out/info":
 		swapOutInfo, err := app.api.GetSwapOutInfo()
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
@@ -1094,7 +1085,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: swapOutInfo, Error: ""}
-	case "/api/swaps/in/info":
+	case "GET /api/swaps/in/info":
 		swapInInfo, err := app.api.GetSwapInInfo()
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
@@ -1104,8 +1095,8 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: swapInInfo, Error: ""}
-	case "/api/swaps/out":
-		initiateSwapOutRequest := &api.InitiateSwapRequest{}
+	case "POST /api/swaps/out":
+		initiateSwapOutRequest := &api.InitiateSwapOutRequest{}
 		err := json.Unmarshal([]byte(body), initiateSwapOutRequest)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
@@ -1123,8 +1114,8 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: swapOutResponse, Error: ""}
-	case "/api/swaps/in":
-		initiateSwapInRequest := &api.InitiateSwapRequest{}
+	case "POST /api/swaps/in":
+		initiateSwapInRequest := &api.InitiateSwapInRequest{}
 		err := json.Unmarshal([]byte(body), initiateSwapInRequest)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
@@ -1142,7 +1133,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: swapInResponse, Error: ""}
-	case "/api/swaps/refund":
+	case "POST /api/swaps/refund":
 		refundSwapRequest := &api.RefundSwapRequest{}
 		err := json.Unmarshal([]byte(body), refundSwapRequest)
 		if err != nil {
@@ -1161,10 +1152,10 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
-	case "/api/swaps/mnemonic":
+	case "GET /api/swaps/mnemonic":
 		mnemonic := app.api.GetSwapMnemonic()
 		return WailsRequestRouterResponse{Body: mnemonic, Error: ""}
-	case "/api/node/alias":
+	case "POST /api/node/alias":
 		setNodeAliasRequest := &api.SetNodeAliasRequest{}
 		err := json.Unmarshal([]byte(body), setNodeAliasRequest)
 		if err != nil {
@@ -1184,43 +1175,37 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
-	case "/api/event":
-		switch method {
-		case "POST":
-			sendEventRequest := &api.SendEventRequest{}
-			err := json.Unmarshal([]byte(body), sendEventRequest)
-			if err != nil {
-				logger.Logger.WithFields(logrus.Fields{
-					"route":  route,
-					"method": method,
-				}).WithError(err).Error("Failed to send event")
-				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-			}
-
-			app.api.SendEvent(sendEventRequest.Event, sendEventRequest.Properties)
-
-			return WailsRequestRouterResponse{Body: nil, Error: ""}
+	case "POST /api/event":
+		sendEventRequest := &api.SendEventRequest{}
+		err := json.Unmarshal([]byte(body), sendEventRequest)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+			}).WithError(err).Error("Failed to send event")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-	case "/api/lightning-addresses":
-		switch method {
-		case "POST":
-			createLightningAddressRequest := &api.CreateLightningAddressRequest{}
-			err := json.Unmarshal([]byte(body), createLightningAddressRequest)
-			if err != nil {
-				logger.Logger.WithFields(logrus.Fields{
-					"route":  route,
-					"method": method,
-				}).WithError(err).Error("Failed to decode request to wails router")
-				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-			}
 
-			err = app.api.CreateLightningAddress(ctx, createLightningAddressRequest)
-			if err != nil {
-				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-			}
-			return WailsRequestRouterResponse{Body: nil, Error: ""}
+		app.api.SendEvent(sendEventRequest.Event, sendEventRequest.Properties)
+
+		return WailsRequestRouterResponse{Body: nil, Error: ""}
+	case "POST /api/lightning-addresses":
+		createLightningAddressRequest := &api.CreateLightningAddressRequest{}
+		err := json.Unmarshal([]byte(body), createLightningAddressRequest)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+			}).WithError(err).Error("Failed to decode request to wails router")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-	case "/api/forwards":
+
+		err = app.api.CreateLightningAddress(ctx, createLightningAddressRequest)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: nil, Error: ""}
+	case "GET /api/forwards":
 		forwards, err := app.api.GetForwards()
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
@@ -1229,7 +1214,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	}
 
 	lightningAddressRegex := regexp.MustCompile(
-		`/api/lightning-addresses/([^/]+)`,
+		`^/api/lightning-addresses/([^/]+)$`,
 	)
 	lightningAddressMatch := lightningAddressRegex.FindStringSubmatch(route)
 
@@ -1254,12 +1239,12 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	// Swap lookup and listing is shifted to the bottom so it
 	// doesn't interfere with other swap endpoints
 	swapRegex := regexp.MustCompile(
-		`/api/swaps/([0-9a-zA-Z]+)`,
+		`^/api/swaps/([0-9a-zA-Z]+)$`,
 	)
 	swapIdMatch := swapRegex.FindStringSubmatch(route)
 
 	switch {
-	case len(swapIdMatch) > 1:
+	case len(swapIdMatch) > 1 && method == "GET":
 		swapId := swapIdMatch[1]
 		swapInfo, err := app.api.LookupSwap(swapId)
 		if err != nil {
@@ -1270,11 +1255,11 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	}
 
 	listSwapsRegex := regexp.MustCompile(
-		`/api/swaps`,
+		`^/api/swaps$`,
 	)
 
 	switch {
-	case listSwapsRegex.MatchString(route):
+	case listSwapsRegex.MatchString(route) && method == "GET":
 		swaps, err := app.api.ListSwaps()
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
@@ -1282,7 +1267,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		return WailsRequestRouterResponse{Body: swaps, Error: ""}
 	}
 
-	if strings.HasPrefix(route, "/api/log/") {
+	if strings.HasPrefix(route, "/api/log/") && method == "GET" {
 		logType := strings.TrimPrefix(route, "/api/log/")
 		logType = strings.Split(logType, "?")[0]
 		if logType != api.LogTypeNode && logType != api.LogTypeApp {

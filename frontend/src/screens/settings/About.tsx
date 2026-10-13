@@ -97,6 +97,16 @@ export function About() {
             </div>
           </div>
         )}
+        <div className="grid gap-2">
+          <p className="font-medium text-sm">Mempool Data Source</p>
+          <ExternalLink
+            to={info.mempoolUrl}
+            className="inline-flex items-center gap-1 underline w-fit text-muted-foreground text-sm break-all"
+          >
+            {info.mempoolUrl}
+            <ExternalLinkIcon className="size-4" />
+          </ExternalLink>
+        </div>
         {info.jitChannelsLiquiditySource && (
           <div className="grid gap-2">
             <p className="font-medium text-sm">

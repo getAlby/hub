@@ -122,7 +122,7 @@ export default function SwapOutStatus() {
                       <div className="flex items-center text-muted-foreground text-sm">
                         <CircleCheckIcon className="w-5 h-5 mr-2 text-green-600 dark:text-emerald-500" />
                         <div className="flex items-center gap-2">
-                          <p>Confirmed onchain</p>
+                          <p>Confirmed on-chain</p>
                           <ExternalLink
                             to={`${info?.mempoolUrl}/tx/${swap.claimTxId}`}
                             className="flex items-center underline text-foreground"
