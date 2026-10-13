@@ -249,6 +249,11 @@ func NewCustomNodeCommandResponseEmpty() *CustomNodeCommandResponse {
 
 var ErrUnknownCustomNodeCommand = errors.New("unknown custom node command")
 
+// ErrOnchainBroadcastUnverified is returned when an on-chain transaction was
+// handed to the backend for broadcast but could not be verified afterwards, so
+// the funds may still have been sent.
+var ErrOnchainBroadcastUnverified = errors.New("ran out of attempts to fetch broadcasted transaction")
+
 // default invoice expiry in seconds (1 day)
 const DEFAULT_INVOICE_EXPIRY = 86400
 
