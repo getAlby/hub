@@ -172,7 +172,7 @@ The following configuration options can be set as environment variables or in a 
 
 There is a boltz regtest fork with mempool service and alby-specific instructions [here](https://github.com/rolznz/boltz-regtest/tree/alby-hub?tab=readme-ov-file#your-first-swap)
 
-Make sure to update your RPC password below (`docker exec boltz-bitcoind cat /app/bitcoin/regtest/.cookie`), and change your work directory each time you restart boltz (it is ephemeral):
+Make sure to update your RPC password below (`docker exec boltz-bitcoind cat /app/bitcoin/regtest/.cookie | cut -d: -f2`), and change your work directory each time you restart boltz (it is ephemeral):
 
     WORK_DIR=.data/boltz-regtest-1
     LDK_BITCOIND_RPC_HOST="127.0.0.1"
