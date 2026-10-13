@@ -377,7 +377,6 @@ func (svc *service) startAppInternal(encryptionKey string) error {
 	err = svc.startNostr(ctx)
 	if err != nil {
 		cancelFn()
-		svc.swapsService = nil
 		return err
 	}
 
