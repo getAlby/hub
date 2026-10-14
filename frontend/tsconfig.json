@@ -7,7 +7,8 @@
     "skipLibCheck": true,
 
     "paths": {
-      "src/*": ["./src/*"]
+      "src/*": ["./src/*"],
+      "wailsjs/*": ["./wailsjs/*"]
     },
 
     /* Bundler mode */
