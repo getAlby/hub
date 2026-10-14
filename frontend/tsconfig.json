@@ -6,7 +6,10 @@
     "module": "ESNext",
     "skipLibCheck": true,
 
-    "baseUrl": ".",
+    "paths": {
+      "src/*": ["./src/*"],
+      "wailsjs/*": ["./wailsjs/*"]
+    },
 
     /* Bundler mode */
     "moduleResolution": "bundler",

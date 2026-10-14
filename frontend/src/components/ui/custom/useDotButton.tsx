@@ -1,5 +1,5 @@
 "use client";
-import type { EmblaCarouselType } from "node_modules/embla-carousel/esm/components/EmblaCarousel";
+import type { EmblaCarouselType } from "embla-carousel";
 import * as React from "react";
 import { UseDotButtonType } from "src/components/ui/custom/carousel-dots";
 
