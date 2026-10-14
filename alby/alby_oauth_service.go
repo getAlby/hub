@@ -104,7 +104,7 @@ func (svc *albyOAuthService) CallbackHandler(ctx context.Context, code string) e
 		logger.Logger.WithError(err).Error("Failed to exchange token")
 		return err
 	}
-	svc.saveToken(token)
+	svc.saveTokenWithRetries(token)
 
 	me, err := svc.GetMe(ctx)
 	if err != nil {
@@ -173,10 +173,10 @@ func (svc *albyOAuthService) IsConnected(ctx context.Context) bool {
 	return token != nil
 }
 
-func (svc *albyOAuthService) saveToken(token *oauth2.Token) {
+func (svc *albyOAuthService) saveTokenWithRetries(token *oauth2.Token) {
 	var lastErr error
 	for attempt := 0; attempt < tokenSaveAttempts; attempt++ {
-		lastErr = svc.persistToken(token)
+		lastErr = svc.saveToken(token)
 		if lastErr == nil {
 			return
 		}
@@ -185,24 +185,21 @@ func (svc *albyOAuthService) saveToken(token *oauth2.Token) {
 		}
 	}
 
-	logger.Logger.WithError(lastErr).Error("Failed to persist oauth token after retries")
+	logger.Logger.WithError(lastErr).Error("Failed to save oauth token after retries")
 }
 
-func (svc *albyOAuthService) persistToken(token *oauth2.Token) error {
+func (svc *albyOAuthService) saveToken(token *oauth2.Token) error {
 	err := svc.cfg.SetUpdate(refreshTokenKey, token.RefreshToken, "")
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to save refresh token")
-		return err
+		return fmt.Errorf("failed to save refresh token: %w", err)
 	}
 	err = svc.cfg.SetUpdate(accessTokenKey, token.AccessToken, "")
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to save access token")
-		return err
+		return fmt.Errorf("failed to save access token: %w", err)
 	}
 	err = svc.cfg.SetUpdate(accessTokenExpiryKey, strconv.FormatInt(token.Expiry.Unix(), 10), "")
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to save access token expiry")
-		return err
+		return fmt.Errorf("failed to save access token expiry: %w", err)
 	}
 	return nil
 }
@@ -261,7 +258,7 @@ func (svc *albyOAuthService) fetchUserToken(ctx context.Context) (*oauth2.Token,
 		return nil, err
 	}
 
-	svc.saveToken(newToken)
+	svc.saveTokenWithRetries(newToken)
 	return newToken, nil
 }
 

@@ -95,7 +95,7 @@ func TestSaveTokenStopsAfterBoundedRetries(t *testing.T) {
 	logger.Init("4")
 	cfg := &oauthRetryConfig{values: map[string]string{}, failedKey: accessTokenExpiryKey, failCount: tokenSaveAttempts}
 	svc := &albyOAuthService{cfg: cfg}
-	svc.saveToken(&oauth2.Token{Expiry: time.Now().Add(time.Hour)})
+	svc.saveTokenWithRetries(&oauth2.Token{Expiry: time.Now().Add(time.Hour)})
 	require.Equal(t, tokenSaveAttempts, cfg.failedWrites)
 }
 
@@ -114,7 +114,7 @@ func TestSaveTokenFailureKeepsExpiredToken(t *testing.T) {
 				failCount: tokenSaveAttempts,
 			}
 			svc := &albyOAuthService{cfg: cfg}
-			svc.saveToken(&oauth2.Token{
+			svc.saveTokenWithRetries(&oauth2.Token{
 				AccessToken:  "new-access-token",
 				RefreshToken: "new-refresh-token",
 				Expiry:       time.Now().Add(time.Hour),
