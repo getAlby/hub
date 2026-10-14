@@ -6,6 +6,7 @@ import { Badge } from "src/components/ui/badge";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useNodeDetails } from "src/hooks/useNodeDetails";
 import { backendTypeConfigs } from "src/lib/backendType";
+import { getSwapProviderName } from "src/utils/getSwapProviderName";
 
 import { useInfo } from "src/hooks/useInfo";
 
@@ -107,6 +108,14 @@ export function About() {
             <ExternalLinkIcon className="size-4" />
           </ExternalLink>
         </div>
+        {info.swapApiUrl && (
+          <div className="grid gap-2">
+            <p className="font-medium text-sm">Swap Provider</p>
+            <p className="text-muted-foreground text-sm break-all">
+              {getSwapProviderName(info.swapApiUrl)}
+            </p>
+          </div>
+        )}
         {info.jitChannelsLiquiditySource && (
           <div className="grid gap-2">
             <p className="font-medium text-sm">

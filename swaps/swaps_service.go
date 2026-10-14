@@ -19,6 +19,7 @@ import (
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/btcutil/hdkeychain"
 	"github.com/btcsuite/btcd/chaincfg"
+	"github.com/getAlby/hub/alby"
 	"github.com/getAlby/hub/chain"
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/constants"
@@ -45,6 +46,7 @@ type swapsService struct {
 	keys                     keys.Keys
 	eventPublisher           events.EventPublisher
 	transactionsService      transactions.TransactionsService
+	albySvc                  alby.AlbyService
 	boltzApi                 *boltz.Api
 	boltzWs                  *boltz.Websocket
 	swapListeners            map[string]chan boltz.SwapUpdate
@@ -66,6 +68,7 @@ type SwapsService interface {
 	GetDecryptedAutoSwapXpub() string
 	ValidateAddress(address string) error
 	ValidateXpub(xpub string) error
+	GetApiUrl() string
 }
 
 const (
@@ -86,9 +89,24 @@ type SwapResponse struct {
 }
 
 func NewSwapsService(ctx context.Context, db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublisher events.EventPublisher,
-	lnClient lnclient.LNClient, transactionsService transactions.TransactionsService, encryptionKey string) SwapsService {
+	lnClient lnclient.LNClient, transactionsService transactions.TransactionsService, albySvc alby.AlbyService, encryptionKey string) SwapsService {
+	apiURL := cfg.GetEnv().BoltzApi
+	if apiURL == "" {
+		fetchedApiURL, err := fetchSwapProviderAPIURL(ctx, albySvc, cfg)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to fetch swap provider")
+		}
+		apiURL = fetchedApiURL
+	}
+	if apiURL == "" {
+		logger.Logger.Error("Swap provider not available, swaps service not started")
+		return nil
+	}
+
+	logger.Logger.WithField("swap_api", apiURL).Info("Configured swap provider")
+
 	boltzApi := &boltz.Api{
-		URL: cfg.GetEnv().BoltzApi,
+		URL: apiURL,
 		Client: http.Client{
 			Timeout: 5 * time.Second,
 		},
@@ -102,6 +120,7 @@ func NewSwapsService(ctx context.Context, db *gorm.DB, cfg config.Config, keys k
 		keys:                keys,
 		eventPublisher:      eventPublisher,
 		transactionsService: transactionsService,
+		albySvc:             albySvc,
 		lnClient:            lnClient,
 		boltzApi:            boltzApi,
 		boltzWs:             boltzWs,
@@ -225,6 +244,10 @@ func (svc *swapsService) EnableAutoSwapOut(encryptionKey string) error {
 					"destination": actualDestination,
 				}).Info("Initiating swap")
 				_, err = svc.SwapOut(amountSat, actualDestination, true, usedXpubDerivation)
+				if errors.Is(err, ErrSwapProviderChanged) {
+					logger.Logger.WithError(err).Error("Stopping auto swap workflow")
+					return
+				}
 				if err != nil {
 					logger.Logger.WithError(err).Error("Failed to initiate swap")
 					continue
@@ -242,6 +265,10 @@ func (svc *swapsService) EnableAutoSwapOut(encryptionKey string) error {
 }
 
 func (svc *swapsService) SwapOut(amountSat uint64, destination string, autoSwap, usedXpubDerivation bool) (*SwapResponse, error) {
+	if err := svc.checkSwapProvider(); err != nil {
+		return nil, err
+	}
+
 	if destination == "" {
 		var err error
 		destination, err = svc.lnClient.GetNewOnchainAddress(svc.ctx)
@@ -294,6 +321,7 @@ func (svc *swapsService) SwapOut(amountSat uint64, destination string, autoSwap,
 		AutoSwap:           autoSwap,
 		UsedXpub:           usedXpubDerivation,
 		ReceiveAmountSat:   amountSat,
+		ApiUrl:             svc.boltzApi.URL,
 	}
 
 	var ourKeys *btcec.PrivateKey
@@ -425,6 +453,10 @@ func verifySwapOutInvoice(invoice string, expectedPaymentHash string, maxSendAmo
 }
 
 func (svc *swapsService) SwapIn(amountSat uint64, autoSwap bool, internalPayment bool, feeRate *uint64) (*SwapResponse, error) {
+	if err := svc.checkSwapProvider(); err != nil {
+		return nil, err
+	}
+
 	amountMsat := amountSat * 1000
 	invoice, err := svc.transactionsService.MakeInvoice(svc.ctx, amountMsat, "On-chain to lightning swap", "", 0, nil, svc.lnClient, nil, nil, nil)
 	if err != nil {
@@ -464,6 +496,7 @@ func (svc *swapsService) SwapIn(amountSat uint64, autoSwap bool, internalPayment
 		Invoice:     invoice.PaymentRequest,
 		PaymentHash: invoice.PaymentHash,
 		AutoSwap:    autoSwap,
+		ApiUrl:      svc.boltzApi.URL,
 	}
 
 	var ourKeys *btcec.PrivateKey
@@ -619,6 +652,16 @@ func (svc *swapsService) GetSwapInInfo() (*SwapInfo, error) {
 	}, nil
 }
 
+// checkSwapApiUrl ensures a swap is only processed by the swap API it was
+// created with. Swaps created with a different API can be processed by
+// running with BOLTZ_API set to that API.
+func (svc *swapsService) checkSwapApiUrl(swap *db.Swap) error {
+	if swap.ApiUrl != svc.boltzApi.URL {
+		return fmt.Errorf("swap was created with swap API %s but the current swap API is %s, set BOLTZ_API=%s to process it", swap.ApiUrl, svc.boltzApi.URL, swap.ApiUrl)
+	}
+	return nil
+}
+
 func (svc *swapsService) markSwapState(dbSwap *db.Swap, state string) {
 	if svc.db.Limit(1).Find(dbSwap, &db.Swap{
 		SwapId: dbSwap.SwapId,
@@ -657,6 +700,10 @@ func (svc *swapsService) RefundSwap(swapId, address string, enableRetries bool) 
 
 	if swap.ClaimTxId != "" {
 		return fmt.Errorf("refund already processed with claim txid: %s", swap.ClaimTxId)
+	}
+
+	if err := svc.checkSwapApiUrl(&swap); err != nil {
+		return err
 	}
 
 	network, err := boltz.ParseChain(svc.cfg.GetNetwork())
@@ -898,6 +945,11 @@ func (svc *swapsService) subscribePendingSwaps() {
 	}
 
 	for _, swap := range swaps {
+		if err := svc.checkSwapApiUrl(&swap); err != nil {
+			logger.Logger.WithField("swapId", swap.SwapId).WithError(err).Error("Skipping pending swap")
+			continue
+		}
+
 		switch swap.Type {
 		case constants.SWAP_TYPE_IN:
 			go svc.startSwapInListener(&swap)
@@ -913,14 +965,11 @@ func (svc *swapsService) startSwapInListener(swap *db.Swap) {
 	svc.swapListeners[swap.SwapId] = updateCh
 	svc.swapListenersLock.Unlock()
 
-	for {
-		err := svc.boltzWs.Subscribe([]string{swap.SwapId})
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to subscribe to boltz websocket, retrying in 2s...")
-			time.Sleep(2 * time.Second)
-			continue
-		}
-		break
+	if err := svc.subscribeToSwapUpdates(swap.SwapId); err != nil {
+		svc.swapListenersLock.Lock()
+		delete(svc.swapListeners, swap.SwapId)
+		svc.swapListenersLock.Unlock()
+		return
 	}
 
 	logger.Logger.WithField("swapId", swap.SwapId).Info("Subscribed to boltz websocket")
@@ -1081,14 +1130,11 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 	svc.swapListeners[swap.SwapId] = updateCh
 	svc.swapListenersLock.Unlock()
 
-	for {
-		err := svc.boltzWs.Subscribe([]string{swap.SwapId})
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to subscribe to boltz websocket, retrying in 2s...")
-			time.Sleep(2 * time.Second)
-			continue
-		}
-		break
+	if err := svc.subscribeToSwapUpdates(swap.SwapId); err != nil {
+		svc.swapListenersLock.Lock()
+		delete(svc.swapListeners, swap.SwapId)
+		svc.swapListenersLock.Unlock()
+		return
 	}
 
 	logger.Logger.WithField("swapId", swap.SwapId).Info("Subscribed to boltz websocket")
@@ -1402,6 +1448,30 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 	}
 }
 
+// subscribeToSwapUpdates subscribes to updates for a swap, retrying with
+// backoff until it succeeds or the swaps service is stopped
+func (svc *swapsService) subscribeToSwapUpdates(swapId string) error {
+	retryDelay := 2 * time.Second
+	for {
+		err := svc.boltzWs.Subscribe([]string{swapId})
+		if err == nil {
+			return nil
+		}
+
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"swapId":     swapId,
+			"retryDelay": retryDelay,
+		}).Error("Failed to subscribe to boltz websocket, retrying...")
+
+		select {
+		case <-svc.ctx.Done():
+			return svc.ctx.Err()
+		case <-time.After(retryDelay):
+		}
+		retryDelay = min(retryDelay*2, 5*time.Minute)
+	}
+}
+
 func (svc *swapsService) isTransactionConfirmed(txId string) (bool, error) {
 	transaction, err := svc.boltzApi.GetTransactionDetails(txId, boltz.CurrencyBtc)
 	if err != nil {
@@ -1572,4 +1642,8 @@ func (svc *swapsService) GetDecryptedAutoSwapXpub() string {
 	defer svc.autoSwapOutXpubLock.Unlock()
 
 	return svc.autoSwapOutDecryptedXpub
+}
+
+func (svc *swapsService) GetApiUrl() string {
+	return svc.boltzApi.URL
 }

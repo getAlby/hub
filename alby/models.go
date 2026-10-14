@@ -60,6 +60,7 @@ type AutoChannelResponse struct {
 type AlbyInfoHub struct {
 	LatestVersion      string `json:"latestVersion"`
 	LatestReleaseNotes string `json:"latestReleaseNotes"`
+	SwapProvider       string `json:"swapProvider"`
 }
 
 type AlbyInfoIncident struct {

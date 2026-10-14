@@ -9,6 +9,7 @@ import { FeeRateField } from "src/components/FeeRateField";
 import { InsufficientLightningBalanceAlert } from "src/components/InsufficientLightningBalanceAlert";
 import Loading from "src/components/Loading";
 import { MempoolAlert } from "src/components/MempoolAlert";
+import { SwapUnavailableAlert } from "src/components/SwapUnavailableAlert";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
@@ -225,7 +226,7 @@ function SwapForm({
 }) {
   const navigate = useNavigate();
   const { data: balances } = useBalances();
-  const { data: swapInfo } = useSwapInfo("out");
+  const { data: swapInfo, error: swapInfoError } = useSwapInfo("out");
 
   const [isLoading, setLoading] = React.useState(false);
 
@@ -261,6 +262,10 @@ function SwapForm({
   const { data: recommendedFees } = useMempoolApi<{
     fastestFee: number;
   }>("/v1/fees/recommended");
+
+  if (!swapInfo && swapInfoError) {
+    return <SwapUnavailableAlert />;
+  }
 
   if (!balances || !swapInfo) {
     return <Loading />;

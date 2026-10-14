@@ -243,6 +243,7 @@ type Swap struct {
 	CreatedAt          string `json:"createdAt"`
 	UpdatedAt          string `json:"updatedAt"`
 	UsedXpub           bool   `json:"usedXpub"`
+	ApiUrl             string `json:"apiUrl"`
 }
 
 type StartRequest struct {
@@ -327,6 +328,7 @@ type InfoResponse struct {
 	LdkVssUrl                     string              `json:"ldkVssUrl"`
 	VssSupported                  bool                `json:"vssSupported"`
 	DatabaseType                  string              `json:"databaseType"`
+	SwapApiUrl                    string              `json:"swapApiUrl"`
 	StartupState                  string              `json:"startupState"`
 	StartupError                  string              `json:"startupError"`
 	StartupErrorTime              time.Time           `json:"startupErrorTime"`

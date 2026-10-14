@@ -958,6 +958,7 @@ func toApiSwap(swap *swaps.Swap) *Swap {
 		CreatedAt:          swap.CreatedAt.Format(time.RFC3339),
 		UpdatedAt:          swap.UpdatedAt.Format(time.RFC3339),
 		UsedXpub:           swap.UsedXpub,
+		ApiUrl:             swap.ApiUrl,
 	}
 }
 
@@ -1538,6 +1539,9 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.VssSupported = backendType == config.LDKBackendType && api.cfg.GetEnv().LDKVssUrl != ""
 	info.LdkVssUrl = api.cfg.GetEnv().LDKVssUrl
 	info.DatabaseType = api.db.Dialector.Name()
+	if swapsService := api.svc.GetSwapsService(); swapsService != nil {
+		info.SwapApiUrl = swapsService.GetApiUrl()
+	}
 	info.SupportsBolt12 = backendType == config.LDKBackendType || backendType == config.CLNBackendType
 	info.AutoUnlockPasswordEnabled = autoUnlockPassword != ""
 	info.AutoUnlockPasswordSupported = api.cfg.GetEnv().IsDefaultClientId()

@@ -361,7 +361,7 @@ func (svc *service) startAppInternal(encryptionKey string) error {
 		return err
 	}
 
-	svc.swapsService = swaps.NewSwapsService(ctx, svc.db, svc.cfg, svc.keys, svc.eventPublisher, svc.GetLNClient(), svc.transactionsService, encryptionKey)
+	svc.swapsService = swaps.NewSwapsService(ctx, svc.db, svc.cfg, svc.keys, svc.eventPublisher, svc.GetLNClient(), svc.transactionsService, svc.albySvc, encryptionKey)
 
 	svc.publishAllAppInfoEvents()
 

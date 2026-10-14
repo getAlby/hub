@@ -1,4 +1,3 @@
-import { AlertTriangleIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -8,7 +7,7 @@ import { FixedFloatSwapInFlow } from "src/components/FixedFloatSwapInFlow";
 import Loading from "src/components/Loading";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import { MempoolAlert } from "src/components/MempoolAlert";
-import { Alert, AlertDescription } from "src/components/ui/alert";
+import { SwapUnavailableAlert } from "src/components/SwapUnavailableAlert";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
@@ -239,15 +238,7 @@ function BitcoinSwapFlow({
   swapInfoError?: unknown;
 }) {
   if (swapInfoError) {
-    return (
-      <Alert variant="warning">
-        <AlertTriangleIcon />
-        <AlertDescription>
-          Bitcoin swaps are temporarily unavailable. You can still receive from
-          another cryptocurrency.
-        </AlertDescription>
-      </Alert>
-    );
+    return <SwapUnavailableAlert />;
   }
 
   return (

@@ -164,7 +164,7 @@ The following configuration options can be set as environment variables or in a 
 - `WORK_DIR`: Directory to store NWC data files. Default: $XDG_DATA_HOME/albyhub
 - `LOG_LEVEL`: Log level for the main application. Higher is more verbose. Default: 4 (info)
 - `AUTO_UNLOCK_PASSWORD`: Provide unlock password to auto-unlock Alby Hub on startup (e.g. after a machine restart). Unlock password still be required to access the interface.
-- `BOLTZ_API`: The api which provides auto swaps functionality. Default: "https://api.boltz.exchange"
+- `BOLTZ_API`: A Boltz-compatible API which provides swaps functionality. If not set, the swap provider is chosen by Alby (mainnet only; swaps are disabled on other networks)
 - `NETWORK`: On-chain network used for the node. Default: "bitcoin"
 - `REBALANCE_SERVICE_URL`: service url for rebalancing existing channels.
 
