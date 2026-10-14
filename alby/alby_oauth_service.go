@@ -104,7 +104,10 @@ func (svc *albyOAuthService) CallbackHandler(ctx context.Context, code string) e
 		logger.Logger.WithError(err).Error("Failed to exchange token")
 		return err
 	}
-	svc.saveTokenWithRetries(token)
+	err = svc.saveTokenWithRetries(token)
+	if err != nil {
+		return err
+	}
 
 	me, err := svc.GetMe(ctx)
 	if err != nil {
@@ -173,12 +176,12 @@ func (svc *albyOAuthService) IsConnected(ctx context.Context) bool {
 	return token != nil
 }
 
-func (svc *albyOAuthService) saveTokenWithRetries(token *oauth2.Token) {
+func (svc *albyOAuthService) saveTokenWithRetries(token *oauth2.Token) error {
 	var lastErr error
 	for attempt := 0; attempt < tokenSaveAttempts; attempt++ {
 		lastErr = svc.saveToken(token)
 		if lastErr == nil {
-			return
+			return nil
 		}
 		if attempt < tokenSaveAttempts-1 {
 			time.Sleep(tokenSaveRetryDelay)
@@ -186,6 +189,7 @@ func (svc *albyOAuthService) saveTokenWithRetries(token *oauth2.Token) {
 	}
 
 	logger.Logger.WithError(lastErr).Error("Failed to save oauth token after retries")
+	return lastErr
 }
 
 func (svc *albyOAuthService) saveToken(token *oauth2.Token) error {
@@ -258,7 +262,10 @@ func (svc *albyOAuthService) fetchUserToken(ctx context.Context) (*oauth2.Token,
 		return nil, err
 	}
 
-	svc.saveTokenWithRetries(newToken)
+	err = svc.saveTokenWithRetries(newToken)
+	if err != nil {
+		return nil, err
+	}
 	return newToken, nil
 }
 

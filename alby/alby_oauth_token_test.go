@@ -128,3 +128,45 @@ func TestSaveTokenFailureKeepsExpiredToken(t *testing.T) {
 		})
 	}
 }
+
+func TestCallbackHandlerFailsWhenTokenSaveFails(t *testing.T) {
+	logger.Init("4")
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"access_token":"new-access-token","refresh_token":"new-refresh-token","token_type":"bearer","expires_in":3600}`))
+	}))
+	defer server.Close()
+	cfg := &oauthRetryConfig{values: map[string]string{}, failedKey: refreshTokenKey, failCount: tokenSaveAttempts}
+	svc := &albyOAuthService{cfg: cfg, oauthConf: &oauth2.Config{
+		ClientID: "test-client", Endpoint: oauth2.Endpoint{TokenURL: server.URL},
+	}}
+	err := svc.CallbackHandler(context.Background(), "test-code")
+	require.ErrorContains(t, err, "failed to save refresh token")
+	require.Equal(t, tokenSaveAttempts, cfg.failedWrites)
+	require.Empty(t, cfg.values[accessTokenKey])
+}
+
+func TestFetchUserTokenFailsWhenTokenSaveFails(t *testing.T) {
+	logger.Init("4")
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"access_token":"new-access-token","refresh_token":"new-refresh-token","token_type":"bearer","expires_in":3600}`))
+	}))
+	defer server.Close()
+	cfg := &oauthRetryConfig{
+		values: map[string]string{
+			accessTokenKey:       "old-access-token",
+			accessTokenExpiryKey: strconv.FormatInt(time.Now().Add(-time.Hour).Unix(), 10),
+			refreshTokenKey:      "old-refresh-token",
+		},
+		failedKey: refreshTokenKey,
+		failCount: tokenSaveAttempts,
+	}
+	svc := &albyOAuthService{cfg: cfg, oauthConf: &oauth2.Config{
+		ClientID: "test-client", Endpoint: oauth2.Endpoint{TokenURL: server.URL},
+	}}
+	token, err := svc.fetchUserToken(context.Background())
+	require.ErrorContains(t, err, "failed to save refresh token")
+	require.Nil(t, token)
+	require.Equal(t, tokenSaveAttempts, cfg.failedWrites)
+}
