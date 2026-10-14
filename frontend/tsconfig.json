@@ -6,7 +6,9 @@
     "module": "ESNext",
     "skipLibCheck": true,
 
-    "baseUrl": ".",
+    "paths": {
+      "src/*": ["./src/*"]
+    },
 
     /* Bundler mode */
     "moduleResolution": "bundler",
