@@ -419,6 +419,15 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		"duration": math.Ceil(time.Since(syncStartTime).Seconds()),
 	}).Info("LDK node synced successfully")
 
+	// Back up existing channels if there is no static channel backup on disk yet
+	// (e.g. the hub was migrated before migration files included the backups).
+	// Alby Cloud hubs are skipped: their disk is not persistent, so this would
+	// create a new backup on every restart.
+	if cfg.GetEnv().IsDefaultClientId() && needsInitialChannelBackup(staticChannelBackupDir(newpath), len(node.ListChannels())) {
+		logger.Logger.Info("No static channel backup found, backing up channels")
+		ls.backupChannels()
+	}
+
 	// setup background sync
 	go func() {
 		MIN_SYNC_INTERVAL := 1 * time.Minute
@@ -2004,8 +2013,26 @@ func (ls *LDKService) backupChannels() {
 	})
 }
 
+func staticChannelBackupDir(workdir string) string {
+	return filepath.Join(workdir, "static_channel_backups")
+}
+
+// needsInitialChannelBackup returns true if there are channels but no static
+// channel backup has been saved to disk yet.
+func needsInitialChannelBackup(backupDirectory string, channelCount int) bool {
+	if channelCount == 0 {
+		return false
+	}
+	backupFiles, err := filepath.Glob(filepath.Join(backupDirectory, "*.json"))
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to list static channel backups")
+		return false
+	}
+	return len(backupFiles) == 0
+}
+
 func (ls *LDKService) saveStaticChannelBackupToDisk(event *events.StaticChannelsBackupEvent) {
-	backupDirectory := filepath.Join(ls.workdir, "static_channel_backups")
+	backupDirectory := staticChannelBackupDir(ls.workdir)
 	err := os.MkdirAll(backupDirectory, os.ModePerm)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to make static channel backup directory")

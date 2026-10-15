@@ -1,6 +1,8 @@
 package ldk
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/getAlby/ldk-node-go/ldk_node"
@@ -200,4 +202,24 @@ func TestSanitizeChainEndpointForURLs(t *testing.T) {
 			assert.Equal(t, tt.expected, sanitizeChainEndpoint(tt.endpoint, ""))
 		})
 	}
+}
+
+func TestNeedsInitialChannelBackup(t *testing.T) {
+	t.Run("no channels", func(t *testing.T) {
+		assert.False(t, needsInitialChannelBackup(filepath.Join(t.TempDir(), "static_channel_backups"), 0))
+	})
+
+	t.Run("missing backup directory", func(t *testing.T) {
+		assert.True(t, needsInitialChannelBackup(filepath.Join(t.TempDir(), "static_channel_backups"), 1))
+	})
+
+	t.Run("empty backup directory", func(t *testing.T) {
+		assert.True(t, needsInitialChannelBackup(t.TempDir(), 1))
+	})
+
+	t.Run("existing backup", func(t *testing.T) {
+		backupDir := t.TempDir()
+		require.NoError(t, os.WriteFile(filepath.Join(backupDir, "2024-01-02T03-04-05.json"), []byte("{}"), 0600))
+		assert.False(t, needsInitialChannelBackup(backupDir, 1))
+	})
 }
