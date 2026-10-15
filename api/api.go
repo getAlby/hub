@@ -1597,11 +1597,17 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	return &info, nil
 }
 
-func (api *api) GetJitChannelsInfo(_ context.Context) (*JitChannelsInfoResponse, error) {
+func (api *api) GetJitChannelsInfo() (*JitChannelsInfoResponse, error) {
 	info := &JitChannelsInfoResponse{}
 
-	backendType, _ := api.cfg.Get("LNBackendType", "")
-	jitChannelsEnabled, _ := api.cfg.Get("JitChannelsEnabled", "")
+	backendType, err := api.cfg.Get("LNBackendType", "")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get LN backend type: %w", err)
+	}
+	jitChannelsEnabled, err := api.cfg.Get("JitChannelsEnabled", "")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get JIT channels enabled setting: %w", err)
+	}
 	if backendType != config.LDKBackendType || jitChannelsEnabled == "false" {
 		return info, nil
 	}

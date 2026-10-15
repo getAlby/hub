@@ -242,7 +242,7 @@ func (httpSvc *HttpService) infoHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) jitChannelsInfoHandler(c echo.Context) error {
-	responseBody, err := httpSvc.api.GetJitChannelsInfo(c.Request().Context())
+	responseBody, err := httpSvc.api.GetJitChannelsInfo()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: err.Error(),

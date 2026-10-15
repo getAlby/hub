@@ -51,7 +51,7 @@ type API interface {
 	SetTransactionUserLabels(ctx context.Context, id uint, labels map[string]string) error
 	RequestMempoolApi(ctx context.Context, endpoint string) (interface{}, error)
 	GetInfo(ctx context.Context) (*InfoResponse, error)
-	GetJitChannelsInfo(ctx context.Context) (*JitChannelsInfoResponse, error)
+	GetJitChannelsInfo() (*JitChannelsInfoResponse, error)
 	GetMnemonic(unlockPassword string) (*MnemonicResponse, error)
 	SetNextBackupReminder(backupReminderRequest *BackupReminderRequest) error
 	Start(startRequest *StartRequest)

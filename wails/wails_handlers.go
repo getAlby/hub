@@ -712,7 +712,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		res := WailsRequestRouterResponse{Body: *infoResponse, Error: ""}
 		return res
 	case "GET /api/jit-channels/info":
-		jitChannelsInfoResponse, err := app.api.GetJitChannelsInfo(ctx)
+		jitChannelsInfoResponse, err := app.api.GetJitChannelsInfo()
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
