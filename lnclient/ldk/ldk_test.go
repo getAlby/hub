@@ -3,12 +3,15 @@ package ldk
 import (
 	"os"
 	"path/filepath"
+	"strconv"
 	"testing"
 
 	"github.com/getAlby/ldk-node-go/ldk_node"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/tests"
 )
 
@@ -205,6 +208,8 @@ func TestSanitizeChainEndpointForURLs(t *testing.T) {
 }
 
 func TestNeedsInitialChannelBackup(t *testing.T) {
+	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
+
 	t.Run("no channels", func(t *testing.T) {
 		assert.False(t, needsInitialChannelBackup(filepath.Join(t.TempDir(), "static_channel_backups"), 0))
 	})
@@ -221,5 +226,27 @@ func TestNeedsInitialChannelBackup(t *testing.T) {
 		backupDir := t.TempDir()
 		require.NoError(t, os.WriteFile(filepath.Join(backupDir, "2024-01-02T03-04-05.json"), []byte("{}"), 0600))
 		assert.False(t, needsInitialChannelBackup(backupDir, 1))
+	})
+
+	t.Run("glob characters in path", func(t *testing.T) {
+		backupDir := filepath.Join(t.TempDir(), "work[dir")
+		require.NoError(t, os.MkdirAll(backupDir, 0700))
+		assert.True(t, needsInitialChannelBackup(backupDir, 1))
+
+		require.NoError(t, os.WriteFile(filepath.Join(backupDir, "2024-01-02T03-04-05.json"), []byte("{}"), 0600))
+		assert.False(t, needsInitialChannelBackup(backupDir, 1))
+	})
+
+	t.Run("only non-backup files", func(t *testing.T) {
+		backupDir := t.TempDir()
+		require.NoError(t, os.WriteFile(filepath.Join(backupDir, "notes.txt"), []byte("x"), 0600))
+		assert.True(t, needsInitialChannelBackup(backupDir, 1))
+	})
+
+	t.Run("unreadable backup path", func(t *testing.T) {
+		// a file instead of a directory: neither missing nor listable
+		backupPath := filepath.Join(t.TempDir(), "static_channel_backups")
+		require.NoError(t, os.WriteFile(backupPath, []byte("x"), 0600))
+		assert.False(t, needsInitialChannelBackup(backupPath, 1))
 	})
 }

@@ -2023,12 +2023,20 @@ func needsInitialChannelBackup(backupDirectory string, channelCount int) bool {
 	if channelCount == 0 {
 		return false
 	}
-	backupFiles, err := filepath.Glob(filepath.Join(backupDirectory, "*.json"))
+	entries, err := os.ReadDir(backupDirectory)
+	if errors.Is(err, os.ErrNotExist) {
+		return true
+	}
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to list static channel backups")
 		return false
 	}
-	return len(backupFiles) == 0
+	for _, entry := range entries {
+		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".json") {
+			return false
+		}
+	}
+	return true
 }
 
 func (ls *LDKService) saveStaticChannelBackupToDisk(event *events.StaticChannelsBackupEvent) {
