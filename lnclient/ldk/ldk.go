@@ -60,7 +60,7 @@ type LDKService struct {
 	lsps2InfoMu                        sync.Mutex
 	lsps2InfoFetchedAt                 time.Time
 	lsps2InfoLastAttemptedAt           time.Time
-	lsps2InfoFetchInProgress           bool
+	lsps2InfoFetchDone                 chan struct{}
 	lsps2MinPaymentSizeMsat            *uint64
 	lsps2MaxPaymentSizeMsat            *uint64
 	lsps2OpeningFeeParamsMenu          []ldk_node.Lsps2OpeningFeeParams
@@ -2736,22 +2736,38 @@ func (ls *LDKService) fetchLsps2OpeningFeeParamsWith(maxCacheAge time.Duration, 
 
 	ls.lsps2InfoMu.Lock()
 	now := time.Now()
-	if (!ls.lsps2InfoFetchedAt.IsZero() && now.Sub(ls.lsps2InfoFetchedAt) < maxCacheAge) ||
-		ls.lsps2InfoFetchInProgress ||
-		(!ls.lsps2InfoLastAttemptedAt.IsZero() && now.Sub(ls.lsps2InfoLastAttemptedAt) < lsps2InfoRetryBackoff) {
+	if !ls.lsps2InfoFetchedAt.IsZero() && now.Sub(ls.lsps2InfoFetchedAt) < maxCacheAge {
 		ls.lsps2InfoMu.Unlock()
 		return
 	}
-	ls.lsps2InfoFetchInProgress = true
+	if fetchDone := ls.lsps2InfoFetchDone; fetchDone != nil {
+		// another caller is already fetching - wait for its result rather than
+		// returning a possibly empty cache
+		ls.lsps2InfoMu.Unlock()
+		<-fetchDone
+		return
+	}
+	if !ls.lsps2InfoLastAttemptedAt.IsZero() && now.Sub(ls.lsps2InfoLastAttemptedAt) < lsps2InfoRetryBackoff {
+		ls.lsps2InfoMu.Unlock()
+		return
+	}
+	fetchDone := make(chan struct{})
+	ls.lsps2InfoFetchDone = fetchDone
 	ls.lsps2InfoLastAttemptedAt = now
 	ls.lsps2InfoMu.Unlock()
+
+	defer func() {
+		ls.lsps2InfoMu.Lock()
+		ls.lsps2InfoFetchDone = nil
+		ls.lsps2InfoMu.Unlock()
+		close(fetchDone)
+	}()
 
 	menu, err := request()
 	if err != nil {
 		logger.Logger.WithError(err).Warn("Failed to fetch LSPS2 opening fee params")
 		ls.lsps2InfoMu.Lock()
 		ls.lsps2InfoLastAttemptedAt = time.Now()
-		ls.lsps2InfoFetchInProgress = false
 		ls.lsps2InfoMu.Unlock()
 		return
 	}
@@ -2778,7 +2794,6 @@ func (ls *LDKService) fetchLsps2OpeningFeeParamsWith(maxCacheAge time.Duration, 
 	ls.lsps2MaxPaymentSizeMsat = maxPaymentSizeMsat
 	ls.lsps2OpeningFeeParamsMenu = menu
 	ls.lsps2InfoFetchedAt = time.Now()
-	ls.lsps2InfoFetchInProgress = false
 	ls.lsps2InfoMu.Unlock()
 }
 

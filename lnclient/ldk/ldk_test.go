@@ -2,13 +2,16 @@ package ldk
 
 import (
 	"errors"
+	"strconv"
 	"testing"
 	"time"
 
 	"github.com/getAlby/ldk-node-go/ldk_node"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/tests"
 )
 
@@ -160,6 +163,7 @@ func TestFetchLsps2OpeningFeeParamsCachesSuccessfulResponse(t *testing.T) {
 }
 
 func TestFetchLsps2OpeningFeeParamsBacksOffAfterFailure(t *testing.T) {
+	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
 	oldMin := uint64(2_000_000)
 	oldMax := uint64(50_000_000)
 	oldMenu := []ldk_node.Lsps2OpeningFeeParams{
@@ -195,7 +199,7 @@ func TestFetchLsps2OpeningFeeParamsBacksOffAfterFailure(t *testing.T) {
 	assert.Equal(t, 2, calls)
 }
 
-func TestFetchLsps2OpeningFeeParamsDoesNotBlockConcurrentCallers(t *testing.T) {
+func TestFetchLsps2OpeningFeeParamsConcurrentCallersWaitForInFlightFetch(t *testing.T) {
 	ls := &LDKService{
 		lsps2Pubkey:  "pubkey",
 		lsps2Address: "127.0.0.1:9735",
@@ -208,7 +212,9 @@ func TestFetchLsps2OpeningFeeParamsDoesNotBlockConcurrentCallers(t *testing.T) {
 		ls.fetchLsps2OpeningFeeParamsWith(time.Hour, func() ([]ldk_node.Lsps2OpeningFeeParams, error) {
 			close(fetchStarted)
 			<-releaseFetch
-			return nil, errors.New("LSP unavailable")
+			return []ldk_node.Lsps2OpeningFeeParams{
+				makeLsps2OpeningFeeParams(10_000, 5_000, 1_000_000, 100_000_000),
+			}, nil
 		})
 	}()
 	<-fetchStarted
@@ -225,13 +231,20 @@ func TestFetchLsps2OpeningFeeParamsDoesNotBlockConcurrentCallers(t *testing.T) {
 
 	select {
 	case <-secondDone:
-	case <-time.After(time.Second):
-		t.Fatal("concurrent LSPS2 caller blocked behind the network request")
+		t.Fatal("concurrent LSPS2 caller returned before the in-flight fetch completed")
+	case <-time.After(100 * time.Millisecond):
 	}
-	assert.False(t, secondFetchCalled)
 
 	close(releaseFetch)
 	<-firstDone
+	<-secondDone
+
+	assert.False(t, secondFetchCalled)
+	min, max := ls.GetLiquiditySourceLsps2PaymentSizeRangeMsat()
+	require.NotNil(t, min)
+	require.NotNil(t, max)
+	assert.Equal(t, uint64(1_000_000), *min)
+	assert.Equal(t, uint64(100_000_000), *max)
 }
 
 func TestSanitizeChainEndpointForBitcoind(t *testing.T) {
