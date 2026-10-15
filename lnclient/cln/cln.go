@@ -1458,6 +1458,8 @@ func (c *CLNService) GetSupportedNIP47Methods() []string {
 		models.MULTI_PAY_INVOICE_METHOD,
 		models.MULTI_PAY_KEYSEND_METHOD,
 		models.SIGN_MESSAGE_METHOD,
+		models.PAY_METHOD,
+		models.RECEIVE_METHOD,
 	}
 
 	if c.holdEnabled {
