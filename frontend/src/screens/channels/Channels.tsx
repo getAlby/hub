@@ -339,7 +339,7 @@ export default function Channels() {
 
           <div
             className={cn(
-              "flex flex-col sm:flex-row flex-wrap gap-3 slashed-zero"
+              "flex flex-col sm:flex-row flex-wrap gap-4 slashed-zero"
             )}
           >
             <Card className="flex flex-1 sm:flex-2 flex-col">

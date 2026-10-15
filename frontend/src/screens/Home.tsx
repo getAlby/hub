@@ -40,7 +40,7 @@ function Home() {
         title="Home"
         contentRight={<SearchInput placeholder="Search" />}
       />
-      <div className="columns-1 lg:columns-2 gap-3 *:mb-3 *:break-inside-avoid">
+      <div className="columns-1 lg:columns-2 gap-4 *:mb-4 *:break-inside-avoid">
         <OnboardingChecklist />
         <StoriesWidget />
         <WhatsNewWidget />
@@ -60,7 +60,7 @@ function Home() {
           </CardHeader>
           {isNerd && (
             <CardContent>
-              <div className="grid gap-3">
+              <div className="grid gap-4">
                 <NodeStatusWidget />
                 <BlockHeightWidget />
                 <OnchainFeesWidget />
