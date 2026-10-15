@@ -2019,17 +2019,14 @@ func staticChannelBackupDir(workdir string) string {
 }
 
 // needsChannelBackup returns true if the latest static channel backup saved to
-// disk does not contain all ready channels (e.g. the hub was migrated before
-// migration files included the backups). Only ready channels are checked, as
-// they are backed up when they become ready.
+// disk does not contain all channels (e.g. the hub was migrated before
+// migration files included the backups).
 func (ls *LDKService) needsChannelBackup() bool {
-	readyChannelIds := []string{}
+	channelIds := []string{}
 	for _, channel := range ls.node.ListChannels() {
-		if channel.IsChannelReady {
-			readyChannelIds = append(readyChannelIds, channel.ChannelId)
-		}
+		channelIds = append(channelIds, channel.ChannelId)
 	}
-	return latestChannelBackupIsMissingChannels(staticChannelBackupDir(ls.workdir), readyChannelIds)
+	return latestChannelBackupIsMissingChannels(staticChannelBackupDir(ls.workdir), channelIds)
 }
 
 // latestChannelBackupIsMissingChannels returns true if the latest static
