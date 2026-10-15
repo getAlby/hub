@@ -259,14 +259,14 @@ export const appStoreApps: AppStoreApp[] = (
       categories: ["payment-tools"],
       extendedDescription:
         "No-KYC virtual prepaid Mastercard. Anonymous payments, Instant lightning top-ups, Apple & Google Pay ready, Load amounts from $10 to $10,000,  All cards support 3D Secure (3DS), Global usage - pay anywhere Mastercard is accepted.",
-      webLink: "http://2fiat.com/getalby",
+      webLink: "https://2fiat.com/getalby",
       installGuide: (
         <>
           <div>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
                 <ExternalLink
-                  to="http://2fiat.com/getalby"
+                  to="https://2fiat.com/getalby"
                   className="underline"
                 >
                   Sign up

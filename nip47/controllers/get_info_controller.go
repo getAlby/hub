@@ -21,6 +21,7 @@ type getInfoResponse struct {
 	BlockHash        *string     `json:"block_hash"`
 	Methods          []string    `json:"methods"`
 	Notifications    []string    `json:"notifications"`
+	Extensions       []string    `json:"extensions,omitempty"`
 	Metadata         interface{} `json:"metadata,omitempty"`
 	LightningAddress *string     `json:"lud16"`
 }
@@ -31,9 +32,11 @@ func (controller *nip47Controller) HandleGetInfoEvent(ctx context.Context, nip47
 		supportedNotifications = controller.lnClient.GetSupportedNIP47NotificationTypes()
 	}
 
+	methods := controller.permissionsService.GetPermittedMethods(app, controller.lnClient)
 	responsePayload := &getInfoResponse{
-		Methods:       controller.permissionsService.GetPermittedMethods(app, controller.lnClient),
+		Methods:       methods,
 		Notifications: supportedNotifications,
+		Extensions:    models.GetSupportedExtensions(methods, supportedNotifications),
 	}
 
 	if app != nil {

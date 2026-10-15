@@ -10,11 +10,14 @@ import { toast } from "sonner";
 import { AnchorReserveAlert } from "src/components/AnchorReserveAlert";
 import AppHeader from "src/components/AppHeader";
 import { CurrencyInputField } from "src/components/CurrencyInputField";
+import { FeeRateField } from "src/components/FeeRateField";
 import { FixedFloatButton } from "src/components/FixedFloatButton";
 import { FixedFloatSwapInFlow } from "src/components/FixedFloatSwapInFlow";
 import Loading from "src/components/Loading";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import ResponsiveLinkButton from "src/components/ResponsiveLinkButton";
+import { SwapProviderAttribution } from "src/components/SwapProviderAttribution";
+import { SwapUnavailableAlert } from "src/components/SwapUnavailableAlert";
 import { Button } from "src/components/ui/button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
@@ -32,7 +35,8 @@ import { useInfo } from "src/hooks/useInfo";
 import { useSwapInfo } from "src/hooks/useSwaps";
 import {
   CreateInvoiceRequest,
-  InitiateSwapRequest,
+  InitiateSwapInRequest,
+  InitiateSwapOutRequest,
   SwapResponse,
   Transaction,
 } from "src/types";
@@ -93,10 +97,11 @@ function SwapInForm() {
   );
   const { data: info, hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
-  const { data: swapInfo } = useSwapInfo("in");
+  const { data: swapInfo, error: swapInfoError } = useSwapInfo("in");
   const navigate = useNavigate();
 
   const [swapAmountSat, setSwapAmountSat] = useState("");
+  const [feeRate, setFeeRate] = useState("");
   const [loading, setLoading] = useState(false);
   const [cryptoTransaction, setCryptoTransaction] =
     useState<Transaction | null>(null);
@@ -128,8 +133,18 @@ function SwapInForm() {
         return;
       }
 
-      const payload: InitiateSwapRequest = {
+      if (swapFrom === "internal" && !feeRate) {
+        throw new Error("No fee rate set");
+      }
+
+      const payload: InitiateSwapInRequest = {
         swapAmountSat: parseInt(swapAmountSat),
+        ...(swapFrom === "internal"
+          ? {
+              internalPayment: true,
+              feeRate: +feeRate,
+            }
+          : {}),
       };
       const swapInResponse = await request<SwapResponse>("/api/swaps/in", {
         method: "POST",
@@ -142,7 +157,9 @@ function SwapInForm() {
         throw new Error("Error swapping in");
       }
       navigate(
-        `/wallet/swap/in/status/${swapInResponse.swapId}${swapFrom === "internal" ? "?internal=true" : ""}`
+        `/wallet/swap/in/status/${swapInResponse.swapId}${
+          swapFrom === "internal" ? "?internal=true" : ""
+        }`
       );
       toast("Initiated swap");
     } catch (error) {
@@ -154,7 +171,9 @@ function SwapInForm() {
     }
   };
 
-  if (!info || !balances || !swapInfo) {
+  // swap info is only needed for bitcoin swaps, so other cryptocurrency swaps
+  // stay available if it fails to load
+  if (!info || !balances || (!swapInfo && !swapInfoError)) {
     return <Loading />;
   }
 
@@ -192,9 +211,11 @@ function SwapInForm() {
               autoFocus
               valueSat={swapAmountSat}
               onValueSatChange={setSwapAmountSat}
-              minSat={swapFrom !== "crypto" ? swapInfo.minAmountSat : undefined}
+              minSat={
+                swapFrom !== "crypto" ? swapInfo?.minAmountSat : undefined
+              }
               maxSat={
-                swapFrom === "crypto"
+                swapFrom === "crypto" || !swapInfo
                   ? hasChannelManagement
                     ? balances.lightning.totalReceivableSat * 0.99
                     : undefined
@@ -282,25 +303,27 @@ function SwapInForm() {
             setSwapAmountSat("");
           }}
         />
+      ) : !swapInfo ? (
+        <SwapUnavailableAlert />
       ) : (
         <>
-          <div className="flex items-center justify-between border-t pt-4">
-            <Label>Fee</Label>
-            <p className="text-muted-foreground text-sm">
-              {swapInfo.albyServiceFee + swapInfo.boltzServiceFee}% + on-chain
-              fees
-            </p>
+          <div className="flex flex-col pt-4 gap-4 border-t">
+            {isInternalSwap && (
+              <FeeRateField feeRate={feeRate} onFeeRateChange={setFeeRate} />
+            )}
+            <div className="flex items-center justify-between">
+              <Label>{isInternalSwap ? "Swap Fee" : "Fee"}</Label>
+              <p className="text-muted-foreground text-sm">
+                {swapInfo.albyServiceFee + swapInfo.boltzServiceFee}% + on-chain
+                fees
+              </p>
+            </div>
           </div>
           <div className="grid gap-2">
             <LoadingButton className="w-full" loading={loading}>
               Swap In
             </LoadingButton>
-            <p className="text-xs text-muted-foreground text-center">
-              powered by{" "}
-              <span className="font-medium text-foreground">
-                boltz.exchange
-              </span>
-            </p>
+            <SwapProviderAttribution className="text-center" />
           </div>
         </>
       )}
@@ -309,7 +332,7 @@ function SwapInForm() {
 }
 
 function SwapOutForm() {
-  const { data: swapInfo } = useSwapInfo("out");
+  const { data: swapInfo, error: swapInfoError } = useSwapInfo("out");
   const navigate = useNavigate();
   const { data: balances } = useBalances();
 
@@ -323,7 +346,7 @@ function SwapOutForm() {
 
     try {
       setLoading(true);
-      const payload: InitiateSwapRequest = {
+      const payload: InitiateSwapOutRequest = {
         swapAmountSat: parseInt(swapAmountSat),
         destination,
       };
@@ -352,6 +375,10 @@ function SwapOutForm() {
     const text = await navigator.clipboard.readText();
     setDestination(text.trim());
   };
+
+  if (!swapInfo && swapInfoError) {
+    return <SwapUnavailableAlert />;
+  }
 
   if (!balances || !swapInfo) {
     return <Loading />;
@@ -456,10 +483,7 @@ function SwapOutForm() {
         <LoadingButton className="w-full" loading={loading}>
           Swap Out
         </LoadingButton>
-        <p className="text-xs text-muted-foreground text-center">
-          powered by{" "}
-          <span className="font-medium text-foreground">boltz.exchange</span>
-        </p>
+        <SwapProviderAttribution className="text-center" />
       </div>
       <Separator className="my-2" />
       <FixedFloatButton from="BTCLN" className="w-full" variant="secondary">

@@ -43,8 +43,8 @@ type TransactionsService interface {
 	SendPaymentSync(payReq string, amountMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	SendKeysend(amountMsat uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	MakeHoldInvoice(ctx context.Context, amountMsat uint64, description string, descriptionHash string, expiry uint64, paymentHash string, minCltvExpiryDelta *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
-	SettleHoldInvoice(ctx context.Context, preimage string, lnClient lnclient.LNClient) (*Transaction, error)
-	CancelHoldInvoice(ctx context.Context, paymentHash string, lnClient lnclient.LNClient) error
+	SettleHoldInvoice(ctx context.Context, preimage string, lnClient lnclient.LNClient, appId uint) (*Transaction, error)
+	CancelHoldInvoice(ctx context.Context, paymentHash string, lnClient lnclient.LNClient, appId uint) error
 	SetTransactionMetadata(ctx context.Context, id uint, metadata map[string]interface{}) error
 	SetTransactionUserLabels(ctx context.Context, id uint, labels map[string]string) error
 }
@@ -349,8 +349,15 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 
 	var dbTransaction db.Transaction
 
+	if amountMsat != nil && paymentRequest.MSatoshi != 0 {
+		if *amountMsat != uint64(paymentRequest.MSatoshi) {
+			return nil, errors.New("amount cannot be specified for an invoice that already has an amount")
+		}
+		amountMsat = nil
+	}
+
 	paymentAmountMsat := uint64(paymentRequest.MSatoshi)
-	if amountMsat != nil && paymentRequest.MSatoshi == 0 {
+	if amountMsat != nil {
 		paymentAmountMsat = *amountMsat
 	}
 
@@ -1303,7 +1310,7 @@ func (svc *transactionsService) getAppIdFromCustomRecords(customRecords []lnclie
 	return nil
 }
 
-func (svc *transactionsService) SettleHoldInvoice(ctx context.Context, preimage string, lnClient lnclient.LNClient) (*Transaction, error) {
+func (svc *transactionsService) SettleHoldInvoice(ctx context.Context, preimage string, lnClient lnclient.LNClient, appId uint) (*Transaction, error) {
 	if len(preimage) != 64 {
 		return nil, errors.New("invalid preimage format")
 	}
@@ -1320,6 +1327,7 @@ func (svc *transactionsService) SettleHoldInvoice(ctx context.Context, preimage 
 		Type:        constants.TRANSACTION_TYPE_INCOMING,
 		State:       constants.TRANSACTION_STATE_ACCEPTED,
 		PaymentHash: paymentHash,
+		AppId:       &appId,
 	})
 
 	if result.RowsAffected == 0 {
@@ -1351,13 +1359,14 @@ func (svc *transactionsService) SettleHoldInvoice(ctx context.Context, preimage 
 	return settledTransaction, nil
 }
 
-func (svc *transactionsService) CancelHoldInvoice(ctx context.Context, paymentHash string, lnClient lnclient.LNClient) error {
+func (svc *transactionsService) CancelHoldInvoice(ctx context.Context, paymentHash string, lnClient lnclient.LNClient, appId uint) error {
 
 	var dbTransaction db.Transaction
 	result := svc.db.Limit(1).Find(&dbTransaction, &db.Transaction{
 		Type:        constants.TRANSACTION_TYPE_INCOMING,
 		State:       constants.TRANSACTION_STATE_ACCEPTED,
 		PaymentHash: paymentHash,
+		AppId:       &appId,
 	})
 
 	if result.RowsAffected == 0 {

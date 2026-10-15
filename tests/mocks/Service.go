@@ -605,7 +605,7 @@ type MockService_StartApp_Call struct {
 
 // StartApp is a helper method to define mock.On call
 //   - encryptionKey string
-func (_e *MockService_Expecter) StartApp(encryptionKey interface{}) *MockService_StartApp_Call {
+func (_e *MockService_Expecter) StartApp(encryptionKey any) *MockService_StartApp_Call {
 	return &MockService_StartApp_Call{Call: _e.mock.On("StartApp", encryptionKey)}
 }
 
@@ -633,9 +633,20 @@ func (_c *MockService_StartApp_Call) RunAndReturn(run func(encryptionKey string)
 }
 
 // StopApp provides a mock function for the type MockService
-func (_mock *MockService) StopApp() {
-	_mock.Called()
-	return
+func (_mock *MockService) StopApp() error {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for StopApp")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func() error); ok {
+		r0 = returnFunc()
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
 }
 
 // MockService_StopApp_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StopApp'
@@ -655,12 +666,63 @@ func (_c *MockService_StopApp_Call) Run(run func()) *MockService_StopApp_Call {
 	return _c
 }
 
-func (_c *MockService_StopApp_Call) Return() *MockService_StopApp_Call {
-	_c.Call.Return()
+func (_c *MockService_StopApp_Call) Return(err error) *MockService_StopApp_Call {
+	_c.Call.Return(err)
 	return _c
 }
 
-func (_c *MockService_StopApp_Call) RunAndReturn(run func()) *MockService_StopApp_Call {
-	_c.Run(run)
+func (_c *MockService_StopApp_Call) RunAndReturn(run func() error) *MockService_StopApp_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// WithStartLock provides a mock function for the type MockService
+func (_mock *MockService) WithStartLock(fn func() error) error {
+	ret := _mock.Called(fn)
+
+	if len(ret) == 0 {
+		panic("no return value specified for WithStartLock")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(func() error) error); ok {
+		r0 = returnFunc(fn)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockService_WithStartLock_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'WithStartLock'
+type MockService_WithStartLock_Call struct {
+	*mock.Call
+}
+
+// WithStartLock is a helper method to define mock.On call
+//   - fn func() error
+func (_e *MockService_Expecter) WithStartLock(fn any) *MockService_WithStartLock_Call {
+	return &MockService_WithStartLock_Call{Call: _e.mock.On("WithStartLock", fn)}
+}
+
+func (_c *MockService_WithStartLock_Call) Run(run func(fn func() error)) *MockService_WithStartLock_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 func() error
+		if args[0] != nil {
+			arg0 = args[0].(func() error)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockService_WithStartLock_Call) Return(err error) *MockService_WithStartLock_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockService_WithStartLock_Call) RunAndReturn(run func(fn func() error) error) *MockService_WithStartLock_Call {
+	_c.Call.Return(run)
 	return _c
 }

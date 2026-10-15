@@ -18,7 +18,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"time"
 
@@ -133,7 +132,10 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 	responseBody.PairingSecret = pairingSecretKey
 	responseBody.WalletPubkey = *app.WalletPubkey
 	responseBody.RelayUrls = relayUrls
-	responseBody.Lud16 = lightningAddress
+	// isolated apps must not learn the owner's main lightning address
+	if !app.Isolated {
+		responseBody.Lud16 = lightningAddress
+	}
 
 	responseBody.ReturnTo = buildReturnToUrl(createAppRequest.ReturnTo, relayUrls, *app.WalletPubkey, lightningAddress, app.Isolated)
 
@@ -837,22 +839,11 @@ func (api *api) SetAutoUnlockPassword(unlockPassword string) error {
 }
 
 func (api *api) Stop() error {
-	if !startMutex.TryLock() {
-		// do not allow to stop twice in case this is somehow called twice
-		return errors.New("app is busy")
-	}
-	defer startMutex.Unlock()
-
 	logger.Logger.Info("Running Stop command")
-	if api.svc.GetLNClient() == nil {
-		return ErrLNClientNotStarted
-	}
 
 	// stop the lnclient, nostr relay etc.
 	// The user will be forced to re-enter their unlock password to restart the node
-	api.svc.StopApp()
-
-	return nil
+	return api.svc.StopApp()
 }
 
 func (api *api) GetNodeConnectionInfo(ctx context.Context) (*NodeConnectionInfo, error) {
@@ -967,6 +958,7 @@ func toApiSwap(swap *swaps.Swap) *Swap {
 		CreatedAt:          swap.CreatedAt.Format(time.RFC3339),
 		UpdatedAt:          swap.UpdatedAt.Format(time.RFC3339),
 		UsedXpub:           swap.UsedXpub,
+		ApiUrl:             swap.ApiUrl,
 	}
 }
 
@@ -1014,7 +1006,7 @@ func (api *api) GetSwapOutInfo() (*SwapInfoResponse, error) {
 	}, nil
 }
 
-func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapRequest) (*swaps.SwapResponse, error) {
+func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapOutRequest) (*swaps.SwapResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
 		return nil, ErrLNClientNotStarted
@@ -1047,7 +1039,7 @@ func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *Ini
 	return swapOutResponse, nil
 }
 
-func (api *api) InitiateSwapIn(ctx context.Context, initiateSwapInRequest *InitiateSwapRequest) (*swaps.SwapResponse, error) {
+func (api *api) InitiateSwapIn(ctx context.Context, initiateSwapInRequest *InitiateSwapInRequest) (*swaps.SwapResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
 		return nil, ErrLNClientNotStarted
@@ -1067,10 +1059,11 @@ func (api *api) InitiateSwapIn(ctx context.Context, initiateSwapInRequest *Initi
 		return nil, errors.New("invalid swap amount")
 	}
 
-	swapInResponse, err := api.svc.GetSwapsService().SwapIn(amountSat, false)
+	swapInResponse, err := api.svc.GetSwapsService().SwapIn(amountSat, false, initiateSwapInRequest.InternalPayment, initiateSwapInRequest.FeeRate)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
-			"amount_sat": amountSat,
+			"amount_sat":       amountSat,
+			"internal_payment": initiateSwapInRequest.InternalPayment,
 		}).WithError(err).Error("Failed to initiate swap in")
 		return nil, err
 	}
@@ -1322,19 +1315,13 @@ func (api *api) GetUnusedOnchainAddress(ctx context.Context) (string, error) {
 
 	if currentAddress != "" {
 		// check if address has any transactions
-		response, err := api.RequestEsploraApi(ctx, "/address/"+currentAddress+"/txs")
+		hasTransactions, err := api.addressHasTransactions(ctx, currentAddress)
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to get current address transactions")
 			return currentAddress, nil
 		}
 
-		transactions, ok := response.([]interface{})
-		if !ok {
-			logger.Logger.WithField("response", response).Error("Failed to cast esplora address txs response", response)
-			return currentAddress, nil
-		}
-
-		if len(transactions) == 0 {
+		if !hasTransactions {
 			// address has not been used yet
 			return currentAddress, nil
 		}
@@ -1552,6 +1539,9 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.VssSupported = backendType == config.LDKBackendType && api.cfg.GetEnv().LDKVssUrl != ""
 	info.LdkVssUrl = api.cfg.GetEnv().LDKVssUrl
 	info.DatabaseType = api.db.Dialector.Name()
+	if swapsService := api.svc.GetSwapsService(); swapsService != nil {
+		info.SwapApiUrl = swapsService.GetApiUrl()
+	}
 	info.SupportsBolt12 = backendType == config.LDKBackendType || backendType == config.CLNBackendType
 	info.AutoUnlockPasswordEnabled = autoUnlockPassword != ""
 	info.AutoUnlockPasswordSupported = api.cfg.GetEnv().IsDefaultClientId()
@@ -1736,11 +1726,9 @@ func (api *api) SetNextBackupReminder(backupReminderRequest *BackupReminderReque
 	return nil
 }
 
-var startMutex sync.Mutex
-
 func (api *api) Start(startRequest *StartRequest) {
 	api.startupError = nil
-	err := api.startInternal(startRequest)
+	err := api.svc.StartApp(startRequest.UnlockPassword)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to start node")
 		api.startupError = err
@@ -1748,21 +1736,14 @@ func (api *api) Start(startRequest *StartRequest) {
 	}
 }
 
-func (api *api) startInternal(startRequest *StartRequest) (err error) {
-	if !startMutex.TryLock() {
-		// do not allow to start twice in case this is somehow called twice
-		return errors.New("app is busy")
-	}
-	defer startMutex.Unlock()
-	return api.svc.StartApp(startRequest.UnlockPassword)
+func (api *api) Setup(ctx context.Context, setupRequest *SetupRequest) error {
+	// hold the start/stop lock so setup cannot run concurrently with a start
+	return api.svc.WithStartLock(func() error {
+		return api.setupInternal(ctx, setupRequest)
+	})
 }
 
-func (api *api) Setup(ctx context.Context, setupRequest *SetupRequest) error {
-	if !startMutex.TryLock() {
-		// do not allow to start twice in case this is somehow called twice
-		return errors.New("app is busy")
-	}
-	defer startMutex.Unlock()
+func (api *api) setupInternal(ctx context.Context, setupRequest *SetupRequest) error {
 	info, err := api.GetInfo(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get info")

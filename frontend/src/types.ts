@@ -161,6 +161,7 @@ export interface InfoResponse {
   ldkVssUrl: string;
   vssSupported: boolean;
   databaseType: string;
+  swapApiUrl: string;
   running: boolean;
   albyAuthUrl: string;
   nextBackupReminder: string;
@@ -249,6 +250,7 @@ export type BaseSwap = {
   invoice: string;
   autoSwap: boolean;
   usedXpub: boolean;
+  apiUrl: string;
   boltzPubkey: string;
   createdAt: string;
   updatedAt: string;
@@ -540,6 +542,7 @@ export type AlbyInfo = {
   hub: {
     latestVersion: string;
     latestReleaseNotes: string;
+    swapProvider: string;
   };
 };
 
@@ -601,9 +604,15 @@ export type AutoSwapRequest = {
   unlockPassword?: string;
 };
 
-export type InitiateSwapRequest = {
-  swapAmountSat?: number;
-  destination?: string;
+export type InitiateSwapInRequest = {
+  swapAmountSat: number;
+  internalPayment?: boolean;
+  feeRate?: number;
+};
+
+export type InitiateSwapOutRequest = {
+  swapAmountSat: number;
+  destination: string;
 };
 
 export type LSPOrderResponse = {

@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"slices"
 )
 
 const (
@@ -28,6 +29,40 @@ const (
 	CANCEL_HOLD_INVOICE_METHOD = "cancel_hold_invoice"
 	SETTLE_HOLD_INVOICE_METHOD = "settle_hold_invoice"
 )
+
+// NWC extension identifiers, see https://github.com/nostr-wallet-connect/nwc
+const (
+	NOTIFICATIONS_EXTENSION       = "02"
+	HOLD_INVOICES_EXTENSION       = "03"
+	KEYSEND_EXTENSION             = "04"
+	TRANSACTION_HISTORY_EXTENSION = "05"
+	METADATA_EXTENSION            = "06"
+)
+
+// GetSupportedExtensions returns the optional NWC extension specs supported for a
+// connection with the given permitted methods and notification types.
+func GetSupportedExtensions(methods []string, notificationTypes []string) []string {
+	extensions := []string{}
+	if len(notificationTypes) > 0 {
+		extensions = append(extensions, NOTIFICATIONS_EXTENSION)
+	}
+	if slices.Contains(methods, MAKE_HOLD_INVOICE_METHOD) &&
+		slices.Contains(methods, CANCEL_HOLD_INVOICE_METHOD) &&
+		slices.Contains(methods, SETTLE_HOLD_INVOICE_METHOD) {
+		extensions = append(extensions, HOLD_INVOICES_EXTENSION)
+	}
+	if slices.Contains(methods, PAY_KEYSEND_METHOD) || slices.Contains(methods, MULTI_PAY_KEYSEND_METHOD) {
+		extensions = append(extensions, KEYSEND_EXTENSION)
+	}
+	if slices.Contains(methods, LIST_TRANSACTIONS_METHOD) {
+		extensions = append(extensions, TRANSACTION_HISTORY_EXTENSION)
+	}
+	// NWC-06 metadata conventions are always supported: metadata is accepted by
+	// pay_invoice / make_invoice / make_hold_invoice and returned by
+	// lookup_invoice / list_transactions.
+	extensions = append(extensions, METADATA_EXTENSION)
+	return extensions
+}
 
 type Transaction struct {
 	Type            string      `json:"type"`

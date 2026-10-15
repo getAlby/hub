@@ -8,6 +8,7 @@ import { useInfo } from "src/hooks/useInfo";
 import { useJitChannelsInfo } from "src/hooks/useJitChannelsInfo";
 import { useNodeDetails } from "src/hooks/useNodeDetails";
 import { backendTypeConfigs } from "src/lib/backendType";
+import { getSwapProviderName } from "src/utils/getSwapProviderName";
 
 export function About() {
   const { data: info } = useInfo();
@@ -98,6 +99,24 @@ export function About() {
                 <p className="break-all">{info.chainDataSourceAddress}</p>
               )}
             </div>
+          </div>
+        )}
+        <div className="grid gap-2">
+          <p className="font-medium text-sm">Mempool Data Source</p>
+          <ExternalLink
+            to={info.mempoolUrl}
+            className="inline-flex items-center gap-1 underline w-fit text-muted-foreground text-sm break-all"
+          >
+            {info.mempoolUrl}
+            <ExternalLinkIcon className="size-4" />
+          </ExternalLink>
+        </div>
+        {info.swapApiUrl && (
+          <div className="grid gap-2">
+            <p className="font-medium text-sm">Swap Provider</p>
+            <p className="text-muted-foreground text-sm break-all">
+              {getSwapProviderName(info.swapApiUrl)}
+            </p>
           </div>
         )}
         {info.jitChannelsLiquiditySource && (

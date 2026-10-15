@@ -1509,7 +1509,7 @@ func (httpSvc *HttpService) getSwapInInfoHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) initiateSwapOutHandler(c echo.Context) error {
-	var initiateSwapOutRequest api.InitiateSwapRequest
+	var initiateSwapOutRequest api.InitiateSwapOutRequest
 	if err := c.Bind(&initiateSwapOutRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
@@ -1527,7 +1527,7 @@ func (httpSvc *HttpService) initiateSwapOutHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) initiateSwapInHandler(c echo.Context) error {
-	var initiateSwapInRequest api.InitiateSwapRequest
+	var initiateSwapInRequest api.InitiateSwapInRequest
 	if err := c.Bind(&initiateSwapInRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),

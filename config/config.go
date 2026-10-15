@@ -100,13 +100,13 @@ func (cfg *config) init(env *AppConfig) error {
 	}
 	// Phoenix specific to support env variables
 	if cfg.Env.PhoenixdAddress != "" {
-		err := cfg.SetIgnore("PhoenixdAddress", cfg.Env.PhoenixdAddress, "")
+		err := cfg.SetUpdate("PhoenixdAddress", cfg.Env.PhoenixdAddress, "")
 		if err != nil {
 			return err
 		}
 	}
 	if cfg.Env.PhoenixdAuthorization != "" {
-		err := cfg.SetIgnore("PhoenixdAuthorization", cfg.Env.PhoenixdAuthorization, "")
+		err := cfg.SetUpdate("PhoenixdAuthorization", cfg.Env.PhoenixdAuthorization, "")
 		if err != nil {
 			return err
 		}

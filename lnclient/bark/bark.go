@@ -4,6 +4,7 @@ package bark
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -20,6 +21,7 @@ import (
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/notifications"
+	"github.com/getAlby/hub/version"
 )
 
 const (
@@ -126,9 +128,19 @@ func NewBarkService(ctx context.Context, eventPublisher events.EventPublisher, w
 	// Usually, you have two wait 2 blocks. You can set nb_min_round_confirmations=0 to make it go faster.
 	roundTxRequiredConfirmations := uint32(0)
 
+	// Identify ourselves to the Ark server, the server rejects any client identifier that is not a
+	// strict `<name>/<version>` with a lowercase name and a non-empty version, so untagged development
+	// builds report a placeholder version.
+	hubVersion := version.Tag
+	if hubVersion == "" {
+		hubVersion = "dev"
+	}
+	userAgent := "albyhub/" + hubVersion
+
 	cfg := bark.Config{
 		ServerAddress:                config.ServerAddress,
 		RoundTxRequiredConfirmations: &roundTxRequiredConfirmations,
+		UserAgent:                    &userAgent,
 	}
 	esploraAddress := config.EsploraAddress
 	if esploraAddress != "" {
@@ -264,20 +276,25 @@ func (bs *BarkService) handleLightningReceiveMovement(movement bark.Movement) {
 		return
 	}
 
-	receive, err := bs.wallet.LightningReceiveState(paymentHash)
+	// Build the receive from the movement itself rather than looking it up with
+	// LightningReceiveState: bark finishes the movement (which emits this
+	// notification) before it writes the settled receive record, so a lookup
+	// here can race and find nothing.
+	// TODO: change back to LightningReceiveState when the race is fixed in bark.
+	receive, err := buildSettledReceiveFromMovement(paymentHash, movement)
 	if err != nil {
-		logger.Logger.WithError(err).WithField("paymentHash", paymentHash).Warn("Failed to look up claimed Bark receive")
+		logger.Logger.WithError(err).WithField("paymentHash", paymentHash).Warn("Failed to read claimed Bark receive from movement")
 		return
 	}
 
-	tx, err := bs.lightningReceiveToTransaction(&receive)
+	tx, err := bs.lightningReceiveToTransaction(receive)
 	if err != nil {
 		logger.Logger.WithError(err).WithField("paymentHash", receive.PaymentHash).Warn("Failed to convert claimed Bark receive to transaction")
 		return
 	}
 	logger.Logger.WithFields(logrus.Fields{
 		"paymentHash": receive.PaymentHash,
-		"amountSats":  receive.AmountSats,
+		"amountMsat":  tx.AmountMsat,
 	}).Info("Bark lightning receive claimed")
 	bs.eventPublisher.Publish(&events.Event{
 		Event:      "nwc_lnclient_payment_received",
@@ -380,6 +397,42 @@ func (bs *BarkService) deliverSendResult(paymentHash string, res sendResult, fal
 	if fallback != nil {
 		fallback()
 	}
+}
+
+// buildSettledReceiveFromMovement reads a settled lightning receive from a
+// successful lightning_receive movement, which carries the invoice and the
+// preimage (in its metadata).
+func buildSettledReceiveFromMovement(paymentHash string, movement bark.Movement) (*bark.LightningReceive, error) {
+	if movement.LightningInvoice == nil || *movement.LightningInvoice == "" {
+		return nil, errors.New("movement has no lightning invoice")
+	}
+
+	var metadata struct {
+		PaymentPreimage string `json:"payment_preimage"`
+	}
+	if err := json.Unmarshal([]byte(movement.MetadataJson), &metadata); err != nil {
+		return nil, fmt.Errorf("failed to parse movement metadata: %w", err)
+	}
+	if metadata.PaymentPreimage == "" {
+		return nil, errors.New("movement metadata has no payment preimage")
+	}
+
+	settledAt := time.Now().Unix()
+	if movement.CompletedAt != nil {
+		completedAt, err := time.Parse(time.RFC3339, *movement.CompletedAt)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse movement completed_at: %w", err)
+		}
+		settledAt = completedAt.Unix()
+	}
+
+	return &bark.LightningReceive{
+		PaymentHash:     paymentHash,
+		Invoice:         *movement.LightningInvoice,
+		State:           receiveStateSettled,
+		PaymentPreimage: &metadata.PaymentPreimage,
+		SettledAt:       &settledAt,
+	}, nil
 }
 
 func paymentHashFromMovement(movement bark.Movement) (string, bool) {
@@ -666,8 +719,9 @@ func (bs *BarkService) Shutdown() error {
 			logger.Logger.Warn("Timed out waiting for Bark background loops to stop")
 		}
 	}
-	if err := bs.wallet.StopDaemon(); err != nil {
-		logger.Logger.WithError(err).Warn("Bark StopDaemon failed")
+	// Make sure we wait for the wallet to stop.
+	if err := bs.wallet.StopDaemonWait(); err != nil {
+		logger.Logger.WithError(err).Warn("Bark StopDaemonWait failed")
 	}
 	bs.wallet.Destroy()
 	return nil
@@ -927,23 +981,36 @@ func (bs *BarkService) executeCommandRecoveryReport() (*lnclient.CustomNodeComma
 	// wallet open that creates the wallet locally (e.g. when restoring from a
 	// recovery phrase on a new device). It is only available in the session
 	// that created the wallet; on subsequent starts no scan runs.
-	report := bs.wallet.RecoveryReport()
-	if report == nil {
+	switch status := bs.wallet.RecoveryStatus().(type) {
+	case bark.RecoveryStatusNotRun:
 		return &lnclient.CustomNodeCommandResponse{
 			Response: map[string]interface{}{
+				"status":  "not-run",
 				"message": "No recovery scan ran on this wallet start. A scan only runs when the wallet is first created, e.g. after restoring from a recovery phrase.",
 			},
 		}, nil
+	case bark.RecoveryStatusFailed:
+		return &lnclient.CustomNodeCommandResponse{
+			Response: map[string]interface{}{
+				"status":  "failed",
+				"message": "The recovery scan failed before it could produce a report, so some funds may not have been recovered yet. Restart the wallet to retry the scan.",
+				"error":   status.Message,
+			},
+		}, nil
+	case bark.RecoveryStatusCompleted:
+		report := status.Report
+		return &lnclient.CustomNodeCommandResponse{
+			Response: map[string]interface{}{
+				"status":     "completed",
+				"isComplete": report.IsComplete,
+				"recovered":  report.Recovered,
+				"skipped":    report.Skipped,
+				"foreign":    report.Foreign,
+				"failed":     report.Failed,
+				"exited":     report.Exited,
+			},
+		}, nil
+	default:
+		return nil, fmt.Errorf("unexpected recovery status: %T", status)
 	}
-
-	return &lnclient.CustomNodeCommandResponse{
-		Response: map[string]interface{}{
-			"isComplete": report.IsComplete,
-			"recovered":  report.Recovered,
-			"skipped":    report.Skipped,
-			"foreign":    report.Foreign,
-			"failed":     report.Failed,
-			"exited":     report.Exited,
-		},
-	}, nil
 }

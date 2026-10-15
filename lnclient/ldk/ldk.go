@@ -224,14 +224,13 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 			return nil, err
 		}
 		builder.SetChainSourceBitcoindRpc(cfg.GetEnv().LDKBitcoindRpcHost, uint16(port), cfg.GetEnv().LDKBitcoindRpcUser, cfg.GetEnv().LDKBitcoindRpcPassword)
+		// bitcoind has no address index, so address lookups still need an esplora or electrum server
+		logger.Logger.WithFields(logrus.Fields{
+			"esplora_url":  cfg.GetEnv().LDKEsploraServer,
+			"electrum_url": cfg.GetEnv().LDKElectrumServer,
+		}).Warn("Bitcoind chain source does not support address lookups, using alternate server for address lookups. Set LDK_ESPLORA_SERVER or LDK_ELECTRUM_SERVER to use your own")
 		chainSource = "bitcoind"
-	} else if cfg.GetEnv().LDKElectrumServer != "" {
-		builder.SetChainSourceElectrum(cfg.GetEnv().LDKElectrumServer, &ldk_node.ElectrumSyncConfig{
-			// turn off background sync - we manage syncs ourselves
-			BackgroundSyncConfig: nil,
-		})
-		chainSource = "electrum"
-	} else {
+	} else if cfg.GetEnv().LDKEsploraServer != "" {
 		logger.Logger.WithFields(logrus.Fields{
 			"esplora_url": cfg.GetEnv().LDKEsploraServer,
 		}).Info("Using LDK node esplora chain source")
@@ -240,6 +239,15 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 			BackgroundSyncConfig: nil,
 		})
 		chainSource = "esplora"
+	} else {
+		logger.Logger.WithFields(logrus.Fields{
+			"electrum_url": cfg.GetEnv().LDKElectrumServer,
+		}).Info("Using LDK node electrum chain source")
+		builder.SetChainSourceElectrum(cfg.GetEnv().LDKElectrumServer, &ldk_node.ElectrumSyncConfig{
+			// turn off background sync - we manage syncs ourselves
+			BackgroundSyncConfig: nil,
+		})
+		chainSource = "electrum"
 	}
 
 	if cfg.GetEnv().LDKGossipSource != "" {
@@ -650,7 +658,10 @@ func (ls *LDKService) SendPaymentSync(invoice string, amountMsat *uint64) (*lncl
 		case <-ls.ctx.Done():
 			return nil, ls.ctx.Err()
 
-		case ev := <-ldkEventSubscription:
+		case ev, ok := <-ldkEventSubscription:
+			if !ok {
+				return nil, errors.New("LDK event subscription closed (node shutting down)")
+			}
 			switch event := (*ev).(type) {
 			case ldk_node.EventPaymentSuccessful:
 				if event.PaymentHash != paymentHash {
@@ -734,7 +745,10 @@ func (ls *LDKService) SendKeysend(amountMsat uint64, destination string, custom_
 		select {
 		case <-ls.ctx.Done():
 			return nil, ls.ctx.Err()
-		case event := <-ldkEventSubscription:
+		case event, ok := <-ldkEventSubscription:
+			if !ok {
+				return nil, errors.New("LDK event subscription closed (node shutting down)")
+			}
 
 			eventPaymentSuccessful, isEventPaymentSuccessfulEvent := (*event).(ldk_node.EventPaymentSuccessful)
 			eventPaymentFailed, isEventPaymentFailedEvent := (*event).(ldk_node.EventPaymentFailed)
@@ -1187,28 +1201,37 @@ func (ls *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lncli
 	}).Info("Funded channel")
 
 	for start := time.Now(); time.Since(start) < time.Second*60; {
-		event := <-ldkEventSubscription
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-ls.ctx.Done():
+			return nil, ls.ctx.Err()
+		case event, ok := <-ldkEventSubscription:
+			if !ok {
+				return nil, errors.New("LDK event subscription closed (node shutting down)")
+			}
 
-		channelPendingEvent, isChannelPendingEvent := (*event).(ldk_node.EventChannelPending)
-		channelClosedEvent, isChannelClosedEvent := (*event).(ldk_node.EventChannelClosed)
+			channelPendingEvent, isChannelPendingEvent := (*event).(ldk_node.EventChannelPending)
+			channelClosedEvent, isChannelClosedEvent := (*event).(ldk_node.EventChannelClosed)
 
-		if isChannelClosedEvent {
-			closureReason := ls.getChannelCloseReason(&channelClosedEvent)
-			logger.Logger.WithFields(logrus.Fields{
-				"event":  channelClosedEvent,
-				"reason": closureReason,
-			}).Info("Failed to open channel")
+			if isChannelClosedEvent {
+				closureReason := ls.getChannelCloseReason(&channelClosedEvent)
+				logger.Logger.WithFields(logrus.Fields{
+					"event":  channelClosedEvent,
+					"reason": closureReason,
+				}).Info("Failed to open channel")
 
-			return nil, fmt.Errorf("failed to open channel with %s: %s", foundPeer.NodeId, closureReason)
+				return nil, fmt.Errorf("failed to open channel with %s: %s", foundPeer.NodeId, closureReason)
+			}
+
+			if !isChannelPendingEvent {
+				continue
+			}
+
+			return &lnclient.OpenChannelResponse{
+				FundingTxId: channelPendingEvent.FundingTxo.Txid,
+			}, nil
 		}
-
-		if !isChannelPendingEvent {
-			continue
-		}
-
-		return &lnclient.OpenChannelResponse{
-			FundingTxId: channelPendingEvent.FundingTxo.Txid,
-		}, nil
 	}
 
 	return nil, errors.New("open channel timeout")
@@ -1452,7 +1475,7 @@ func (ls *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string, 
 
 		return txId, nil
 	}
-	return "", errors.New("ran out of attempts to fetch broadcasted transaction")
+	return "", lnclient.ErrOnchainBroadcastUnverified
 }
 
 func (ls *LDKService) ResetRouter(key string) error {
@@ -2052,11 +2075,8 @@ func (ls *LDKService) GetBalances(ctx context.Context, includeInactiveChannels b
 }
 
 func (ls *LDKService) GetStorageDir() (string, error) {
-	// Note: the below will return the path including the WORK_DIR which is harder to use,
-	// so for now we just return a hardcoded value.
-	// cfg := ls.node.Config()
-	// return cfg.StorageDirPath, nil
-	return "ldk/storage", nil
+	// holds the node storage as well as the static channel backups
+	return ls.workdir, nil
 }
 
 func (ls *LDKService) deleteOldLDKPayments() {
@@ -2662,13 +2682,13 @@ func (ls *LDKService) GetChainDataSource() (string, string) {
 		rpcPort := ls.cfg.GetEnv().LDKBitcoindRpcPort
 		return "bitcoind", sanitizeChainEndpoint(endpoint, rpcPort)
 	}
-	if endpoint := ls.cfg.GetEnv().LDKElectrumServer; endpoint != "" {
-		return "electrum", sanitizeChainEndpoint(endpoint, "")
+	if endpoint := ls.cfg.GetEnv().LDKEsploraServer; endpoint != "" {
+		return "esplora", sanitizeChainEndpoint(endpoint, "")
 	}
 
-	// Fallback to Esplora
-	endpoint := ls.cfg.GetEnv().LDKEsploraServer
-	return "esplora", sanitizeChainEndpoint(endpoint, "")
+	// Fallback to Electrum
+	endpoint := ls.cfg.GetEnv().LDKElectrumServer
+	return "electrum", sanitizeChainEndpoint(endpoint, "")
 }
 
 func (ls *LDKService) GetLiquiditySourceLsps2() string {
