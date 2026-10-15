@@ -74,7 +74,8 @@ export default function ReceiveInvoice() {
   const jitChannelsEnabled = !!info?.jitChannelsEnabled;
   const configuredLsps2Source = info?.jitChannelsLiquiditySource;
   const lsps2Source = jitChannelsEnabled ? configuredLsps2Source : undefined;
-  const { data: jitChannelsInfo } = useJitChannelsInfo(!!lsps2Source);
+  const { data: jitChannelsInfo, isLoading: isJitChannelsInfoLoading } =
+    useJitChannelsInfo(!!lsps2Source);
   const lsps2MinimumPaymentSizeSat = React.useMemo(() => {
     if (jitChannelsInfo?.minPaymentSizeMsat) {
       return Math.ceil(jitChannelsInfo.minPaymentSizeMsat / 1000);
@@ -86,6 +87,10 @@ export default function ReceiveInvoice() {
   const jitMinimumReceiveSat = channels?.length
     ? undefined
     : lsps2MinimumPaymentSizeSat;
+  // block submission until the JIT minimum is known, otherwise amounts below
+  // it would pass input validation
+  const isJitMinimumReceiveLoading =
+    !channels?.length && isJitChannelsInfoLoading;
   const lsps2MaximumPaymentSizeSat = React.useMemo(() => {
     if (jitChannelsInfo?.maxPaymentSizeMsat) {
       return Math.floor(jitChannelsInfo.maxPaymentSizeMsat / 1000);
@@ -352,7 +357,7 @@ export default function ReceiveInvoice() {
                   )}
                   loading={isLoading}
                   type="submit"
-                  disabled={!amountSat}
+                  disabled={!amountSat || isJitMinimumReceiveLoading}
                 >
                   Create Invoice
                 </LoadingButton>
