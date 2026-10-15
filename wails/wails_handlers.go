@@ -711,6 +711,12 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		infoResponse.Unlocked = infoResponse.Running
 		res := WailsRequestRouterResponse{Body: *infoResponse, Error: ""}
 		return res
+	case "GET /api/jit-channels/info":
+		jitChannelsInfoResponse, err := app.api.GetJitChannelsInfo()
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: *jitChannelsInfoResponse, Error: ""}
 	case "POST /api/node/migrate-storage":
 		migrateNodeStorageRequest := &api.MigrateNodeStorageRequest{}
 		err := json.Unmarshal([]byte(body), migrateNodeStorageRequest)

@@ -1,12 +1,17 @@
 package ldk
 
 import (
+	"errors"
+	"strconv"
 	"testing"
+	"time"
 
 	"github.com/getAlby/ldk-node-go/ldk_node"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/tests"
 )
 
@@ -130,6 +135,116 @@ func TestComputeLsps2MinPaymentSizeMsat(t *testing.T) {
 		_, ok := computeLsps2MinPaymentSizeMsat(params)
 		assert.False(t, ok)
 	})
+}
+
+func TestFetchLsps2OpeningFeeParamsCachesSuccessfulResponse(t *testing.T) {
+	ls := &LDKService{
+		lsps2Pubkey:  "pubkey",
+		lsps2Address: "127.0.0.1:9735",
+	}
+	menu := []ldk_node.Lsps2OpeningFeeParams{
+		makeLsps2OpeningFeeParams(10_000, 5_000, 1_000_000, 100_000_000),
+	}
+	calls := 0
+	request := func() ([]ldk_node.Lsps2OpeningFeeParams, error) {
+		calls++
+		return menu, nil
+	}
+
+	ls.fetchLsps2OpeningFeeParamsWith(time.Hour, request)
+	ls.fetchLsps2OpeningFeeParamsWith(time.Hour, request)
+
+	assert.Equal(t, 1, calls)
+	require.NotNil(t, ls.lsps2MinPaymentSizeMsat)
+	require.NotNil(t, ls.lsps2MaxPaymentSizeMsat)
+	assert.Equal(t, uint64(1_000_000), *ls.lsps2MinPaymentSizeMsat)
+	assert.Equal(t, uint64(100_000_000), *ls.lsps2MaxPaymentSizeMsat)
+	assert.Equal(t, menu, ls.lsps2OpeningFeeParamsMenu)
+}
+
+func TestFetchLsps2OpeningFeeParamsBacksOffAfterFailure(t *testing.T) {
+	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
+	oldMin := uint64(2_000_000)
+	oldMax := uint64(50_000_000)
+	oldMenu := []ldk_node.Lsps2OpeningFeeParams{
+		makeLsps2OpeningFeeParams(20_000, 5_000, oldMin, oldMax),
+	}
+	ls := &LDKService{
+		lsps2Pubkey:               "pubkey",
+		lsps2Address:              "127.0.0.1:9735",
+		lsps2InfoFetchedAt:        time.Now().Add(-2 * time.Hour),
+		lsps2MinPaymentSizeMsat:   &oldMin,
+		lsps2MaxPaymentSizeMsat:   &oldMax,
+		lsps2OpeningFeeParamsMenu: oldMenu,
+	}
+	calls := 0
+	request := func() ([]ldk_node.Lsps2OpeningFeeParams, error) {
+		calls++
+		return nil, errors.New("LSP unavailable")
+	}
+
+	ls.fetchLsps2OpeningFeeParamsWith(time.Hour, request)
+	ls.fetchLsps2OpeningFeeParamsWith(time.Hour, request)
+
+	assert.Equal(t, 1, calls)
+	assert.Equal(t, oldMin, *ls.lsps2MinPaymentSizeMsat)
+	assert.Equal(t, oldMax, *ls.lsps2MaxPaymentSizeMsat)
+	assert.Equal(t, oldMenu, ls.lsps2OpeningFeeParamsMenu)
+
+	ls.lsps2InfoMu.Lock()
+	ls.lsps2InfoLastAttemptedAt = time.Now().Add(-lsps2InfoRetryBackoff - time.Second)
+	ls.lsps2InfoMu.Unlock()
+	ls.fetchLsps2OpeningFeeParamsWith(time.Hour, request)
+
+	assert.Equal(t, 2, calls)
+}
+
+func TestFetchLsps2OpeningFeeParamsConcurrentCallersWaitForInFlightFetch(t *testing.T) {
+	ls := &LDKService{
+		lsps2Pubkey:  "pubkey",
+		lsps2Address: "127.0.0.1:9735",
+	}
+	fetchStarted := make(chan struct{})
+	releaseFetch := make(chan struct{})
+	firstDone := make(chan struct{})
+	go func() {
+		defer close(firstDone)
+		ls.fetchLsps2OpeningFeeParamsWith(time.Hour, func() ([]ldk_node.Lsps2OpeningFeeParams, error) {
+			close(fetchStarted)
+			<-releaseFetch
+			return []ldk_node.Lsps2OpeningFeeParams{
+				makeLsps2OpeningFeeParams(10_000, 5_000, 1_000_000, 100_000_000),
+			}, nil
+		})
+	}()
+	<-fetchStarted
+
+	secondDone := make(chan struct{})
+	secondFetchCalled := false
+	go func() {
+		defer close(secondDone)
+		ls.fetchLsps2OpeningFeeParamsWith(time.Hour, func() ([]ldk_node.Lsps2OpeningFeeParams, error) {
+			secondFetchCalled = true
+			return nil, nil
+		})
+	}()
+
+	select {
+	case <-secondDone:
+		t.Fatal("concurrent LSPS2 caller returned before the in-flight fetch completed")
+	case <-time.After(100 * time.Millisecond):
+	}
+
+	close(releaseFetch)
+	<-firstDone
+	<-secondDone
+
+	assert.False(t, secondFetchCalled)
+	min, max := ls.GetLiquiditySourceLsps2PaymentSizeRangeMsat()
+	require.NotNil(t, min)
+	require.NotNil(t, max)
+	assert.Equal(t, uint64(1_000_000), *min)
+	assert.Equal(t, uint64(100_000_000), *max)
 }
 
 func TestSanitizeChainEndpointForBitcoind(t *testing.T) {
