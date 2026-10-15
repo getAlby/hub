@@ -419,22 +419,10 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		"duration": math.Ceil(time.Since(syncStartTime).Seconds()),
 	}).Info("LDK node synced successfully")
 
-	// Back up the channels if the latest static channel backup on disk does not
-	// contain all of them (e.g. the hub was migrated before migration files
-	// included the backups). Only ready channels are checked, as they are
-	// backed up when they become ready. Alby Cloud hubs are skipped: their disk
-	// is not persistent, so this would create a new backup on every restart.
-	if cfg.GetEnv().IsDefaultClientId() {
-		readyChannelIds := []string{}
-		for _, channel := range node.ListChannels() {
-			if channel.IsChannelReady {
-				readyChannelIds = append(readyChannelIds, channel.ChannelId)
-			}
-		}
-		if needsChannelBackup(staticChannelBackupDir(newpath), readyChannelIds) {
-			logger.Logger.Info("Latest static channel backup is missing channels, backing up channels")
-			ls.backupChannels()
-		}
+	// Alby Cloud hubs are skipped: their disk is not persistent, so this would
+	// create a new backup on every restart.
+	if cfg.GetEnv().IsDefaultClientId() && ls.needsChannelBackup() {
+		ls.backupChannels()
 	}
 
 	// setup background sync
@@ -2031,8 +2019,23 @@ func staticChannelBackupDir(workdir string) string {
 }
 
 // needsChannelBackup returns true if the latest static channel backup saved to
-// disk does not contain all of the given channels.
-func needsChannelBackup(backupDirectory string, channelIds []string) bool {
+// disk does not contain all ready channels (e.g. the hub was migrated before
+// migration files included the backups). Only ready channels are checked, as
+// they are backed up when they become ready.
+func (ls *LDKService) needsChannelBackup() bool {
+	readyChannelIds := []string{}
+	for _, channel := range ls.node.ListChannels() {
+		if channel.IsChannelReady {
+			readyChannelIds = append(readyChannelIds, channel.ChannelId)
+		}
+	}
+	return latestChannelBackupIsMissingChannels(staticChannelBackupDir(ls.workdir), readyChannelIds)
+}
+
+// latestChannelBackupIsMissingChannels returns true if the latest static
+// channel backup in the backup directory does not contain all of the given
+// channels.
+func latestChannelBackupIsMissingChannels(backupDirectory string, channelIds []string) bool {
 	if len(channelIds) == 0 {
 		return false
 	}
