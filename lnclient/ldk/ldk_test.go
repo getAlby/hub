@@ -1,7 +1,10 @@
 package ldk
 
 import (
+	"encoding/json"
 	"errors"
+	"os"
+	"path/filepath"
 	"strconv"
 	"testing"
 	"time"
@@ -11,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/tests"
 )
@@ -315,4 +319,82 @@ func TestSanitizeChainEndpointForURLs(t *testing.T) {
 			assert.Equal(t, tt.expected, sanitizeChainEndpoint(tt.endpoint, ""))
 		})
 	}
+}
+
+// writeChannelBackup saves a static channel backup containing the given
+// channels to the backup directory.
+func writeChannelBackup(t *testing.T, backupDir string, fileName string, channelIds ...string) {
+	backup := events.StaticChannelsBackupEvent{}
+	for _, channelId := range channelIds {
+		backup.Channels = append(backup.Channels, events.ChannelBackup{ChannelID: channelId})
+	}
+	backupBytes, err := json.Marshal(backup)
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(filepath.Join(backupDir, fileName), backupBytes, 0600))
+}
+
+func TestLatestChannelBackupIsMissingChannels(t *testing.T) {
+	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
+
+	t.Run("no channels", func(t *testing.T) {
+		assert.False(t, latestChannelBackupIsMissingChannels(filepath.Join(t.TempDir(), "static_channel_backups"), []string{}))
+	})
+
+	t.Run("missing backup directory", func(t *testing.T) {
+		assert.True(t, latestChannelBackupIsMissingChannels(filepath.Join(t.TempDir(), "static_channel_backups"), []string{"a"}))
+	})
+
+	t.Run("empty backup directory", func(t *testing.T) {
+		assert.True(t, latestChannelBackupIsMissingChannels(t.TempDir(), []string{"a"}))
+	})
+
+	t.Run("only non-backup files", func(t *testing.T) {
+		backupDir := t.TempDir()
+		require.NoError(t, os.WriteFile(filepath.Join(backupDir, "notes.txt"), []byte("x"), 0600))
+		assert.True(t, latestChannelBackupIsMissingChannels(backupDir, []string{"a"}))
+	})
+
+	t.Run("latest backup contains all channels", func(t *testing.T) {
+		backupDir := t.TempDir()
+		writeChannelBackup(t, backupDir, "2024-01-02T03-04-05.json", "a", "b", "closed")
+		assert.False(t, latestChannelBackupIsMissingChannels(backupDir, []string{"a", "b"}))
+	})
+
+	t.Run("latest backup is missing a channel", func(t *testing.T) {
+		backupDir := t.TempDir()
+		writeChannelBackup(t, backupDir, "2024-01-02T03-04-05.json", "a")
+		assert.True(t, latestChannelBackupIsMissingChannels(backupDir, []string{"a", "b"}))
+	})
+
+	t.Run("only the latest backup is checked", func(t *testing.T) {
+		backupDir := t.TempDir()
+		writeChannelBackup(t, backupDir, "2024-01-02T03-04-05.json", "a", "b")
+		writeChannelBackup(t, backupDir, "2024-02-01T00-00-00.json", "a")
+		assert.True(t, latestChannelBackupIsMissingChannels(backupDir, []string{"a", "b"}))
+
+		writeChannelBackup(t, backupDir, "2024-03-01T00-00-00.json", "a", "b")
+		assert.False(t, latestChannelBackupIsMissingChannels(backupDir, []string{"a", "b"}))
+	})
+
+	t.Run("invalid latest backup", func(t *testing.T) {
+		backupDir := t.TempDir()
+		require.NoError(t, os.WriteFile(filepath.Join(backupDir, "2024-01-02T03-04-05.json"), []byte("not json"), 0600))
+		assert.True(t, latestChannelBackupIsMissingChannels(backupDir, []string{"a"}))
+	})
+
+	t.Run("glob characters in path", func(t *testing.T) {
+		backupDir := filepath.Join(t.TempDir(), "work[dir")
+		require.NoError(t, os.MkdirAll(backupDir, 0700))
+		assert.True(t, latestChannelBackupIsMissingChannels(backupDir, []string{"a"}))
+
+		writeChannelBackup(t, backupDir, "2024-01-02T03-04-05.json", "a")
+		assert.False(t, latestChannelBackupIsMissingChannels(backupDir, []string{"a"}))
+	})
+
+	t.Run("unreadable backup path", func(t *testing.T) {
+		// a file instead of a directory: neither missing nor listable
+		backupPath := filepath.Join(t.TempDir(), "static_channel_backups")
+		require.NoError(t, os.WriteFile(backupPath, []byte("x"), 0600))
+		assert.False(t, latestChannelBackupIsMissingChannels(backupPath, []string{"a"}))
+	})
 }

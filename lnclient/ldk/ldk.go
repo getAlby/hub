@@ -422,6 +422,12 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		"duration": math.Ceil(time.Since(syncStartTime).Seconds()),
 	}).Info("LDK node synced successfully")
 
+	// Alby Cloud hubs are skipped: their disk is not persistent, so this would
+	// create a new backup on every restart.
+	if cfg.GetEnv().IsDefaultClientId() && ls.needsChannelBackup() {
+		ls.backupChannels()
+	}
+
 	// setup background sync
 	go func() {
 		MIN_SYNC_INTERVAL := 1 * time.Minute
@@ -1958,21 +1964,25 @@ func (ls *LDKService) backupChannels() {
 			fundingTxVout = ldkChannel.FundingTxo.Vout
 		}
 
-		var peer *ldk_node.PeerDetails
+		// The channel is backed up even if the peer address is unknown: its
+		// monitor is in the backup and the peer can still be found by its ID.
+		var peerSocketAddress string
 		for _, matchingPeer := range ldkPeers {
 			if matchingPeer.NodeId == ldkChannel.CounterpartyNodeId {
-				peer = &matchingPeer
+				peerSocketAddress = matchingPeer.Address
 			}
 		}
-		if peer == nil {
-			logger.Logger.WithField("peer_id", ldkChannel.CounterpartyNodeId).Error("failed to find peer for channel")
-			continue
+		if peerSocketAddress == "" {
+			logger.Logger.WithFields(logrus.Fields{
+				"peer_id":    ldkChannel.CounterpartyNodeId,
+				"channel_id": ldkChannel.ChannelId,
+			}).Warn("failed to find peer address for channel, backing up channel without peer address")
 		}
 
 		channels = append(channels, events.ChannelBackup{
 			ChannelID:         ldkChannel.ChannelId,
 			PeerID:            ldkChannel.CounterpartyNodeId,
-			PeerSocketAddress: peer.Address,
+			PeerSocketAddress: peerSocketAddress,
 			ChannelSize:       ldkChannel.ChannelValueSats,
 			FundingTxID:       fundingTxId,
 			FundingTxVout:     fundingTxVout,
@@ -2007,8 +2017,77 @@ func (ls *LDKService) backupChannels() {
 	})
 }
 
+func staticChannelBackupDir(workdir string) string {
+	return filepath.Join(workdir, "static_channel_backups")
+}
+
+// needsChannelBackup returns true if the latest static channel backup saved to
+// disk does not contain all channels (e.g. the hub was migrated before
+// migration files included the backups).
+func (ls *LDKService) needsChannelBackup() bool {
+	channelIds := []string{}
+	for _, channel := range ls.node.ListChannels() {
+		channelIds = append(channelIds, channel.ChannelId)
+	}
+	return latestChannelBackupIsMissingChannels(staticChannelBackupDir(ls.workdir), channelIds)
+}
+
+// latestChannelBackupIsMissingChannels returns true if the latest static
+// channel backup in the backup directory does not contain all of the given
+// channels.
+func latestChannelBackupIsMissingChannels(backupDirectory string, channelIds []string) bool {
+	if len(channelIds) == 0 {
+		return false
+	}
+	entries, err := os.ReadDir(backupDirectory)
+	if errors.Is(err, os.ErrNotExist) {
+		return true
+	}
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to list static channel backups")
+		return false
+	}
+
+	// entries are sorted by filename, which is the backup timestamp
+	var latestBackupFile string
+	for _, entry := range entries {
+		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".json") {
+			latestBackupFile = entry.Name()
+		}
+	}
+	if latestBackupFile == "" {
+		return true
+	}
+
+	backupBytes, err := os.ReadFile(filepath.Join(backupDirectory, latestBackupFile))
+	if err != nil {
+		logger.Logger.WithError(err).WithField("file", latestBackupFile).Error("Failed to read latest static channel backup")
+		return true
+	}
+	var backup events.StaticChannelsBackupEvent
+	if err := json.Unmarshal(backupBytes, &backup); err != nil {
+		logger.Logger.WithError(err).WithField("file", latestBackupFile).Error("Failed to parse latest static channel backup")
+		return true
+	}
+
+	backedUpChannelIds := make(map[string]bool, len(backup.Channels))
+	for _, channel := range backup.Channels {
+		backedUpChannelIds[channel.ChannelID] = true
+	}
+	for _, channelId := range channelIds {
+		if !backedUpChannelIds[channelId] {
+			logger.Logger.WithFields(logrus.Fields{
+				"channel_id": channelId,
+				"file":       latestBackupFile,
+			}).Info("Channel is missing from the latest static channel backup")
+			return true
+		}
+	}
+	return false
+}
+
 func (ls *LDKService) saveStaticChannelBackupToDisk(event *events.StaticChannelsBackupEvent) {
-	backupDirectory := filepath.Join(ls.workdir, "static_channel_backups")
+	backupDirectory := staticChannelBackupDir(ls.workdir)
 	err := os.MkdirAll(backupDirectory, os.ModePerm)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to make static channel backup directory")
