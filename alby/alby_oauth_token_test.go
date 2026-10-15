@@ -68,7 +68,7 @@ func TestFetchUserTokenRetriesPersistence(t *testing.T) {
 			errs := make(chan error, workers)
 			for range workers {
 				go func() {
-					token, err := svc.fetchUserToken(ctx)
+					token, err := svc.fetchUserToken()
 					if err == nil && (token == nil || token.RefreshToken != "new-refresh-token") {
 						err = errors.New("refreshed token was not reused")
 					}
@@ -165,7 +165,7 @@ func TestFetchUserTokenFailsWhenTokenSaveFails(t *testing.T) {
 	svc := &albyOAuthService{cfg: cfg, oauthConf: &oauth2.Config{
 		ClientID: "test-client", Endpoint: oauth2.Endpoint{TokenURL: server.URL},
 	}}
-	token, err := svc.fetchUserToken(context.Background())
+	token, err := svc.fetchUserToken()
 	require.ErrorContains(t, err, "failed to save refresh token")
 	require.Nil(t, token)
 	require.Equal(t, tokenSaveAttempts, cfg.failedWrites)

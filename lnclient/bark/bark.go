@@ -4,6 +4,7 @@ package bark
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -275,20 +276,25 @@ func (bs *BarkService) handleLightningReceiveMovement(movement bark.Movement) {
 		return
 	}
 
-	receive, err := bs.wallet.LightningReceiveState(paymentHash)
+	// Build the receive from the movement itself rather than looking it up with
+	// LightningReceiveState: bark finishes the movement (which emits this
+	// notification) before it writes the settled receive record, so a lookup
+	// here can race and find nothing.
+	// TODO: change back to LightningReceiveState when the race is fixed in bark.
+	receive, err := buildSettledReceiveFromMovement(paymentHash, movement)
 	if err != nil {
-		logger.Logger.WithError(err).WithField("paymentHash", paymentHash).Warn("Failed to look up claimed Bark receive")
+		logger.Logger.WithError(err).WithField("paymentHash", paymentHash).Warn("Failed to read claimed Bark receive from movement")
 		return
 	}
 
-	tx, err := bs.lightningReceiveToTransaction(&receive)
+	tx, err := bs.lightningReceiveToTransaction(receive)
 	if err != nil {
 		logger.Logger.WithError(err).WithField("paymentHash", receive.PaymentHash).Warn("Failed to convert claimed Bark receive to transaction")
 		return
 	}
 	logger.Logger.WithFields(logrus.Fields{
 		"paymentHash": receive.PaymentHash,
-		"amountSats":  receive.AmountSats,
+		"amountMsat":  tx.AmountMsat,
 	}).Info("Bark lightning receive claimed")
 	bs.eventPublisher.Publish(&events.Event{
 		Event:      "nwc_lnclient_payment_received",
@@ -391,6 +397,42 @@ func (bs *BarkService) deliverSendResult(paymentHash string, res sendResult, fal
 	if fallback != nil {
 		fallback()
 	}
+}
+
+// buildSettledReceiveFromMovement reads a settled lightning receive from a
+// successful lightning_receive movement, which carries the invoice and the
+// preimage (in its metadata).
+func buildSettledReceiveFromMovement(paymentHash string, movement bark.Movement) (*bark.LightningReceive, error) {
+	if movement.LightningInvoice == nil || *movement.LightningInvoice == "" {
+		return nil, errors.New("movement has no lightning invoice")
+	}
+
+	var metadata struct {
+		PaymentPreimage string `json:"payment_preimage"`
+	}
+	if err := json.Unmarshal([]byte(movement.MetadataJson), &metadata); err != nil {
+		return nil, fmt.Errorf("failed to parse movement metadata: %w", err)
+	}
+	if metadata.PaymentPreimage == "" {
+		return nil, errors.New("movement metadata has no payment preimage")
+	}
+
+	settledAt := time.Now().Unix()
+	if movement.CompletedAt != nil {
+		completedAt, err := time.Parse(time.RFC3339, *movement.CompletedAt)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse movement completed_at: %w", err)
+		}
+		settledAt = completedAt.Unix()
+	}
+
+	return &bark.LightningReceive{
+		PaymentHash:     paymentHash,
+		Invoice:         *movement.LightningInvoice,
+		State:           receiveStateSettled,
+		PaymentPreimage: &metadata.PaymentPreimage,
+		SettledAt:       &settledAt,
+	}, nil
 }
 
 func paymentHashFromMovement(movement bark.Movement) (string, bool) {
