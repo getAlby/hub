@@ -2233,8 +2233,23 @@ func (ls *LDKService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.N
 	status := ls.node.Status()
 	return &lnclient.NodeStatus{
 		IsReady:            status.IsRunning,
+		ChainSyncStale:     status.IsRunning && isChainSyncStale(status, time.Now()),
 		InternalNodeStatus: status,
 	}, nil
+}
+
+// the background sync updates fee estimates every ~5 minutes and does a full wallet sync at least hourly,
+// so timestamps older than these thresholds mean syncing with the chain source keeps failing
+const chainSyncStaleFeeRateThreshold = 30 * time.Minute
+const chainSyncStaleWalletThreshold = 3 * time.Hour
+
+func isChainSyncStale(status ldk_node.NodeStatus, now time.Time) bool {
+	isOlderThan := func(timestamp *uint64, threshold time.Duration) bool {
+		return timestamp != nil && now.Sub(time.Unix(int64(*timestamp), 0)) > threshold
+	}
+	return isOlderThan(status.LatestFeeRateCacheUpdateTimestamp, chainSyncStaleFeeRateThreshold) ||
+		isOlderThan(status.LatestOnchainWalletSyncTimestamp, chainSyncStaleWalletThreshold) ||
+		isOlderThan(status.LatestLightningWalletSyncTimestamp, chainSyncStaleWalletThreshold)
 }
 
 func (ls *LDKService) DisconnectPeer(ctx context.Context, peerId string) error {
