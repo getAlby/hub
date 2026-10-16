@@ -694,6 +694,7 @@ const (
 	HealthAlarmKindChannelsOffline   HealthAlarmKind = "channels_offline"
 	HealthAlarmKindNostrRelayOffline HealthAlarmKind = "nostr_relay_offline"
 	HealthAlarmKindVssNoSubscription HealthAlarmKind = "vss_no_subscription"
+	HealthAlarmKindChainSyncStale    HealthAlarmKind = "chain_sync_stale"
 )
 
 type HealthAlarm struct {
