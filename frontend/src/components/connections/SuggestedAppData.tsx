@@ -16,6 +16,7 @@ import castamatic from "src/assets/suggested-apps/castamatic.png";
 import clams from "src/assets/suggested-apps/clams.png";
 import coracle from "src/assets/suggested-apps/coracle.png";
 import damus from "src/assets/suggested-apps/damus.png";
+import espress from "src/assets/suggested-apps/espress.png";
 import fountain from "src/assets/suggested-apps/fountain.png";
 import hablanews from "src/assets/suggested-apps/habla-news.png";
 import iris from "src/assets/suggested-apps/iris.png";
@@ -2497,6 +2498,67 @@ export const appStoreApps: AppStoreApp[] = (
       ),
       categories: ["payment-tools"],
       addedDate: "2026-04-10",
+    },
+    {
+      id: "espress",
+      title: "Espress",
+      description: "Coffee scanner, paid in sats",
+      extendedDescription:
+        "Scan a bag of coffee for its rating, flavour and origin. Your Hub pays the subscription by itself, monthly or yearly, within a budget you set.",
+      webLink: "https://espress.coffee",
+      logo: espress,
+      categories: ["misc"],
+      hideConnectionQr: true,
+      addedDate: "2026-10-17",
+      installGuide: (
+        <>
+          <ul className="list-inside list-decimal text-muted-foreground">
+            <li>
+              Open{" "}
+              <ExternalLink
+                to="https://espress.coffee/account"
+                className="font-medium text-foreground underline"
+              >
+                espress.coffee/account
+              </ExternalLink>{" "}
+              and sign in
+            </li>
+            <li>
+              Choose{" "}
+              <span className="font-medium text-foreground">
+                Pay from your node
+              </span>
+            </li>
+            <li>
+              Pick the month or the year, then{" "}
+              <span className="font-medium text-foreground">Open Alby Hub</span>
+            </li>
+            <li>Approve Espress here, with the budget it fills in</li>
+            <li>
+              You are back on espress.coffee: the first charge runs, and you are
+              done
+            </li>
+          </ul>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">On espress.coffee</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>Copy the connection secret below</li>
+              <li>
+                Under{" "}
+                <span className="font-medium text-foreground">
+                  Pay from your node → Any other wallet
+                </span>
+                , paste it and press{" "}
+                <span className="font-medium text-foreground">Connect</span>
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
     },
   ] satisfies AppStoreApp[]
 ).sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));
