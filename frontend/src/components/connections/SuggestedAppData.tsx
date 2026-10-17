@@ -2533,10 +2533,14 @@ export const appStoreApps: AppStoreApp[] = (
               Pick the month or the year, then{" "}
               <span className="font-medium text-foreground">Open Alby Hub</span>
             </li>
-            <li>Approve Espress here, with the budget it fills in</li>
             <li>
-              You are back on espress.coffee: the first charge runs, and you are
-              done
+              Press{" "}
+              <span className="font-medium text-foreground">Connect</span> in
+              the Alby Hub tab that opens
+            </li>
+            <li>
+              Back on espress.coffee, the first charge runs and the page says
+              Connected
             </li>
           </ul>
         </>
