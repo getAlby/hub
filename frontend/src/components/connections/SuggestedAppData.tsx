@@ -2530,7 +2530,7 @@ export const appStoreApps: AppStoreApp[] = (
               </span>
             </li>
             <li>
-              Pick the month or the year, then{" "}
+              Pick the month or the year, then where this hub runs, then{" "}
               <span className="font-medium text-foreground">Open Alby Hub</span>
             </li>
             <li>
