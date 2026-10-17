@@ -79,6 +79,7 @@ func TestHandleGetInfoEvent_NoPermission(t *testing.T) {
 	// get_info method is always granted, but does not return pubkey
 	assert.Contains(t, infoResponse.Methods, models.GET_INFO_METHOD)
 	assert.Equal(t, []string{}, infoResponse.Notifications)
+	assert.Equal(t, []string{models.METADATA_EXTENSION}, infoResponse.Extensions)
 	require.NotNil(t, infoResponse.Metadata)
 	assert.Equal(t, float64(123), infoResponse.Metadata.(map[string]interface{})["a"])
 	assert.Equal(t, app.ID, infoResponse.Metadata.(map[string]interface{})["id"])
@@ -360,4 +361,5 @@ func TestHandleGetInfoEvent_WithNotifications(t *testing.T) {
 	assert.Equal(t, tests.MockNodeInfo.BlockHash, *infoResponse.BlockHash)
 	assert.Contains(t, infoResponse.Methods, "get_info")
 	assert.Equal(t, []string{"payment_received", "payment_sent"}, infoResponse.Notifications)
+	assert.Equal(t, []string{models.NOTIFICATIONS_EXTENSION, models.METADATA_EXTENSION}, infoResponse.Extensions)
 }

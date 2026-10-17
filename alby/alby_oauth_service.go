@@ -55,6 +55,12 @@ const (
 	albyOAuthAuthUrl = "https://getalby.com/oauth"
 )
 
+const (
+	tokenSaveAttempts   = 3
+	tokenSaveRetryDelay = 200 * time.Millisecond
+	tokenRefreshTimeout = 30 * time.Second
+)
+
 const ALBY_ACCOUNT_APP_NAME = "getalby.com"
 
 func NewAlbyOAuthService(db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublisher events.EventPublisher) *albyOAuthService {
@@ -99,7 +105,10 @@ func (svc *albyOAuthService) CallbackHandler(ctx context.Context, code string) e
 		logger.Logger.WithError(err).Error("Failed to exchange token")
 		return err
 	}
-	svc.saveToken(token)
+	err = svc.saveTokenWithRetries(token)
+	if err != nil {
+		return err
+	}
 
 	me, err := svc.GetMe(ctx)
 	if err != nil {
@@ -161,31 +170,48 @@ func (svc *albyOAuthService) GetLightningAddress() (string, error) {
 }
 
 func (svc *albyOAuthService) IsConnected(ctx context.Context) bool {
-	token, err := svc.fetchUserToken(ctx)
+	token, err := svc.fetchUserToken()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to check fetch token")
 	}
 	return token != nil
 }
 
-func (svc *albyOAuthService) saveToken(token *oauth2.Token) {
-	err := svc.cfg.SetUpdate(accessTokenExpiryKey, strconv.FormatInt(token.Expiry.Unix(), 10), "")
+func (svc *albyOAuthService) saveTokenWithRetries(token *oauth2.Token) error {
+	var lastErr error
+	for attempt := 0; attempt < tokenSaveAttempts; attempt++ {
+		lastErr = svc.saveToken(token)
+		if lastErr == nil {
+			return nil
+		}
+		if attempt < tokenSaveAttempts-1 {
+			time.Sleep(tokenSaveRetryDelay)
+		}
+	}
+
+	logger.Logger.WithError(lastErr).Error("Failed to save oauth token after retries")
+	return lastErr
+}
+
+func (svc *albyOAuthService) saveToken(token *oauth2.Token) error {
+	err := svc.cfg.SetUpdate(refreshTokenKey, token.RefreshToken, "")
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to save access token expiry")
+		return fmt.Errorf("failed to save refresh token: %w", err)
 	}
 	err = svc.cfg.SetUpdate(accessTokenKey, token.AccessToken, "")
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to save access token")
+		return fmt.Errorf("failed to save access token: %w", err)
 	}
-	err = svc.cfg.SetUpdate(refreshTokenKey, token.RefreshToken, "")
+	err = svc.cfg.SetUpdate(accessTokenExpiryKey, strconv.FormatInt(token.Expiry.Unix(), 10), "")
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to save refresh token")
+		return fmt.Errorf("failed to save access token expiry: %w", err)
 	}
+	return nil
 }
 
 var tokenMutex sync.Mutex
 
-func (svc *albyOAuthService) fetchUserToken(ctx context.Context) (*oauth2.Token, error) {
+func (svc *albyOAuthService) fetchUserToken() (*oauth2.Token, error) {
 	tokenMutex.Lock()
 	defer tokenMutex.Unlock()
 	accessToken, err := svc.cfg.Get(accessTokenKey, "")
@@ -231,19 +257,24 @@ func (svc *albyOAuthService) fetchUserToken(ctx context.Context) (*oauth2.Token,
 		return currentToken, nil
 	}
 
-	newToken, err := svc.oauthConf.TokenSource(ctx, currentToken).Token()
+	refreshCtx, cancel := context.WithTimeout(context.Background(), tokenRefreshTimeout)
+	defer cancel()
+	newToken, err := svc.oauthConf.TokenSource(refreshCtx, currentToken).Token()
 	if err != nil {
 		logger.Logger.WithError(err).Warn("Failed to refresh existing token")
 		return nil, err
 	}
 
-	svc.saveToken(newToken)
+	err = svc.saveTokenWithRetries(newToken)
+	if err != nil {
+		return nil, err
+	}
 	return newToken, nil
 }
 
 func (svc *albyOAuthService) GetVssAuthToken(ctx context.Context, nodeIdentifier string) (string, error) {
 	logger.Logger.WithField("node_identifier", nodeIdentifier).Debug("fetching VSS token")
-	token, err := svc.fetchUserToken(ctx)
+	token, err := svc.fetchUserToken()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch user token")
 		return "", err
@@ -309,7 +340,7 @@ func (svc *albyOAuthService) CreateLightningAddress(ctx context.Context, address
 		"address": address,
 		"app_id":  appId,
 	}).Debug("creating lightning address")
-	token, err := svc.fetchUserToken(ctx)
+	token, err := svc.fetchUserToken()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch user token")
 		return nil, err
@@ -389,7 +420,7 @@ func (svc *albyOAuthService) DeleteLightningAddress(ctx context.Context, address
 	logger.Logger.WithFields(logrus.Fields{
 		"address": address,
 	}).Debug("deleting lightning address")
-	token, err := svc.fetchUserToken(ctx)
+	token, err := svc.fetchUserToken()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch user token")
 		return err
@@ -433,7 +464,7 @@ func (svc *albyOAuthService) DeleteLightningAddress(ctx context.Context, address
 }
 
 func (svc *albyOAuthService) GetMe(ctx context.Context) (*AlbyMe, error) {
-	token, err := svc.fetchUserToken(ctx)
+	token, err := svc.fetchUserToken()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch user token")
 		return nil, err
@@ -679,7 +710,7 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 		}
 	}
 
-	token, err := svc.fetchUserToken(ctx)
+	token, err := svc.fetchUserToken()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch user token")
 		return
@@ -799,7 +830,7 @@ func (svc *albyOAuthService) backupChannels(ctx context.Context, event *events.E
 		return fmt.Errorf("failed to encrypt channel backup: %w", err)
 	}
 
-	token, err := svc.fetchUserToken(ctx)
+	token, err := svc.fetchUserToken()
 	if err != nil {
 		return fmt.Errorf("failed to fetch user token: %w", err)
 	}
@@ -833,7 +864,7 @@ func (svc *albyOAuthService) backupChannels(ctx context.Context, event *events.E
 }
 
 func (svc *albyOAuthService) createAlbyAccountNWCNode(ctx context.Context) (string, error) {
-	token, err := svc.fetchUserToken(ctx)
+	token, err := svc.fetchUserToken()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch user token")
 	}
@@ -894,7 +925,7 @@ func (svc *albyOAuthService) createAlbyAccountNWCNode(ctx context.Context) (stri
 }
 
 func (svc *albyOAuthService) destroyAlbyAccountNWCNode(ctx context.Context) error {
-	token, err := svc.fetchUserToken(ctx)
+	token, err := svc.fetchUserToken()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch user token")
 	}
@@ -929,7 +960,7 @@ func (svc *albyOAuthService) destroyAlbyAccountNWCNode(ctx context.Context) erro
 }
 
 func (svc *albyOAuthService) activateAlbyAccountNWCNode(ctx context.Context, walletServicePubkey string) error {
-	token, err := svc.fetchUserToken(ctx)
+	token, err := svc.fetchUserToken()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch user token")
 	}
@@ -995,7 +1026,7 @@ func (svc *albyOAuthService) activateAlbyAccountNWCNode(ctx context.Context, wal
 }
 
 func (svc *albyOAuthService) GetLSPChannelOffer(ctx context.Context) (*LSPChannelOffer, error) {
-	token, err := svc.fetchUserToken(ctx)
+	token, err := svc.fetchUserToken()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch user token")
 		return nil, err
@@ -1043,7 +1074,7 @@ func (svc *albyOAuthService) GetLSPChannelOffer(ctx context.Context) (*LSPChanne
 }
 
 func (svc *albyOAuthService) GetLSPInfo(ctx context.Context, lspIdentifier, network string) (*LSPInfo, error) {
-	token, err := svc.fetchUserToken(ctx)
+	token, err := svc.fetchUserToken()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch user token")
 		return nil, err
@@ -1135,7 +1166,7 @@ func (svc *albyOAuthService) GetLSPInfo(ctx context.Context, lspIdentifier, netw
 }
 
 func (svc *albyOAuthService) CreateLSPOrder(ctx context.Context, lsp, network string, lspChannelRequest *LSPChannelRequest) (*LSPChannelResponse, error) {
-	token, err := svc.fetchUserToken(ctx)
+	token, err := svc.fetchUserToken()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch user token")
 		return nil, err
@@ -1240,7 +1271,7 @@ func (svc *albyOAuthService) RequestAutoChannel(ctx context.Context, lnClient ln
 }
 
 func (svc *albyOAuthService) requestAutoChannel(ctx context.Context, url string, pubkey string, isPublic bool) (*AutoChannelResponse, error) {
-	token, err := svc.fetchUserToken(ctx)
+	token, err := svc.fetchUserToken()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch user token")
 	}

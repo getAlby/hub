@@ -111,6 +111,7 @@ type Swap struct {
 	TimeoutBlockHeight uint32
 	BoltzPubkey        string
 	SwapTree           datatypes.JSON
+	ApiUrl             string
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
 }

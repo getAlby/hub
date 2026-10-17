@@ -6,8 +6,10 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"regexp"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/getAlby/hub/api"
 	"github.com/getAlby/hub/config"
@@ -56,6 +58,138 @@ func TestUnlock_IncorrectPassword(t *testing.T) {
 
 	assert.Equal(t, http.StatusUnauthorized, rec.Code)
 	mockConfig.AssertNotCalled(t, "GetJWTSecret")
+}
+
+// TestStart_IncorrectPassword verifies that the start endpoint rejects an
+// invalid unlock password before issuing a JWT or launching the node start
+// (regression test for #1560: previously the token was created unconditionally
+// and the password was only checked inside the async node start).
+func TestStart_IncorrectPassword(t *testing.T) {
+	e := echo.New()
+	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
+	mockSvc := mocks.NewMockService(t)
+	gormDb, err := db.NewDB(t)
+	require.NoError(t, err)
+	defer db.CloseDB(gormDb)
+
+	mockEventPublisher := events.NewEventPublisher()
+
+	mockConfig := mocks.NewMockConfig(t)
+	mockConfig.On("GetEnv").Return(&config.AppConfig{})
+	mockConfig.On("CheckUnlockPassword", "123").Return(false)
+
+	mockSvc.On("GetDB").Return(gormDb)
+	mockSvc.On("GetConfig").Return(mockConfig)
+	mockSvc.On("GetKeys").Return(mocks.NewMockKeys(t))
+	mockSvc.On("GetAlbySvc").Return(mocks.NewMockAlbyService(t))
+	mockSvc.On("GetAlbyOAuthSvc").Return(mocks.NewMockAlbyOAuthService(t))
+
+	httpSvc := NewHttpService(mockSvc, mockEventPublisher)
+	httpSvc.RegisterSharedRoutes(e)
+
+	requestBody := api.StartRequest{UnlockPassword: "123"}
+	jsonBody, _ := json.Marshal(requestBody)
+	req := httptest.NewRequest(http.MethodPost, "/api/start", bytes.NewBuffer(jsonBody))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	e.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusUnauthorized, rec.Code)
+
+	var response ErrorResponse
+	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &response))
+	assert.Equal(t, "Invalid password", response.Message)
+
+	// black-box: nothing JWT-shaped may reach the client anywhere in the response
+	assert.Empty(t, findJWTs(rec), "no token must be issued for an invalid password")
+
+	// white-box: the calls that TestStart_CorrectPassword proves are required to
+	// issue a token must not happen here. Keep both tests in sync.
+	mockConfig.AssertNotCalled(t, "LoadJWTSecret", mock.Anything)
+	mockConfig.AssertNotCalled(t, "GetJWTSecret")
+	mockSvc.AssertNotCalled(t, "StartApp", mock.Anything)
+}
+
+// TestStart_CorrectPassword is the counterpart of TestStart_IncorrectPassword:
+// it proves that issuing a token from the start endpoint requires
+// LoadJWTSecret, GetJWTSecret and StartApp, so the AssertNotCalled checks in
+// the negative test cannot silently become vacuous if the implementation
+// changes. It also proves the issued token grants full access.
+func TestStart_CorrectPassword(t *testing.T) {
+	e := echo.New()
+	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
+	mockSvc := mocks.NewMockService(t)
+	gormDb, err := db.NewDB(t)
+	require.NoError(t, err)
+	defer db.CloseDB(gormDb)
+
+	mockEventPublisher := events.NewEventPublisher()
+
+	mockConfig := mocks.NewMockConfig(t)
+	mockConfig.On("GetEnv").Return(&config.AppConfig{})
+	mockConfig.On("CheckUnlockPassword", "123").Return(true)
+	mockConfig.On("LoadJWTSecret", "123").Return(nil)
+	mockConfig.On("GetJWTSecret").Return("dummy secret", nil)
+
+	// the node start runs asynchronously; wait for it so the mock expectation
+	// is observed before the test ends
+	started := make(chan struct{})
+	mockSvc.On("StartApp", "123").Run(func(args mock.Arguments) { close(started) }).Return(nil)
+
+	mockSvc.On("GetDB").Return(gormDb)
+	mockSvc.On("GetConfig").Return(mockConfig)
+	mockSvc.On("GetKeys").Return(mocks.NewMockKeys(t))
+	mockSvc.On("GetAlbySvc").Return(mocks.NewMockAlbyService(t))
+	mockSvc.On("GetAlbyOAuthSvc").Return(mocks.NewMockAlbyOAuthService(t))
+
+	httpSvc := NewHttpService(mockSvc, mockEventPublisher)
+	httpSvc.RegisterSharedRoutes(e)
+
+	requestBody := api.StartRequest{UnlockPassword: "123"}
+	jsonBody, _ := json.Marshal(requestBody)
+	req := httptest.NewRequest(http.MethodPost, "/api/start", bytes.NewBuffer(jsonBody))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	e.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+
+	select {
+	case <-started:
+	case <-time.After(5 * time.Second):
+		t.Fatal("StartApp was not called")
+	}
+
+	var tokenResponse authTokenResponse
+	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &tokenResponse))
+	require.NotEmpty(t, tokenResponse.Token)
+	// the same detector used by the negative test must recognise a real token
+	assert.Equal(t, []string{tokenResponse.Token}, findJWTs(rec))
+
+	mockConfig.AssertCalled(t, "LoadJWTSecret", "123")
+	mockConfig.AssertCalled(t, "GetJWTSecret")
+
+	// the token grants full access
+	req2 := httptest.NewRequest(http.MethodGet, "/api/apps", nil)
+	req2.Header.Set("Authorization", "Bearer "+tokenResponse.Token)
+	rec2 := httptest.NewRecorder()
+	e.ServeHTTP(rec2, req2)
+	assert.Equal(t, http.StatusOK, rec2.Code)
+}
+
+var jwtPattern = regexp.MustCompile(`eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+`)
+
+// findJWTs returns every JWT-shaped string in the response body and headers
+// (including Set-Cookie), independent of JSON field names.
+func findJWTs(rec *httptest.ResponseRecorder) []string {
+	var haystack bytes.Buffer
+	haystack.Write(rec.Body.Bytes())
+	for key, values := range rec.Header() {
+		for _, v := range values {
+			haystack.WriteString("\n" + key + ": " + v)
+		}
+	}
+	return jwtPattern.FindAllString(haystack.String(), -1)
 }
 
 func TestUnlock_UnknownPermission(t *testing.T) {

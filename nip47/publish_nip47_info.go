@@ -84,9 +84,16 @@ func (svc *nip47Service) PublishNip47Info(ctx context.Context, pool nostrmodels.
 		// NWA: associate the info event with the app so that the app can receive the wallet pubkey
 		tags = append(tags, []string{"p", app.AppPubkey})
 	}
-	if permitsNotifications && len(lnClient.GetSupportedNIP47NotificationTypes()) > 0 {
+	var notificationTypes []string
+	if permitsNotifications {
+		notificationTypes = lnClient.GetSupportedNIP47NotificationTypes()
+	}
+	if len(notificationTypes) > 0 {
 		capabilities = append(capabilities, "notifications")
-		tags = append(tags, []string{"notifications", strings.Join(lnClient.GetSupportedNIP47NotificationTypes(), " ")})
+		tags = append(tags, []string{"notifications", strings.Join(notificationTypes, " ")})
+	}
+	if extensions := models.GetSupportedExtensions(capabilities, notificationTypes); len(extensions) > 0 {
+		tags = append(tags, []string{"extensions", strings.Join(extensions, " ")})
 	}
 
 	ev := &nostr.Event{}

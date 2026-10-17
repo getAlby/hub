@@ -63,8 +63,8 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.HideBanner = true
 
 	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
-		ContentTypeNosniff:    "nosniff",
-		XFrameOptions:         "DENY",
+		ContentTypeNosniff: "nosniff",
+		XFrameOptions:      "DENY",
 		// when making changes here, also update the CSP in frontend/vite.config.ts
 		ContentSecurityPolicy: "default-src 'self'; img-src 'self' https://uploads.getalby-assets.com https://cdn.getalby-assets.com https://getalby.com; connect-src 'self' https://api.getalby.com https://getalby.com https://zapplanner.albylabs.com wss://relay.getalby.com wss://relay2.getalby.com; frame-src https://www.youtube-nocookie.com",
 		ReferrerPolicy:        "no-referrer",
@@ -148,6 +148,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	readOnlyApiGroup.GET("/transactions", httpSvc.listTransactionsHandler)
 	readOnlyApiGroup.GET("/transactions/:paymentHash", httpSvc.lookupTransactionHandler)
 	readOnlyApiGroup.GET("/balances", httpSvc.balancesHandler)
+	readOnlyApiGroup.GET("/jit-channels/info", httpSvc.jitChannelsInfoHandler)
 	readOnlyApiGroup.GET("/mempool", httpSvc.mempoolApiHandler)
 	readOnlyApiGroup.GET("/health", httpSvc.healthHandler)
 	readOnlyApiGroup.GET("/commands", httpSvc.getCustomNodeCommandsHandler)
@@ -232,6 +233,17 @@ func (httpSvc *HttpService) infoHandler(c echo.Context) error {
 			}
 			responseBody.Unlocked = err == nil && token != nil && token.Valid
 		}
+	}
+
+	return c.JSON(http.StatusOK, responseBody)
+}
+
+func (httpSvc *HttpService) jitChannelsInfoHandler(c echo.Context) error {
+	responseBody, err := httpSvc.api.GetJitChannelsInfo()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
 	}
 
 	return c.JSON(http.StatusOK, responseBody)
@@ -1494,7 +1506,7 @@ func (httpSvc *HttpService) getSwapInInfoHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) initiateSwapOutHandler(c echo.Context) error {
-	var initiateSwapOutRequest api.InitiateSwapRequest
+	var initiateSwapOutRequest api.InitiateSwapOutRequest
 	if err := c.Bind(&initiateSwapOutRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
@@ -1512,7 +1524,7 @@ func (httpSvc *HttpService) initiateSwapOutHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) initiateSwapInHandler(c echo.Context) error {
-	var initiateSwapInRequest api.InitiateSwapRequest
+	var initiateSwapInRequest api.InitiateSwapInRequest
 	if err := c.Bind(&initiateSwapInRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),

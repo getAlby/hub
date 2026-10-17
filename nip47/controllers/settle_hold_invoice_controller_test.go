@@ -149,3 +149,28 @@ func TestHandleSettleHoldInvoiceEvent_InvalidPreimage(t *testing.T) {
 	require.NotNil(t, setup.response.Error)
 	assert.Equal(t, constants.ERROR_INTERNAL, setup.response.Error.Code)
 }
+
+func TestHandleSettleHoldInvoiceEvent_OtherApp(t *testing.T) {
+	setup := setupSettleHoldInvoiceTest(t, testSettlePreimage, testSettlePaymentHash, constants.TRANSACTION_STATE_ACCEPTED)
+	defer setup.TearDown()
+
+	otherApp, _, err := tests.CreateApp(setup.svc)
+	require.NoError(t, err)
+	err = setup.svc.DB.Create(&db.AppPermission{
+		AppId: otherApp.ID,
+		Scope: constants.MAKE_INVOICE_SCOPE,
+	}).Error
+	require.NoError(t, err)
+
+	NewTestNip47Controller(setup.svc).
+		HandleSettleHoldInvoiceEvent(setup.ctx, setup.nip47Request, setup.dbRequestEvent.ID, otherApp.ID, setup.PublishResponse)
+
+	assert.True(t, setup.publishCalled)
+	require.NotNil(t, setup.response.Error)
+
+	var transaction db.Transaction
+	err = setup.svc.DB.First(&transaction, "payment_hash = ?", testSettlePaymentHash).Error
+	require.NoError(t, err)
+	assert.Equal(t, constants.TRANSACTION_STATE_ACCEPTED, transaction.State)
+	assert.Nil(t, transaction.Preimage)
+}

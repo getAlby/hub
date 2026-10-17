@@ -76,7 +76,7 @@ jobs:
           node-version: "22.x"
 
       - name: Install Wails
-        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.14.0
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.16.0
         shell: bash
 
       - name: Install Linux Wails deps
@@ -110,7 +110,7 @@ jobs:
 
       - name: Build App
         if: runner.os == 'macOS'
-        run: wails build --platform darwin/universal -webview2 embed -o "${{ env.EXEC_NAME }}" -tags "wails" -ldflags "-X 'github.com/getAlby/hub/version.Tag=${{ env.TAG }}'"
+        run: wails build --platform darwin/universal -webview2 embed -o "${{ env.EXEC_NAME }}" -tags "wails" -ldflags "-X 'github.com/getAlby/hub/version.Tag=${{ env.TAG }}' -extldflags '-Wl,-headerpad_max_install_names'"
         shell: bash
 
       - name: Build App

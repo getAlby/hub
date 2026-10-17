@@ -94,7 +94,7 @@ _If you get a blank screen, try running in your normal terminal (outside of vsco
 ### Run dockerfile locally (HTTP mode)
 
     $ docker build . -t nwc-local --progress=plain
-    $ docker run -v $(pwd)/.data/docker:/data -e WORK_DIR='/data' -p 8080:8080 nwc-local
+    $ docker run -v $(pwd)/.data/docker:/data -e WORK_DIR='/data' -p 127.0.0.1:8080:8080 nwc-local
 
 ### Debugging
 
@@ -164,7 +164,7 @@ The following configuration options can be set as environment variables or in a 
 - `WORK_DIR`: Directory to store NWC data files. Default: $XDG_DATA_HOME/albyhub
 - `LOG_LEVEL`: Log level for the main application. Higher is more verbose. Default: 4 (info)
 - `AUTO_UNLOCK_PASSWORD`: Provide unlock password to auto-unlock Alby Hub on startup (e.g. after a machine restart). Unlock password still be required to access the interface.
-- `BOLTZ_API`: The api which provides auto swaps functionality. Default: "https://api.boltz.exchange"
+- `BOLTZ_API`: A Boltz-compatible API which provides swaps functionality. If not set, the swap provider is chosen by Alby (mainnet only; swaps are disabled on other networks)
 - `NETWORK`: On-chain network used for the node. Default: "bitcoin"
 - `REBALANCE_SERVICE_URL`: service url for rebalancing existing channels.
 
@@ -172,7 +172,7 @@ The following configuration options can be set as environment variables or in a 
 
 There is a boltz regtest fork with mempool service and alby-specific instructions [here](https://github.com/rolznz/boltz-regtest/tree/alby-hub?tab=readme-ov-file#your-first-swap)
 
-Make sure to update your RPC password below, and change your work directory each time you restart boltz (it is ephemeral):
+Make sure to update your RPC password below (`docker exec boltz-bitcoind cat /app/bitcoin/regtest/.cookie | cut -d: -f2`), and change your work directory each time you restart boltz (it is ephemeral):
 
     WORK_DIR=.data/boltz-regtest-1
     LDK_BITCOIND_RPC_HOST="127.0.0.1"
@@ -194,6 +194,15 @@ To test auto-swaps to xpub you can use sparrow wallet in regtest:
     /opt/sparrow/bin/Sparrow -n regtest
 
 Sparrow needs to be connected to regtest boltz setup Bitcoin Core RPC (127.0.0.1:18443 with user:password as `__cookie__:cookiepassword`) with an imported mnemonic and copied the tpub from the settings page
+
+#### Letting an AI agent manage the regtest environment
+
+A coding agent can start boltz regtest, write the `.env` above and run the hub, so you only need to use the UI and ask for things like "send 1M sats to bcrt1...", "give me the LND-1 pubkey", "pay 101251 sats to bcrt1... from an external wallet" or "mine a block". This works well in a sandbox environment that supports docker (e.g. a full VM, not an LXC container) with ~32GB of free disk space for the docker images. The agent should:
+
+- Use a fresh git worktree for the branch being tested, so it starts without an existing `.env` or `.data` directory
+- Run the scripts container helpers non-interactively (the `aliases.sh` helpers use `docker exec -it`, which needs a TTY): `docker exec boltz-scripts bash -c 'source /etc/profile.d/utils.sh && bitcoin-cli-sim-client -generate 1'`
+- Use `lncli-sim 1 getinfo` for the LND-1 pubkey, as it changes on every restart (connect via `<pubkey>@127.0.0.1:29735`)
+- Follow swap progress in the hub logs (`Lockup transaction found in mempool`, `Swap succeeded`)
 
 ### Migrating the database (Sqlite <-> Postgres)
 
@@ -244,7 +253,9 @@ _To configure via env, the following parameters must be provided:_
 
 ### LDK Backend parameters
 
-- `LDK_ESPLORA_SERVER`: By default the optimized Alby esplora is used. You can configure your own esplora server (note: the public blockstream one is slow and can cause onchain syncing and issues with opening channels)
+- `LDK_ELECTRUM_SERVER`: By default the optimized Alby electrum server is used. You can configure your own electrum server (e.g. `ssl://host:50002` or `tcp://host:50001`).
+- `LDK_ESPLORA_SERVER`: Use an esplora server as the chain source instead of electrum (note: the public blockstream one is slow and can cause onchain syncing and issues with opening channels)
+- The configured electrum or esplora server is also used for onchain address lookups. Bitcoind has no address index, so when using `LDK_BITCOIND_RPC_HOST` these lookups go to `LDK_ESPLORA_SERVER` if configured, otherwise to `LDK_ELECTRUM_SERVER`.
 - `LDK_VSS_URL`: Use VSS (encrypted remote storage) rather than local sqlite store for lightning and bitcoin data. Currently this feature only works for brand new Alby Hub instances that are connected to Alby Accounts with an active subscription plan.
 - `LDK_LISTENING_ADDRESSES`: configure listening addresses, required for public channels, and ideally reachable if you would like others to be able to initiate peering with your node.
 - `LDK_ANNOUNCEMENT_ADDRESSES`: configure announcement addresses (only required if you use a VPN)
@@ -260,12 +271,12 @@ _To configure via env, the following parameters must be provided:_
 
 - `MEMPOOL_API=https://mutinynet.com/api`
 - `NETWORK=signet`
-- `LDK_ESPLORA_SERVER=https://mutinynet.com/api`
+- `LDK_ELECTRUM_SERVER=electrum.mutinynet.com:50001`
 - `LDK_GOSSIP_SOURCE=https://rgs.mutinynet.com/snapshot` (NOTE: by default ALby Hub does not use RGS)
 
-(or electrum instead of esplora)
+(or esplora instead of electrum)
 
-- `LDK_ELECTRUM_SERVER=electrum.mutinynet.com:50001`
+- `LDK_ESPLORA_SERVER=https://mutinynet.com/api`
 
 ##### Signet
 
@@ -463,6 +474,9 @@ Run NWC on your own node!
 
 ## Deploy it yourself
 
+> [!WARNING]
+> Alby Hub is intended to run on a secure, private network (for example your home network or behind a VPN). Do not expose it directly to the public internet. By default the HTTP server listens on **all network interfaces**, so restrict access with a firewall or bind it to a private address. For remote access without exposing it publicly, see the [Tailcat example](scripts/tailcat/README.md).
+
 ### Requirements
 
 The application has no runtime dependencies. (simple Go executable).
@@ -543,15 +557,17 @@ LDK logs:
 
 Alby provides container images for each release. Please make sure to use a persistent volume. The lightning state and application state is persisted to disk.
 
+The examples below publish the port on `127.0.0.1` only, so Alby Hub is reachable from the Docker host but not from other machines. To reach it from other devices on your local network, use `-p 8080:8080` instead and make sure your firewall blocks the port from the internet.
+
 #### From Alby's Container Registry
 
 _Tested on Linux only_
 
-`docker run -v ~/.local/share/albyhub:/data -e WORK_DIR='/data' -p 8080:8080 --pull always ghcr.io/getalby/hub:latest`
+`docker run -v ~/.local/share/albyhub:/data -e WORK_DIR='/data' -p 127.0.0.1:8080:8080 --pull always ghcr.io/getalby/hub:latest`
 
 ##### Build the image locally
 
-`docker run -v ~/.local/share/albyhub:/data -e WORK_DIR='/data' -p 8080:8080 $(docker build -q .)`
+`docker run -v ~/.local/share/albyhub:/data -e WORK_DIR='/data' -p 127.0.0.1:8080:8080 $(docker build -q .)`
 
 ##### Docker Compose
 
@@ -641,7 +657,7 @@ Sensitive data such as the seed phrase are saved AES-encrypted by the user's unl
 All requests to the wallet service are made with one of the following ways:
 
 - NIP-47 - requests encrypted by NIP-04 using randomly-generated keypairs (one per app connection) and sent via websocket through the configured relay.
-- HTTP - requests encrypted by JWT and ideally HTTPS (except self-hosted, which can be protected by firewall)
+- HTTP - requests authenticated by JWT. Alby Hub is intended for secure local networks and should not be exposed to the public internet. If remote access is needed, use a VPN or an HTTPS reverse proxy with restricted access.
 - Desktop mode - requests are made internally through the Wails router, without any kind of network traffic.
 
 ## Alby Hub Origin
