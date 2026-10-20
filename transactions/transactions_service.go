@@ -634,7 +634,7 @@ func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHa
 	// order settled first, otherwise by created date, as there can be multiple outgoing payments
 	// for the same payment hash (if you tried to pay an invoice multiple times - e.g. the first time failed)
 	// NULL settled_at is sorted last explicitly, as Postgres sorts NULLs first in descending order
-	result := tx.Order("settled_at IS NULL, settled_at desc, created_at desc").Limit(1).Find(&transaction, &db.Transaction{
+	result := tx.Order("settled_at desc nulls last, created_at desc").Limit(1).Find(&transaction, &db.Transaction{
 		// Type:        transactionType,
 		PaymentHash: paymentHash,
 	})
