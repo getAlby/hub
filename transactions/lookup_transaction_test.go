@@ -81,18 +81,22 @@ func TestLookupTransaction_OutgoingPaymentFailedThenSettled(t *testing.T) {
 		PaymentRequest: tests.MockLNClientTransaction.Invoice,
 		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
 	})
+	mockPreimage := tests.MockLNClientTransaction.Preimage
 	settledAt := time.Now()
 	svc.DB.Create(&db.Transaction{
 		State:          constants.TRANSACTION_STATE_SETTLED,
 		Type:           constants.TRANSACTION_TYPE_OUTGOING,
 		PaymentRequest: tests.MockLNClientTransaction.Invoice,
 		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
+		Preimage:       &mockPreimage,
 		SettledAt:      &settledAt,
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
 	outgoingTransaction, err := transactionsService.LookupTransaction(ctx, tests.MockLNClientTransaction.PaymentHash, nil, svc.LNClient, nil)
-	assert.NoError(t, err)
-	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, outgoingTransaction.State)
+	require.NoError(t, err)
+	require.Equal(t, constants.TRANSACTION_STATE_SETTLED, outgoingTransaction.State)
+	assert.Equal(t, tests.MockLNClientTransaction.Preimage, *outgoingTransaction.Preimage)
+	assert.Equal(t, settledAt.Unix(), outgoingTransaction.SettledAt.Unix())
 }
