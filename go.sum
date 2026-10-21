@@ -166,8 +166,8 @@ github.com/fxamacker/cbor/v2 v2.7.0 h1:iM5WgngdRBanHcxugY4JySA0nk1wZorNOpTgCMedv
 github.com/fxamacker/cbor/v2 v2.7.0/go.mod h1:pxXPTn3joSm21Gbwsv0w9OSA2y1HFR9qXEeXQVeNoDQ=
 github.com/getAlby/go-nostr v0.0.0-20260805072924-9844f892c3c8 h1:r2Th/F2tHpQl+eHIiGxMlF7R8tsdLQxrPMoIOacabO0=
 github.com/getAlby/go-nostr v0.0.0-20260805072924-9844f892c3c8/go.mod h1:UtZi+MvE7ayGS85zEr5RH2s96T2ok5Gotgp3n65sULU=
-github.com/getAlby/ldk-node-go v0.0.0-20261015143504-ca24bcee5b83 h1:04sdXS/sMGYDUvT5aET6ZThLweDtCLjoSldbNzvZVZg=
-github.com/getAlby/ldk-node-go v0.0.0-20261015143504-ca24bcee5b83/go.mod h1:8BRjtKcz8E0RyYTPEbMS8VIdgredcGSLne8vHDtcRLg=
+github.com/getAlby/ldk-node-go v0.0.0-20261021094837-02f88de84f63 h1:gxfbdmCRAqT8NjX7i45YBnA9iKODP1ALuQ0PK9GzkvI=
+github.com/getAlby/ldk-node-go v0.0.0-20261021094837-02f88de84f63/go.mod h1:8BRjtKcz8E0RyYTPEbMS8VIdgredcGSLne8vHDtcRLg=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/go-gormigrate/gormigrate/v2 v2.1.7 h1:PdT4jVPbRb4R+0Ey2R0yJOdctVf4Whiq1Qi4necaZdg=
 github.com/go-gormigrate/gormigrate/v2 v2.1.7/go.mod h1:3ouXglTuPrKF5+7cQyVGfvAXTU4vLMaYh9+EPl03uog=
