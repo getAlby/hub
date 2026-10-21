@@ -231,6 +231,12 @@ func resetSequences(from, to *gorm.DB) error {
 			continue
 		}
 
+		destinationLastID, err := getLastAssignedID(to, req.table, req.seq)
+		if err != nil {
+			return fmt.Errorf("failed to get last ID of %q in destination: %w", req.table, err)
+		}
+		lastID = max(lastID, destinationLastID)
+
 		if err := setLastAssignedID(to, req.table, req.seq, lastID); err != nil {
 			return fmt.Errorf("failed to reset ID sequence of %q: %w", req.table, err)
 		}
