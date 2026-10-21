@@ -1129,9 +1129,10 @@ func (svc *LNDService) UpdateChannel(ctx context.Context, updateChannelRequest *
 	}
 
 	var nodePolicy *lnrpc.RoutingPolicy
-	if channelEdge.Node1Pub == svc.GetPubkey() {
+	switch svc.GetPubkey() {
+	case channelEdge.Node1Pub:
 		nodePolicy = channelEdge.Node1Policy
-	} else {
+	case channelEdge.Node2Pub:
 		nodePolicy = channelEdge.Node2Policy
 	}
 	if nodePolicy == nil {
