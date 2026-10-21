@@ -1129,10 +1129,14 @@ func (svc *LNDService) UpdateChannel(ctx context.Context, updateChannelRequest *
 	}
 
 	var nodePolicy *lnrpc.RoutingPolicy
-	if channelEdge.Node1Pub == svc.client.IdentityPubkey {
+	if channelEdge.Node1Pub == svc.GetPubkey() {
 		nodePolicy = channelEdge.Node1Policy
 	} else {
 		nodePolicy = channelEdge.Node2Policy
+	}
+	if nodePolicy == nil {
+		logger.Logger.WithField("request", updateChannelRequest).Error("Failed to find our routing policy for the channel")
+		return errors.New("no routing policy found for our side of the channel")
 	}
 
 	_, err = svc.client.UpdateChannel(ctx, &lnrpc.PolicyUpdateRequest{
