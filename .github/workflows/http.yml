@@ -87,6 +87,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22.x"
+          check-latest: true
 
       - name: Run tests
         run: mkdir frontend/dist && touch frontend/dist/tmp && go test ./...
