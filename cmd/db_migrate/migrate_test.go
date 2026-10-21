@@ -92,7 +92,7 @@ func TestMigrate(t *testing.T) {
 	}
 }
 
-func TestMigrateDoesNotReuseDeletedIDs(t *testing.T) {
+func TestMigrateRemovesDeletedAppsFromTransactions(t *testing.T) {
 	for _, tt := range getTestCases() {
 		t.Run(tt.name, func(t *testing.T) {
 			env, err := setupTest(t, tt.sourceURI, tt.destURI)
@@ -106,22 +106,24 @@ func TestMigrateDoesNotReuseDeletedIDs(t *testing.T) {
 				Metadata:  datatypes.JSON("{}"),
 			}
 			create(t, env.source, deletedApp)
-			create(t, env.source, &db.Transaction{
+			transaction := &db.Transaction{
 				AppId:       &deletedApp.ID,
 				Type:        constants.TRANSACTION_TYPE_INCOMING,
 				State:       constants.TRANSACTION_STATE_SETTLED,
 				AmountMsat:  5_000_000,
 				PaymentHash: "13a165e20d710ebd58cb0f41529cbd3a32454445beb54d1f169115e69dd6313d",
-			})
+			}
+			create(t, env.source, transaction)
 			require.NoError(t, env.source.Delete(deletedApp).Error)
-
-			deletedForward := &db.Forward{}
-			create(t, env.source, deletedForward)
-			require.NoError(t, env.source.Exec("DELETE FROM forwards").Error)
 
 			err = db.MigrateDB(env.source, env.dest)
 			require.NoError(t, err)
 
+			var migratedTransaction db.Transaction
+			require.NoError(t, env.dest.First(&migratedTransaction, transaction.ID).Error)
+			assert.Nil(t, migratedTransaction.AppId)
+
+			// the new app may get the deleted app's ID
 			newApp := &db.App{
 				Name:      "new",
 				AppPubkey: "8d2c60ccd6f70721dd86573a062c65e06263f0e9e057ba8e5015e53d4b704870",
@@ -129,18 +131,10 @@ func TestMigrateDoesNotReuseDeletedIDs(t *testing.T) {
 				Metadata:  datatypes.JSON("{}"),
 			}
 			create(t, env.dest, newApp)
-			assert.Equal(t, deletedApp.ID+1, newApp.ID, "new app must not reuse the deleted app's ID")
 
 			balance, err := queries.GetIsolatedBalanceMsat(env.dest, newApp.ID)
 			require.NoError(t, err)
 			assert.Zero(t, balance, "new app must not inherit the deleted app's balance")
-
-			newForward := &db.Forward{}
-			create(t, env.dest, newForward)
-			assert.Equal(t, deletedForward.ID+1, newForward.ID, "new forward must not reuse a deleted forward's ID")
-
-			// must not collide with the copied rows on postgres
-			create(t, env.dest, &db.UserConfig{Key: "NewKey"})
 		})
 	}
 }

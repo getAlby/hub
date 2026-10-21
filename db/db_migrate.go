@@ -26,8 +26,6 @@ var expectedTables = []string{
 // Orphaned request and response events are deleted from the source database
 // before copying, as they would violate foreign key constraints in the
 // destination database.
-// The destination's ID sequences continue from the source's, so that IDs of
-// deleted rows (which e.g. transactions may still reference) are not reused.
 func MigrateDB(from, to *gorm.DB) error {
 	if err := checkSchema(from); err != nil {
 		return fmt.Errorf("source database schema check failed: %w", err)
@@ -88,6 +86,13 @@ func MigrateDB(from, to *gorm.DB) error {
 		return fmt.Errorf("failed to migrate transactions: %w", err)
 	}
 
+	// IDs of deleted apps can be reused in the destination database,
+	// so transactions must not keep pointing to them.
+	logger.Logger.Info("removing deleted apps from transactions...")
+	if err := tx.Exec("UPDATE transactions SET app_id = NULL WHERE app_id NOT IN (SELECT id FROM apps);").Error; err != nil {
+		return fmt.Errorf("failed to remove deleted apps from transactions: %w", err)
+	}
+
 	logger.Logger.Info("migrating swaps...")
 	if err := migrateTable[Swap](from, tx); err != nil {
 		return fmt.Errorf("failed to migrate swaps: %w", err)
@@ -103,9 +108,11 @@ func MigrateDB(from, to *gorm.DB) error {
 		return fmt.Errorf("failed to migrate user_configs: %w", err)
 	}
 
-	logger.Logger.Info("resetting sequences...")
-	if err := resetSequences(from, tx); err != nil {
-		return fmt.Errorf("failed to reset sequences: %w", err)
+	if to.Dialector.Name() == "postgres" {
+		logger.Logger.Info("resetting sequences...")
+		if err := resetSequences(tx); err != nil {
+			return fmt.Errorf("failed to reset sequences: %w", err)
+		}
 	}
 
 	tx.Commit()
@@ -199,7 +206,7 @@ func listTables(db *gorm.DB) ([]string, error) {
 	return tables, nil
 }
 
-func resetSequences(from, to *gorm.DB) error {
+func resetSequences(db *gorm.DB) error {
 	type resetReq struct {
 		table string
 		seq   string
@@ -217,78 +224,18 @@ func resetSequences(from, to *gorm.DB) error {
 	}
 
 	for _, req := range resetReqs {
-		// user_configs has no AUTOINCREMENT in sqlite, so its IDs are reused anyway
-		if to.Dialector.Name() == "sqlite" && req.table == "user_configs" {
-			continue
-		}
-
-		lastID, err := getLastAssignedID(from, req.table, req.seq)
-		if err != nil {
-			return fmt.Errorf("failed to get last ID of %q in source: %w", req.table, err)
-		}
-		if lastID == 0 {
-			// no ID was assigned yet (and setval() rejects 0)
-			continue
-		}
-
-		destinationLastID, err := getLastAssignedID(to, req.table, req.seq)
-		if err != nil {
-			return fmt.Errorf("failed to get last ID of %q in destination: %w", req.table, err)
-		}
-		lastID = max(lastID, destinationLastID)
-
-		if err := setLastAssignedID(to, req.table, req.seq, lastID); err != nil {
-			return fmt.Errorf("failed to reset ID sequence of %q: %w", req.table, err)
+		if err := resetPostgresSequence(db, req.table, req.seq); err != nil {
+			return fmt.Errorf("failed to reset sequence %q for %q: %w", req.seq, req.table, err)
 		}
 	}
 
 	return nil
 }
 
-func getLastAssignedID(db *gorm.DB, table string, seq string) (int64, error) {
-	var counter int64
-	var err error
-	switch db.Dialector.Name() {
-	case "sqlite":
-		err = db.Raw("SELECT COALESCE(MAX(seq), 0) FROM sqlite_sequence WHERE name = ?;", table).Scan(&counter).Error
-	case "postgres":
-		// last_value is not handed out yet while is_called is false (e.g. on a fresh sequence)
-		err = db.Table(seq).Select("CASE WHEN is_called THEN last_value ELSE last_value - 1 END").Scan(&counter).Error
-	default:
-		return 0, fmt.Errorf("unsupported database: %q", db.Dialector.Name())
-	}
-	if err != nil {
-		return 0, fmt.Errorf("failed to query ID sequence: %w", err)
-	}
-
-	var maxID int64
-	if err := db.Table(table).Select("COALESCE(MAX(id), 0)").Scan(&maxID).Error; err != nil {
-		return 0, fmt.Errorf("failed to query max ID: %w", err)
-	}
-
-	return max(counter, maxID), nil
-}
-
-func setLastAssignedID(db *gorm.DB, table string, seq string, lastID int64) error {
-	switch db.Dialector.Name() {
-	case "sqlite":
-		// no upsert: sqlite_sequence has no unique constraint and the row may be missing
-		result := db.Exec("UPDATE sqlite_sequence SET seq = ? WHERE name = ?;", lastID, table)
-		if result.Error != nil {
-			return fmt.Errorf("failed to update sqlite_sequence: %w", result.Error)
-		}
-		if result.RowsAffected == 0 {
-			err := db.Exec("INSERT INTO sqlite_sequence (name, seq) VALUES (?, ?);", table, lastID).Error
-			if err != nil {
-				return fmt.Errorf("failed to insert into sqlite_sequence: %w", err)
-			}
-		}
-	case "postgres":
-		if err := db.Exec("SELECT setval(?, ?);", seq, lastID).Error; err != nil {
-			return fmt.Errorf("failed to execute setval(): %w", err)
-		}
-	default:
-		return fmt.Errorf("unsupported database: %q", db.Dialector.Name())
+func resetPostgresSequence(db *gorm.DB, table string, seq string) error {
+	query := fmt.Sprintf("SELECT setval('%s', (SELECT MAX(id) FROM %s));", seq, table)
+	if err := db.Exec(query).Error; err != nil {
+		return fmt.Errorf("failed to execute setval(): %w", err)
 	}
 
 	return nil
