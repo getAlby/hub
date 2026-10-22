@@ -3,6 +3,9 @@ package notifications
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -14,6 +17,7 @@ import (
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/nip47/models"
 	"github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/tests"
 )
@@ -309,4 +313,48 @@ func TestSendNotification_SharedWalletPubkey_NoPermission(t *testing.T) {
 	_, _, err = tests.CreateAppWithSharedWalletPubkey(svc, nostr.GeneratePrivateKey(), constants.ENCRYPTION_TYPE_NIP44_V2)
 	assert.NoError(t, err)
 	doTestSendNotificationNoPermission(t, svc)
+}
+
+type rejectingPool struct {
+	rejectKinds []int
+}
+
+func (pool *rejectingPool) PublishMany(ctx context.Context, relayUrls []string, event nostr.Event) chan nostr.PublishResult {
+	channel := make(chan nostr.PublishResult, 1)
+	if slices.Contains(pool.rejectKinds, event.Kind) {
+		channel <- nostr.PublishResult{RelayURL: "wss://fakerelay.com", Error: errors.New("relay rejected event")}
+	} else {
+		channel <- nostr.PublishResult{RelayURL: "wss://fakerelay.com"}
+	}
+	close(channel)
+	return channel
+}
+
+func (pool *rejectingPool) QuerySingle(ctx context.Context, urls []string, filter nostr.Filter, opts ...nostr.SubscriptionOption) *nostr.RelayEvent {
+	return nil
+}
+
+func TestSendNotification_RetryOnlyWhenNothingPublished(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	scopes := []string{constants.NOTIFICATIONS_SCOPE}
+	// valid hex but not a valid secp256k1 point, so the cipher fails for this app
+	_, _, err = svc.AppsService.CreateApp("invalid pubkey", strings.Repeat("ff", 32), 0, constants.BUDGET_RENEWAL_NEVER, nil, scopes, false, nil)
+	require.NoError(t, err)
+	_, _, err = svc.AppsService.CreateApp("valid pubkey", "", 0, constants.BUDGET_RENEWAL_NEVER, nil, scopes, false, nil)
+	require.NoError(t, err)
+
+	pool := &rejectingPool{}
+	notifier := NewNip47Notifier(pool, svc.DB, svc.Cfg, svc.Keys, permissions.NewPermissionsService(svc.DB, svc.EventPublisher))
+	event := &events.Event{Event: "nwc_payment_received", Properties: &db.Transaction{}}
+
+	// relays offline: retry
+	pool.rejectKinds = []int{models.LEGACY_NOTIFICATION_KIND, models.NOTIFICATION_KIND}
+	require.ErrorIs(t, notifier.ConsumeEvent(context.TODO(), event), errPublishFailed)
+
+	// partially published: no retry, it would send duplicates
+	pool.rejectKinds = []int{models.LEGACY_NOTIFICATION_KIND}
+	require.NoError(t, notifier.ConsumeEvent(context.TODO(), event))
 }
