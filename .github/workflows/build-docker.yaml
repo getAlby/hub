@@ -22,14 +22,27 @@ jobs:
         run: mkdir frontend/dist && touch frontend/dist/tmp && go test ./...
       - name: Docker build
         if: github.actor != 'dependabot[bot]'
-        uses: mr-smithers-excellent/docker-build-push@v6
-        id: build
-        with:
-          image: ${{ env.IMAGENAME }}
-          registry: ${{ env.REGISTRY }}
-          multiPlatform: true
-          platform: linux/amd64,linux/arm64
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-          addLatest: ${{ startsWith(github.ref, 'refs/tags/v') }}
-          buildArgs: TAG=${{ env.TAG }}
+        env:
+          REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+          ADD_LATEST: ${{ startsWith(github.ref, 'refs/tags/v') }}
+        shell: bash
+        run: |
+          image="$REGISTRY/${GITHUB_REPOSITORY_OWNER,,}/$IMAGENAME"
+          # Preserve the previous action's lowercase, sanitized, 120-character ref slug.
+          tag=$(node -e 'process.stdout.write(process.env.TAG.toLowerCase().replace(/[^\w.-]+/g, "-").replace(/^[^\w]+/, "").substring(0, 120))')
+          if [[ "$GITHUB_REF" == refs/heads/* ]]; then
+            tag="$tag-${GITHUB_SHA:0:7}"
+          fi
+          tags=(--tag "$image:$tag")
+          if [[ "$ADD_LATEST" == true ]]; then
+            tags+=(--tag "$image:latest")
+          fi
+
+          printf '%s' "$REGISTRY_PASSWORD" | docker login "$REGISTRY" --username "$GITHUB_REPOSITORY_OWNER" --password-stdin
+          docker buildx create --use
+          # Refresh all referenced base images while retaining normal layer caching.
+          docker buildx build --pull --push \
+            --file Dockerfile \
+            --platform linux/amd64,linux/arm64 \
+            --build-arg "TAG=$TAG" \
+            "${tags[@]}" .
