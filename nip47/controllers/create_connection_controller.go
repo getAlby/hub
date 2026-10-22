@@ -2,7 +2,9 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/getAlby/go-nostr"
@@ -89,14 +91,21 @@ func (controller *nip47Controller) HandleCreateConnectionEvent(ctx context.Conte
 	}
 
 	supportedMethods := controller.lnClient.GetSupportedNIP47Methods()
-	if slices.ContainsFunc(params.RequestMethods, func(method string) bool {
-		return !slices.Contains(supportedMethods, method)
-	}) {
+	var unsupportedMethods []string
+	for _, method := range params.RequestMethods {
+		if !slices.Contains(supportedMethods, method) {
+			unsupportedMethods = append(unsupportedMethods, method)
+		}
+	}
+	if len(unsupportedMethods) > 0 {
 		publishResponse(&models.Response{
 			ResultType: nip47Request.Method,
 			Error: &models.Error{
-				Code:    constants.ERROR_BAD_REQUEST,
-				Message: "One or more methods are not supported by the current LNClient",
+				Code: constants.ERROR_BAD_REQUEST,
+				Message: fmt.Sprintf(
+					"Methods not supported by the current LNClient: %s",
+					strings.Join(unsupportedMethods, ", "),
+				),
 			},
 		}, nostr.Tags{})
 		return
