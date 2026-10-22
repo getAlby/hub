@@ -14,6 +14,7 @@ import OnboardingChecklist from "src/screens/wallet/OnboardingChecklist";
 import React from "react";
 import { AppOfTheDayWidget } from "src/components/home/widgets/AppOfTheDayWidget";
 import { BlockHeightWidget } from "src/components/home/widgets/BlockHeightWidget";
+import { FeeRateWidget } from "src/components/home/widgets/FeeRateWidget";
 import { ForwardsWidget } from "src/components/home/widgets/ForwardsWidget";
 import { LatestUsedAppsWidget } from "src/components/home/widgets/LatestUsedAppsWidget";
 import { LightningMessageboardWidget } from "src/components/home/widgets/LightningMessageboardWidget";
@@ -44,6 +45,7 @@ function Home() {
         <OnboardingChecklist />
         <StoriesWidget />
         <WhatsNewWidget />
+        <FeeRateWidget />
         <LatestUsedAppsWidget />
         <NewArrivalsWidget />
         <AppOfTheDayWidget />
