@@ -117,7 +117,9 @@ type Channel struct {
 }
 
 type NodeStatus struct {
-	IsReady            bool
+	IsReady bool
+	// ChainSyncStale is true if the node has not been able to sync with its chain source recently
+	ChainSyncStale     bool
 	InternalNodeStatus interface{}
 }
 
