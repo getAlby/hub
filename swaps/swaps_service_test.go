@@ -148,3 +148,12 @@ func TestSwapOutRejectsInvalidDestination(t *testing.T) {
 	_, err := svc.SwapOut(100_000, "bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?amount=0.001", false, false)
 	assert.ErrorContains(t, err, "invalid bitcoin address")
 }
+
+func TestRefundSwapRejectsInvalidAddress(t *testing.T) {
+	svc := &swapsService{
+		cfg: &testConfig{network: "bitcoin"},
+	}
+
+	err := svc.RefundSwap("dummy-swap-id", "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx", false)
+	assert.ErrorContains(t, err, "refund address validation failed")
+}
