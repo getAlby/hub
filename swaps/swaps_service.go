@@ -265,6 +265,12 @@ func (svc *swapsService) EnableAutoSwapOut(encryptionKey string) error {
 }
 
 func (svc *swapsService) SwapOut(amountSat uint64, destination string, autoSwap, usedXpubDerivation bool) (*SwapResponse, error) {
+	if destination != "" {
+		if err := svc.ValidateAddress(destination); err != nil {
+			return nil, fmt.Errorf("swap-out address validation failed: %w", err)
+		}
+	}
+
 	if err := svc.checkSwapProvider(); err != nil {
 		return nil, err
 	}
@@ -275,8 +281,6 @@ func (svc *swapsService) SwapOut(amountSat uint64, destination string, autoSwap,
 		if err != nil {
 			return nil, fmt.Errorf("could not get onchain address from config: %s", err)
 		}
-	} else if err := svc.ValidateAddress(destination); err != nil {
-		return nil, err
 	}
 
 	preimage := make([]byte, 32)
@@ -682,6 +686,12 @@ func (svc *swapsService) markSwapState(dbSwap *db.Swap, state string) {
 }
 
 func (svc *swapsService) RefundSwap(swapId, address string, enableRetries bool) error {
+	if address != "" {
+		if err := svc.ValidateAddress(address); err != nil {
+			return fmt.Errorf("refund address validation failed: %w", err)
+		}
+	}
+
 	var swap db.Swap
 	query := svc.db.Limit(1).Find(&swap, &db.Swap{
 		SwapId: swapId,
@@ -788,8 +798,6 @@ func (svc *swapsService) RefundSwap(swapId, address string, enableRetries bool) 
 			logger.Logger.WithField("swapId", swapId).WithError(err).Error("Failed to get new on-chain address from config")
 			return err
 		}
-	} else if err = svc.ValidateAddress(address); err != nil {
-		return err
 	}
 
 	err = svc.db.Model(&swap).Updates(&db.Swap{
