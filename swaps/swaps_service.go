@@ -275,6 +275,8 @@ func (svc *swapsService) SwapOut(amountSat uint64, destination string, autoSwap,
 		if err != nil {
 			return nil, fmt.Errorf("could not get onchain address from config: %s", err)
 		}
+	} else if err := svc.ValidateAddress(destination); err != nil {
+		return nil, err
 	}
 
 	preimage := make([]byte, 32)
@@ -786,6 +788,8 @@ func (svc *swapsService) RefundSwap(swapId, address string, enableRetries bool) 
 			logger.Logger.WithField("swapId", swapId).WithError(err).Error("Failed to get new on-chain address from config")
 			return err
 		}
+	} else if err = svc.ValidateAddress(address); err != nil {
+		return err
 	}
 
 	err = svc.db.Model(&swap).Updates(&db.Swap{
@@ -1616,9 +1620,14 @@ func (svc *swapsService) ValidateAddress(address string) error {
 		return err
 	}
 
-	_, err = btcutil.DecodeAddress(address, netParams)
+	decodedAddress, err := btcutil.DecodeAddress(address, netParams)
 	if err != nil {
 		return fmt.Errorf("invalid bitcoin address: %w", err)
+	}
+
+	// DecodeAddress also accepts raw public keys and segwit addresses of any network
+	if _, isPubKey := decodedAddress.(*btcutil.AddressPubKey); isPubKey || !decodedAddress.IsForNet(netParams) {
+		return fmt.Errorf("invalid bitcoin address: not a %s address", netParams.Name)
 	}
 
 	return nil

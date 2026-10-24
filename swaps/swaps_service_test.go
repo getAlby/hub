@@ -7,10 +7,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/BoltzExchange/boltz-client/v2/pkg/boltz"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
+	"github.com/getAlby/hub/config"
 	"github.com/lightningnetwork/lnd/lnwire"
 	"github.com/lightningnetwork/lnd/zpay32"
 	"github.com/stretchr/testify/assert"
@@ -106,4 +108,43 @@ func TestCalculateMaxSwapOutSendAmountSat(t *testing.T) {
 
 	// invalid fee rates of 100% or more are never accepted
 	assert.Equal(t, uint64(0), calculateMaxSwapOutSendAmountSat(100_000, 100, 500, 300))
+}
+
+func TestValidateAddress(t *testing.T) {
+	tests := []struct {
+		name        string
+		network     string
+		address     string
+		expectedErr string
+	}{
+		{"mainnet address on mainnet", "bitcoin", "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", ""},
+		{"testnet address on mainnet", "bitcoin", "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx", "not a mainnet address"},
+		{"node public key", "bitcoin", "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798", "not a mainnet address"},
+		{"BIP21 URI", "bitcoin", "bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?amount=0.001", "invalid bitcoin address"},
+		{"signet address on signet", "signet", "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx", ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := &swapsService{cfg: &testConfig{network: tt.network}}
+			err := svc.ValidateAddress(tt.address)
+			if tt.expectedErr == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.ErrorContains(t, err, tt.expectedErr)
+			}
+		})
+	}
+}
+
+func TestSwapOutRejectsInvalidDestination(t *testing.T) {
+	// BOLTZ_API skips the swap provider check, and without validation the
+	// swap would fail later at the unreachable swap API instead
+	svc := &swapsService{
+		cfg:      &testConfig{env: &config.AppConfig{BoltzApi: "http://127.0.0.1:1"}, network: "bitcoin"},
+		boltzApi: &boltz.Api{URL: "http://127.0.0.1:1"},
+	}
+
+	_, err := svc.SwapOut(100_000, "bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?amount=0.001", false, false)
+	assert.ErrorContains(t, err, "invalid bitcoin address")
 }
