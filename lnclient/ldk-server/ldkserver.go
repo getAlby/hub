@@ -3,7 +3,6 @@ package ldkserver
 import (
 	"bytes"
 	"context"
-	"crypto/hmac"
 	"crypto/sha256"
 	"crypto/tls"
 	"crypto/x509"
@@ -32,6 +31,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"golang.org/x/net/http2"
 	"google.golang.org/protobuf/proto"
+	"gopkg.in/macaroon.v2"
 )
 
 type LDKServerService struct {
@@ -40,7 +40,7 @@ type LDKServerService struct {
 	client         *http.Client
 	baseURL        string
 	address        string
-	apiKey         string
+	macaroon       *macaroon.Macaroon
 	eventPublisher events.EventPublisher
 	pubkey         string
 	nodeInfo       *lnclient.NodeInfo
@@ -55,9 +55,14 @@ type pendingChannelOpen struct {
 	changed  chan struct{}
 }
 
-func NewLDKServerService(ctx context.Context, eventPublisher events.EventPublisher, address, tlsCertPEM, apiKey string) (lnclient.LNClient, error) {
-	if address == "" || tlsCertPEM == "" || apiKey == "" {
+func NewLDKServerService(ctx context.Context, eventPublisher events.EventPublisher, address, tlsCertPEM, macaroonHex string) (lnclient.LNClient, error) {
+	if address == "" || tlsCertPEM == "" || macaroonHex == "" {
 		return nil, errors.New("one or more required ldk-server configuration values are missing")
+	}
+
+	mac, err := parseReusableMacaroon(macaroonHex)
+	if err != nil {
+		return nil, fmt.Errorf("invalid ldk-server macaroon: %w", err)
 	}
 
 	certPool := x509.NewCertPool()
@@ -76,7 +81,7 @@ func NewLDKServerService(ctx context.Context, eventPublisher events.EventPublish
 		cancel:         cancel,
 		baseURL:        "https://" + address,
 		address:        address,
-		apiKey:         apiKey,
+		macaroon:       mac,
 		eventPublisher: eventPublisher,
 		client: &http.Client{
 			Transport: &http2.Transport{
@@ -948,7 +953,9 @@ func (svc *LDKServerService) doUnary(ctx context.Context, path string, req proto
 	}
 	httpReq.Header.Set("Content-Type", "application/grpc+proto")
 	httpReq.Header.Set("TE", "trailers")
-	httpReq.Header.Set("X-Auth", svc.authHeader(framedReq))
+	if err := svc.setAuthHeader(httpReq, path, framedReq); err != nil {
+		return err
+	}
 
 	httpResp, err := svc.client.Do(httpReq)
 	if err != nil {
@@ -973,14 +980,13 @@ func (svc *LDKServerService) doUnary(ctx context.Context, path string, req proto
 	return proto.Unmarshal(messageBytes, resp)
 }
 
-func (svc *LDKServerService) authHeader(framedReq []byte) string {
-	timestamp := uint64(time.Now().Unix())
-	mac := hmac.New(sha256.New, []byte(svc.apiKey))
-	var timestampBytes [8]byte
-	binary.BigEndian.PutUint64(timestampBytes[:], timestamp)
-	mac.Write(timestampBytes[:])
-	mac.Write(framedReq)
-	return fmt.Sprintf("HMAC %d:%s", timestamp, hex.EncodeToString(mac.Sum(nil)))
+func (svc *LDKServerService) setAuthHeader(httpReq *http.Request, fullMethod string, framedReq []byte) error {
+	token, err := bindMacaroonToRequest(svc.macaroon, fullMethod, framedReq, time.Now())
+	if err != nil {
+		return err
+	}
+	httpReq.Header.Set(macaroonHeader, token)
+	return nil
 }
 
 func (svc *LDKServerService) subscribeEvents() {
@@ -1004,7 +1010,10 @@ func (svc *LDKServerService) subscribeEvents() {
 		}
 		httpReq.Header.Set("Content-Type", "application/grpc+proto")
 		httpReq.Header.Set("TE", "trailers")
-		httpReq.Header.Set("X-Auth", svc.authHeader(framedReq))
+		if err := svc.setAuthHeader(httpReq, ldkapi.LightningNode_SubscribeEvents_FullMethodName, framedReq); err != nil {
+			logger.Logger.WithError(err).Error("Failed to authenticate ldk-server event stream request")
+			return
+		}
 
 		resp, err := svc.client.Do(httpReq)
 		if err != nil {
@@ -1097,15 +1106,15 @@ func (svc *LDKServerService) handleEvent(event *ldkevents.EventEnvelope) {
 			},
 		})
 	case *ldkevents.EventEnvelope_PaymentForwarded:
-		forwarded := e.PaymentForwarded.ForwardedPayment
-		if forwarded.TotalFeeEarnedMsat == nil || forwarded.OutboundAmountForwardedMsat == nil {
+		forwarded := e.PaymentForwarded
+		if forwarded.TotalFeeEarnedMsat == nil {
 			return
 		}
 		svc.eventPublisher.Publish(&events.Event{
 			Event: "nwc_payment_forwarded",
 			Properties: &lnclient.PaymentForwardedEventProperties{
 				TotalFeeEarnedMsat:          *forwarded.TotalFeeEarnedMsat,
-				OutboundAmountForwardedMsat: *forwarded.OutboundAmountForwardedMsat,
+				OutboundAmountForwardedMsat: forwarded.OutboundAmountForwardedMsat,
 			},
 		})
 	case *ldkevents.EventEnvelope_PaymentClaimable:

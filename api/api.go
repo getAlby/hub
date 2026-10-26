@@ -1889,10 +1889,10 @@ func (api *api) Setup(ctx context.Context, setupRequest *SetupRequest) error {
 			return err
 		}
 	}
-	if setupRequest.LDKServerApiKey != "" {
-		err = api.cfg.SetUpdate("LDKServerApiKey", setupRequest.LDKServerApiKey, setupRequest.UnlockPassword)
+	if setupRequest.LDKServerMacaroonHex != "" {
+		err = api.cfg.SetUpdate("LDKServerMacaroonHex", strings.TrimSpace(setupRequest.LDKServerMacaroonHex), setupRequest.UnlockPassword)
 		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to save ldk-server API key")
+			logger.Logger.WithError(err).Error("Failed to save ldk-server macaroon")
 			return err
 		}
 	}

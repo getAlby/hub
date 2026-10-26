@@ -16,9 +16,8 @@ export function LDKServerForm() {
   const [ldkServerTlsCertFile, setLdkServerTlsCertFile] = React.useState(
     setupStore.nodeInfo.ldkServerTlsCertFile || ""
   );
-  const [ldkServerApiKey, setLdkServerApiKey] = React.useState<string>(
-    setupStore.nodeInfo.ldkServerApiKey || ""
-  );
+  const [ldkServerMacaroonHex, setLdkServerMacaroonHex] =
+    React.useState<string>(setupStore.nodeInfo.ldkServerMacaroonHex || "");
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -26,7 +25,7 @@ export function LDKServerForm() {
       backendType: "LDK_SERVER",
       ldkServerAddress,
       ldkServerTlsCertFile,
-      ldkServerApiKey,
+      ldkServerMacaroonHex,
     });
     navigate("/setup/security");
   }
@@ -57,12 +56,12 @@ export function LDKServerForm() {
           />
         </div>
         <div className="grid gap-1.5">
-          <Label htmlFor="ldk-server-api-key">API key (hex)</Label>
+          <Label htmlFor="ldk-server-macaroon">Macaroon (hex)</Label>
           <Input
             required
-            id="ldk-server-api-key"
-            value={ldkServerApiKey}
-            onChange={(e) => setLdkServerApiKey(e.target.value)}
+            id="ldk-server-macaroon"
+            value={ldkServerMacaroonHex}
+            onChange={(e) => setLdkServerMacaroonHex(e.target.value)}
           />
         </div>
         <Button>Next</Button>

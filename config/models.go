@@ -50,7 +50,8 @@ type AppConfig struct {
 	LDKBitcoindRpcPassword             string `envconfig:"LDK_BITCOIND_RPC_PASSWORD"`
 	LDKServerAddress                   string `envconfig:"LDK_SERVER_GRPC_ADDRESS"`
 	LDKServerTlsCertFile               string `envconfig:"LDK_SERVER_TLS_CERT_FILE"`
-	LDKServerApiKey                    string `envconfig:"LDK_SERVER_API_KEY"`
+	LDKServerMacaroonHex               string `envconfig:"LDK_SERVER_MACAROON_HEX"`
+	LDKServerMacaroonFile              string `envconfig:"LDK_SERVER_MACAROON_FILE"`
 	MempoolApi                         string `envconfig:"MEMPOOL_API" default:"https://mempool.space/api"`
 	AlbyClientId                       string `envconfig:"ALBY_OAUTH_CLIENT_ID" default:"J2PbXS1yOf"`
 	AlbyClientSecret                   string `envconfig:"ALBY_OAUTH_CLIENT_SECRET" default:"rABK2n16IWjLTZ9M1uKU"`

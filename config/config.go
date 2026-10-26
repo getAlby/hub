@@ -130,8 +130,20 @@ func (cfg *config) init(env *AppConfig) error {
 			return err
 		}
 	}
-	if cfg.Env.LDKServerApiKey != "" {
-		err := cfg.SetUpdate("LDKServerApiKey", cfg.Env.LDKServerApiKey, "")
+	if cfg.Env.LDKServerMacaroonFile != "" {
+		// ldk-server writes macaroon files as hex text (e.g. <storage_dir>/<network>/macaroons/admin.macaroon)
+		macBytes, err := os.ReadFile(cfg.Env.LDKServerMacaroonFile)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to read ldk-server macaroon file")
+			return err
+		}
+		err = cfg.SetUpdate("LDKServerMacaroonHex", strings.TrimSpace(string(macBytes)), "")
+		if err != nil {
+			return err
+		}
+	}
+	if cfg.Env.LDKServerMacaroonHex != "" {
+		err := cfg.SetUpdate("LDKServerMacaroonHex", cfg.Env.LDKServerMacaroonHex, "")
 		if err != nil {
 			return err
 		}

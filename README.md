@@ -252,34 +252,28 @@ To configure via env, provide:
 - `LN_BACKEND_TYPE`: `LDK_SERVER`
 - `LDK_SERVER_GRPC_ADDRESS`: the `ldk-server` gRPC address, e.g. `127.0.0.1:3536`
 - `LDK_SERVER_TLS_CERT_FILE`: path to the `ldk-server` TLS certificate, usually `<storage_dir>/tls.crt`
-- `LDK_SERVER_API_KEY`: the hex-encoded API key used by `ldk-server`
+- `LDK_SERVER_MACAROON_FILE`: path to an `ldk-server` macaroon file, e.g. `<storage_dir>/<network>/macaroons/admin.macaroon`
+- or `LDK_SERVER_MACAROON_HEX`: the hex-encoded v2 macaroon (the contents of the macaroon file)
 
-```bash
-xxd -p -c 64 /var/lib/ldk-server/bitcoin/api_key
-```
+The macaroon must be a reusable macaroon (as written by `ldk-server` or created with
+`ldk-server-cli create-macaroon`). Hub binds a copy of it to every request (method, body and
+timestamp), so the reusable macaroon itself is never sent over the wire. Never give Hub files from
+`macaroons/roots/`.
+
+Hub needs permission to manage the node, send and receive payments and open/close channels, so the
+`admin.macaroon` is the simplest choice.
 
 If Alby Hub runs on a different machine than `ldk-server`:
 
 - set `grpc_service_address` in `ldk-server` to a reachable bind address such as `0.0.0.0:3536`
 - add the public hostname or IP to `[tls].hosts`
-- copy `tls.crt` to the Hub machine
-- keep clocks reasonably in sync, because `ldk-server` rejects stale HMAC timestamps
+- copy `tls.crt` and the macaroon to the Hub machine
+- keep clocks in sync (within 60 seconds), because `ldk-server` rejects request proofs with stale timestamps
 
-Troubleshooting remote auth:
-
-- `LDK_SERVER_API_KEY` must be the 64-character hex string derived from the raw `api_key` file, not the raw file bytes themselves
-- if you use `ldk-server-cli`, pass the hex string directly or inline the `xxd` call
-- do not use `KEY="$(xxd -p -c 64 /path/to/api_key)" ldk-server-cli ... --api-key "$KEY"` because Bash expands `"$KEY"` before that temporary assignment is applied
-
-Working examples:
+Check the credentials with `ldk-server-cli`:
 
 ```bash
-KEY="$(xxd -p -c 64 /var/lib/ldk-server/bitcoin/api_key)"
-ldk-server-cli --base-url 141.95.84.44:3536 --api-key "$KEY" --tls-cert /path/to/tls.crt get-node-info
-```
-
-```bash
-ldk-server-cli --base-url 141.95.84.44:3536 --api-key "$(xxd -p -c 64 /var/lib/ldk-server/bitcoin/api_key)" --tls-cert /path/to/tls.crt get-node-info
+ldk-server-cli --base-url 141.95.84.44:3536 --macaroon "$(cat /path/to/admin.macaroon)" --tls-cert /path/to/tls.crt get-node-info
 ```
 
 #### Optional: JIT receiving over LSPS2

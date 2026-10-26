@@ -276,7 +276,7 @@ type SetupRequest struct {
 	// ldk-server fields
 	LDKServerAddress     string `json:"ldkServerAddress"`
 	LDKServerTlsCertFile string `json:"ldkServerTlsCertFile"`
-	LDKServerApiKey      string `json:"ldkServerApiKey"`
+	LDKServerMacaroonHex string `json:"ldkServerMacaroonHex"`
 
 	// Cashu fields
 	CashuMintUrl string `json:"cashuMintUrl"`

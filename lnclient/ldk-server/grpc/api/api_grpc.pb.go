@@ -20,48 +20,61 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	LightningNode_GetNodeInfo_FullMethodName                              = "/api.LightningNode/GetNodeInfo"
-	LightningNode_GetBalances_FullMethodName                              = "/api.LightningNode/GetBalances"
-	LightningNode_OnchainReceive_FullMethodName                           = "/api.LightningNode/OnchainReceive"
-	LightningNode_OnchainSend_FullMethodName                              = "/api.LightningNode/OnchainSend"
-	LightningNode_Bolt11Receive_FullMethodName                            = "/api.LightningNode/Bolt11Receive"
-	LightningNode_Bolt11ReceiveForHash_FullMethodName                     = "/api.LightningNode/Bolt11ReceiveForHash"
-	LightningNode_Bolt11ClaimForId_FullMethodName                         = "/api.LightningNode/Bolt11ClaimForId"
-	LightningNode_Bolt11FailForId_FullMethodName                          = "/api.LightningNode/Bolt11FailForId"
-	LightningNode_Bolt11ReceiveViaJitChannel_FullMethodName               = "/api.LightningNode/Bolt11ReceiveViaJitChannel"
-	LightningNode_Bolt11ReceiveVariableAmountViaJitChannel_FullMethodName = "/api.LightningNode/Bolt11ReceiveVariableAmountViaJitChannel"
-	LightningNode_Bolt11Send_FullMethodName                               = "/api.LightningNode/Bolt11Send"
-	LightningNode_Bolt11SendUnderpaying_FullMethodName                    = "/api.LightningNode/Bolt11SendUnderpaying"
-	LightningNode_Bolt12Receive_FullMethodName                            = "/api.LightningNode/Bolt12Receive"
-	LightningNode_Bolt12Send_FullMethodName                               = "/api.LightningNode/Bolt12Send"
-	LightningNode_Bolt12SendRefund_FullMethodName                         = "/api.LightningNode/Bolt12SendRefund"
-	LightningNode_Bolt12ReceiveRefund_FullMethodName                      = "/api.LightningNode/Bolt12ReceiveRefund"
-	LightningNode_Bolt12CreatePayerProof_FullMethodName                   = "/api.LightningNode/Bolt12CreatePayerProof"
-	LightningNode_SpontaneousSend_FullMethodName                          = "/api.LightningNode/SpontaneousSend"
-	LightningNode_OpenChannel_FullMethodName                              = "/api.LightningNode/OpenChannel"
-	LightningNode_SpliceIn_FullMethodName                                 = "/api.LightningNode/SpliceIn"
-	LightningNode_SpliceOut_FullMethodName                                = "/api.LightningNode/SpliceOut"
-	LightningNode_UpdateChannelConfig_FullMethodName                      = "/api.LightningNode/UpdateChannelConfig"
-	LightningNode_CloseChannel_FullMethodName                             = "/api.LightningNode/CloseChannel"
-	LightningNode_ForceCloseChannel_FullMethodName                        = "/api.LightningNode/ForceCloseChannel"
-	LightningNode_ListChannels_FullMethodName                             = "/api.LightningNode/ListChannels"
-	LightningNode_GetPaymentDetails_FullMethodName                        = "/api.LightningNode/GetPaymentDetails"
-	LightningNode_ListPayments_FullMethodName                             = "/api.LightningNode/ListPayments"
-	LightningNode_ListForwardedPayments_FullMethodName                    = "/api.LightningNode/ListForwardedPayments"
-	LightningNode_ConnectPeer_FullMethodName                              = "/api.LightningNode/ConnectPeer"
-	LightningNode_DisconnectPeer_FullMethodName                           = "/api.LightningNode/DisconnectPeer"
-	LightningNode_ListPeers_FullMethodName                                = "/api.LightningNode/ListPeers"
-	LightningNode_SignMessage_FullMethodName                              = "/api.LightningNode/SignMessage"
-	LightningNode_VerifySignature_FullMethodName                          = "/api.LightningNode/VerifySignature"
-	LightningNode_ExportPathfindingScores_FullMethodName                  = "/api.LightningNode/ExportPathfindingScores"
-	LightningNode_UnifiedSend_FullMethodName                              = "/api.LightningNode/UnifiedSend"
-	LightningNode_DecodeInvoice_FullMethodName                            = "/api.LightningNode/DecodeInvoice"
-	LightningNode_DecodeOffer_FullMethodName                              = "/api.LightningNode/DecodeOffer"
-	LightningNode_GraphListChannels_FullMethodName                        = "/api.LightningNode/GraphListChannels"
-	LightningNode_GraphGetChannel_FullMethodName                          = "/api.LightningNode/GraphGetChannel"
-	LightningNode_GraphListNodes_FullMethodName                           = "/api.LightningNode/GraphListNodes"
-	LightningNode_GraphGetNode_FullMethodName                             = "/api.LightningNode/GraphGetNode"
-	LightningNode_SubscribeEvents_FullMethodName                          = "/api.LightningNode/SubscribeEvents"
+	LightningNode_GetNodeInfo_FullMethodName                                     = "/api.LightningNode/GetNodeInfo"
+	LightningNode_GetBalances_FullMethodName                                     = "/api.LightningNode/GetBalances"
+	LightningNode_OnchainReceive_FullMethodName                                  = "/api.LightningNode/OnchainReceive"
+	LightningNode_OnchainSend_FullMethodName                                     = "/api.LightningNode/OnchainSend"
+	LightningNode_OnchainBumpFee_FullMethodName                                  = "/api.LightningNode/OnchainBumpFee"
+	LightningNode_Bolt11Receive_FullMethodName                                   = "/api.LightningNode/Bolt11Receive"
+	LightningNode_Bolt11ReceiveForHash_FullMethodName                            = "/api.LightningNode/Bolt11ReceiveForHash"
+	LightningNode_Bolt11ClaimForId_FullMethodName                                = "/api.LightningNode/Bolt11ClaimForId"
+	LightningNode_Bolt11FailForId_FullMethodName                                 = "/api.LightningNode/Bolt11FailForId"
+	LightningNode_Bolt11ReceiveViaJitChannel_FullMethodName                      = "/api.LightningNode/Bolt11ReceiveViaJitChannel"
+	LightningNode_Bolt11ReceiveVariableAmountViaJitChannel_FullMethodName        = "/api.LightningNode/Bolt11ReceiveVariableAmountViaJitChannel"
+	LightningNode_Bolt11ReceiveViaJitChannelForHash_FullMethodName               = "/api.LightningNode/Bolt11ReceiveViaJitChannelForHash"
+	LightningNode_Bolt11ReceiveVariableAmountViaJitChannelForHash_FullMethodName = "/api.LightningNode/Bolt11ReceiveVariableAmountViaJitChannelForHash"
+	LightningNode_Bolt11Send_FullMethodName                                      = "/api.LightningNode/Bolt11Send"
+	LightningNode_Bolt11SendUnderpaying_FullMethodName                           = "/api.LightningNode/Bolt11SendUnderpaying"
+	LightningNode_Bolt12Receive_FullMethodName                                   = "/api.LightningNode/Bolt12Receive"
+	LightningNode_Bolt12Send_FullMethodName                                      = "/api.LightningNode/Bolt12Send"
+	LightningNode_Bolt12SendRefund_FullMethodName                                = "/api.LightningNode/Bolt12SendRefund"
+	LightningNode_Bolt12ReceiveRefund_FullMethodName                             = "/api.LightningNode/Bolt12ReceiveRefund"
+	LightningNode_Bolt12CreatePayerProof_FullMethodName                          = "/api.LightningNode/Bolt12CreatePayerProof"
+	LightningNode_SpontaneousSend_FullMethodName                                 = "/api.LightningNode/SpontaneousSend"
+	LightningNode_OpenChannel_FullMethodName                                     = "/api.LightningNode/OpenChannel"
+	LightningNode_SpliceIn_FullMethodName                                        = "/api.LightningNode/SpliceIn"
+	LightningNode_SpliceOut_FullMethodName                                       = "/api.LightningNode/SpliceOut"
+	LightningNode_BumpChannelFundingFee_FullMethodName                           = "/api.LightningNode/BumpChannelFundingFee"
+	LightningNode_UpdateChannelConfig_FullMethodName                             = "/api.LightningNode/UpdateChannelConfig"
+	LightningNode_CloseChannel_FullMethodName                                    = "/api.LightningNode/CloseChannel"
+	LightningNode_ForceCloseChannel_FullMethodName                               = "/api.LightningNode/ForceCloseChannel"
+	LightningNode_ListChannels_FullMethodName                                    = "/api.LightningNode/ListChannels"
+	LightningNode_GetPaymentDetails_FullMethodName                               = "/api.LightningNode/GetPaymentDetails"
+	LightningNode_ListPayments_FullMethodName                                    = "/api.LightningNode/ListPayments"
+	LightningNode_GetForwardedPaymentDetails_FullMethodName                      = "/api.LightningNode/GetForwardedPaymentDetails"
+	LightningNode_GetForwardedPaymentTrackingMode_FullMethodName                 = "/api.LightningNode/GetForwardedPaymentTrackingMode"
+	LightningNode_GetChannelForwardingStats_FullMethodName                       = "/api.LightningNode/GetChannelForwardingStats"
+	LightningNode_ListChannelForwardingStats_FullMethodName                      = "/api.LightningNode/ListChannelForwardingStats"
+	LightningNode_ListChannelPairForwardingStats_FullMethodName                  = "/api.LightningNode/ListChannelPairForwardingStats"
+	LightningNode_ListForwardedPayments_FullMethodName                           = "/api.LightningNode/ListForwardedPayments"
+	LightningNode_ConnectPeer_FullMethodName                                     = "/api.LightningNode/ConnectPeer"
+	LightningNode_DisconnectPeer_FullMethodName                                  = "/api.LightningNode/DisconnectPeer"
+	LightningNode_ListPeers_FullMethodName                                       = "/api.LightningNode/ListPeers"
+	LightningNode_SignMessage_FullMethodName                                     = "/api.LightningNode/SignMessage"
+	LightningNode_VerifySignature_FullMethodName                                 = "/api.LightningNode/VerifySignature"
+	LightningNode_ExportPathfindingScores_FullMethodName                         = "/api.LightningNode/ExportPathfindingScores"
+	LightningNode_UnifiedSend_FullMethodName                                     = "/api.LightningNode/UnifiedSend"
+	LightningNode_DecodeInvoice_FullMethodName                                   = "/api.LightningNode/DecodeInvoice"
+	LightningNode_DecodeOffer_FullMethodName                                     = "/api.LightningNode/DecodeOffer"
+	LightningNode_GraphListChannels_FullMethodName                               = "/api.LightningNode/GraphListChannels"
+	LightningNode_GraphGetChannel_FullMethodName                                 = "/api.LightningNode/GraphGetChannel"
+	LightningNode_GraphListNodes_FullMethodName                                  = "/api.LightningNode/GraphListNodes"
+	LightningNode_GraphGetNode_FullMethodName                                    = "/api.LightningNode/GraphGetNode"
+	LightningNode_SubscribeEvents_FullMethodName                                 = "/api.LightningNode/SubscribeEvents"
+	LightningNode_CreateMacaroon_FullMethodName                                  = "/api.LightningNode/CreateMacaroon"
+	LightningNode_ListMacaroons_FullMethodName                                   = "/api.LightningNode/ListMacaroons"
+	LightningNode_RevokeMacaroon_FullMethodName                                  = "/api.LightningNode/RevokeMacaroon"
+	LightningNode_GetPermissions_FullMethodName                                  = "/api.LightningNode/GetPermissions"
 )
 
 // LightningNodeClient is the client API for LightningNode service.
@@ -76,6 +89,8 @@ type LightningNodeClient interface {
 	OnchainReceive(ctx context.Context, in *OnchainReceiveRequest, opts ...grpc.CallOption) (*OnchainReceiveResponse, error)
 	// Send an on-chain payment to the given address.
 	OnchainSend(ctx context.Context, in *OnchainSendRequest, opts ...grpc.CallOption) (*OnchainSendResponse, error)
+	// Replace an unconfirmed outbound on-chain payment using RBF.
+	OnchainBumpFee(ctx context.Context, in *OnchainBumpFeeRequest, opts ...grpc.CallOption) (*OnchainBumpFeeResponse, error)
 	// Return a BOLT11 payable invoice.
 	Bolt11Receive(ctx context.Context, in *Bolt11ReceiveRequest, opts ...grpc.CallOption) (*Bolt11ReceiveResponse, error)
 	// Return a BOLT11 payable invoice for a given payment hash.
@@ -88,6 +103,10 @@ type LightningNodeClient interface {
 	Bolt11ReceiveViaJitChannel(ctx context.Context, in *Bolt11ReceiveViaJitChannelRequest, opts ...grpc.CallOption) (*Bolt11ReceiveViaJitChannelResponse, error)
 	// Return a variable-amount BOLT11 invoice for receiving via a JIT channel.
 	Bolt11ReceiveVariableAmountViaJitChannel(ctx context.Context, in *Bolt11ReceiveVariableAmountViaJitChannelRequest, opts ...grpc.CallOption) (*Bolt11ReceiveVariableAmountViaJitChannelResponse, error)
+	// Return a BOLT11 invoice for a given payment hash, received via a JIT channel.
+	Bolt11ReceiveViaJitChannelForHash(ctx context.Context, in *Bolt11ReceiveViaJitChannelForHashRequest, opts ...grpc.CallOption) (*Bolt11ReceiveViaJitChannelForHashResponse, error)
+	// Return a variable-amount BOLT11 invoice for a given payment hash, received via a JIT channel.
+	Bolt11ReceiveVariableAmountViaJitChannelForHash(ctx context.Context, in *Bolt11ReceiveVariableAmountViaJitChannelForHashRequest, opts ...grpc.CallOption) (*Bolt11ReceiveVariableAmountViaJitChannelForHashResponse, error)
 	// Send a payment for a BOLT11 invoice.
 	Bolt11Send(ctx context.Context, in *Bolt11SendRequest, opts ...grpc.CallOption) (*Bolt11SendResponse, error)
 	// Send part of the amount for a fixed-amount BOLT11 invoice.
@@ -111,6 +130,9 @@ type LightningNodeClient interface {
 	SpliceIn(ctx context.Context, in *SpliceInRequest, opts ...grpc.CallOption) (*SpliceInResponse, error)
 	// Splice funds out of a channel.
 	SpliceOut(ctx context.Context, in *SpliceOutRequest, opts ...grpc.CallOption) (*SpliceOutResponse, error)
+	// Bump the fee of a pending splice.
+	// Channel-open funding transactions and caller-selected fee rates are not supported.
+	BumpChannelFundingFee(ctx context.Context, in *BumpChannelFundingFeeRequest, opts ...grpc.CallOption) (*BumpChannelFundingFeeResponse, error)
 	// Update the config for a channel.
 	UpdateChannelConfig(ctx context.Context, in *UpdateChannelConfigRequest, opts ...grpc.CallOption) (*UpdateChannelConfigResponse, error)
 	// Close a channel cooperatively.
@@ -123,7 +145,17 @@ type LightningNodeClient interface {
 	GetPaymentDetails(ctx context.Context, in *GetPaymentDetailsRequest, opts ...grpc.CallOption) (*GetPaymentDetailsResponse, error)
 	// List all payments.
 	ListPayments(ctx context.Context, in *ListPaymentsRequest, opts ...grpc.CallOption) (*ListPaymentsResponse, error)
-	// List all forwarded payments.
+	// Get a stored forwarded payment by its ID.
+	GetForwardedPaymentDetails(ctx context.Context, in *GetForwardedPaymentDetailsRequest, opts ...grpc.CallOption) (*GetForwardedPaymentDetailsResponse, error)
+	// Get the configured forwarding history tracking mode.
+	GetForwardedPaymentTrackingMode(ctx context.Context, in *GetForwardedPaymentTrackingModeRequest, opts ...grpc.CallOption) (*GetForwardedPaymentTrackingModeResponse, error)
+	// Get forwarding statistics for a channel.
+	GetChannelForwardingStats(ctx context.Context, in *GetChannelForwardingStatsRequest, opts ...grpc.CallOption) (*GetChannelForwardingStatsResponse, error)
+	// List channel forwarding statistics (paginated).
+	ListChannelForwardingStats(ctx context.Context, in *ListChannelForwardingStatsRequest, opts ...grpc.CallOption) (*ListChannelForwardingStatsResponse, error)
+	// List channel-pair forwarding statistics (paginated).
+	ListChannelPairForwardingStats(ctx context.Context, in *ListChannelPairForwardingStatsRequest, opts ...grpc.CallOption) (*ListChannelPairForwardingStatsResponse, error)
+	// List forwarded payments.
 	ListForwardedPayments(ctx context.Context, in *ListForwardedPaymentsRequest, opts ...grpc.CallOption) (*ListForwardedPaymentsResponse, error)
 	// Connect to a peer.
 	ConnectPeer(ctx context.Context, in *ConnectPeerRequest, opts ...grpc.CallOption) (*ConnectPeerResponse, error)
@@ -153,6 +185,14 @@ type LightningNodeClient interface {
 	GraphGetNode(ctx context.Context, in *GraphGetNodeRequest, opts ...grpc.CallOption) (*GraphGetNodeResponse, error)
 	// Subscribe to a stream of server events.
 	SubscribeEvents(ctx context.Context, in *SubscribeEventsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[events.EventEnvelope], error)
+	// Create a macaroon. Requires macaroons:manage or admin permission.
+	CreateMacaroon(ctx context.Context, in *CreateMacaroonRequest, opts ...grpc.CallOption) (*CreateMacaroonResponse, error)
+	// List macaroons. Requires macaroons:manage or admin permission.
+	ListMacaroons(ctx context.Context, in *ListMacaroonsRequest, opts ...grpc.CallOption) (*ListMacaroonsResponse, error)
+	// Revoke a macaroon. Requires macaroons:manage or admin permission.
+	RevokeMacaroon(ctx context.Context, in *RevokeMacaroonRequest, opts ...grpc.CallOption) (*RevokeMacaroonResponse, error)
+	// Show permissions for the calling macaroon.
+	GetPermissions(ctx context.Context, in *GetPermissionsRequest, opts ...grpc.CallOption) (*GetPermissionsResponse, error)
 }
 
 type lightningNodeClient struct {
@@ -197,6 +237,16 @@ func (c *lightningNodeClient) OnchainSend(ctx context.Context, in *OnchainSendRe
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(OnchainSendResponse)
 	err := c.cc.Invoke(ctx, LightningNode_OnchainSend_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *lightningNodeClient) OnchainBumpFee(ctx context.Context, in *OnchainBumpFeeRequest, opts ...grpc.CallOption) (*OnchainBumpFeeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(OnchainBumpFeeResponse)
+	err := c.cc.Invoke(ctx, LightningNode_OnchainBumpFee_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -257,6 +307,26 @@ func (c *lightningNodeClient) Bolt11ReceiveVariableAmountViaJitChannel(ctx conte
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Bolt11ReceiveVariableAmountViaJitChannelResponse)
 	err := c.cc.Invoke(ctx, LightningNode_Bolt11ReceiveVariableAmountViaJitChannel_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *lightningNodeClient) Bolt11ReceiveViaJitChannelForHash(ctx context.Context, in *Bolt11ReceiveViaJitChannelForHashRequest, opts ...grpc.CallOption) (*Bolt11ReceiveViaJitChannelForHashResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Bolt11ReceiveViaJitChannelForHashResponse)
+	err := c.cc.Invoke(ctx, LightningNode_Bolt11ReceiveViaJitChannelForHash_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *lightningNodeClient) Bolt11ReceiveVariableAmountViaJitChannelForHash(ctx context.Context, in *Bolt11ReceiveVariableAmountViaJitChannelForHashRequest, opts ...grpc.CallOption) (*Bolt11ReceiveVariableAmountViaJitChannelForHashResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Bolt11ReceiveVariableAmountViaJitChannelForHashResponse)
+	err := c.cc.Invoke(ctx, LightningNode_Bolt11ReceiveVariableAmountViaJitChannelForHash_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -373,6 +443,16 @@ func (c *lightningNodeClient) SpliceOut(ctx context.Context, in *SpliceOutReques
 	return out, nil
 }
 
+func (c *lightningNodeClient) BumpChannelFundingFee(ctx context.Context, in *BumpChannelFundingFeeRequest, opts ...grpc.CallOption) (*BumpChannelFundingFeeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BumpChannelFundingFeeResponse)
+	err := c.cc.Invoke(ctx, LightningNode_BumpChannelFundingFee_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *lightningNodeClient) UpdateChannelConfig(ctx context.Context, in *UpdateChannelConfigRequest, opts ...grpc.CallOption) (*UpdateChannelConfigResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UpdateChannelConfigResponse)
@@ -427,6 +507,56 @@ func (c *lightningNodeClient) ListPayments(ctx context.Context, in *ListPayments
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListPaymentsResponse)
 	err := c.cc.Invoke(ctx, LightningNode_ListPayments_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *lightningNodeClient) GetForwardedPaymentDetails(ctx context.Context, in *GetForwardedPaymentDetailsRequest, opts ...grpc.CallOption) (*GetForwardedPaymentDetailsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetForwardedPaymentDetailsResponse)
+	err := c.cc.Invoke(ctx, LightningNode_GetForwardedPaymentDetails_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *lightningNodeClient) GetForwardedPaymentTrackingMode(ctx context.Context, in *GetForwardedPaymentTrackingModeRequest, opts ...grpc.CallOption) (*GetForwardedPaymentTrackingModeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetForwardedPaymentTrackingModeResponse)
+	err := c.cc.Invoke(ctx, LightningNode_GetForwardedPaymentTrackingMode_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *lightningNodeClient) GetChannelForwardingStats(ctx context.Context, in *GetChannelForwardingStatsRequest, opts ...grpc.CallOption) (*GetChannelForwardingStatsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetChannelForwardingStatsResponse)
+	err := c.cc.Invoke(ctx, LightningNode_GetChannelForwardingStats_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *lightningNodeClient) ListChannelForwardingStats(ctx context.Context, in *ListChannelForwardingStatsRequest, opts ...grpc.CallOption) (*ListChannelForwardingStatsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListChannelForwardingStatsResponse)
+	err := c.cc.Invoke(ctx, LightningNode_ListChannelForwardingStats_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *lightningNodeClient) ListChannelPairForwardingStats(ctx context.Context, in *ListChannelPairForwardingStatsRequest, opts ...grpc.CallOption) (*ListChannelPairForwardingStatsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListChannelPairForwardingStatsResponse)
+	err := c.cc.Invoke(ctx, LightningNode_ListChannelPairForwardingStats_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -592,6 +722,46 @@ func (c *lightningNodeClient) SubscribeEvents(ctx context.Context, in *Subscribe
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type LightningNode_SubscribeEventsClient = grpc.ServerStreamingClient[events.EventEnvelope]
 
+func (c *lightningNodeClient) CreateMacaroon(ctx context.Context, in *CreateMacaroonRequest, opts ...grpc.CallOption) (*CreateMacaroonResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateMacaroonResponse)
+	err := c.cc.Invoke(ctx, LightningNode_CreateMacaroon_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *lightningNodeClient) ListMacaroons(ctx context.Context, in *ListMacaroonsRequest, opts ...grpc.CallOption) (*ListMacaroonsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListMacaroonsResponse)
+	err := c.cc.Invoke(ctx, LightningNode_ListMacaroons_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *lightningNodeClient) RevokeMacaroon(ctx context.Context, in *RevokeMacaroonRequest, opts ...grpc.CallOption) (*RevokeMacaroonResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RevokeMacaroonResponse)
+	err := c.cc.Invoke(ctx, LightningNode_RevokeMacaroon_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *lightningNodeClient) GetPermissions(ctx context.Context, in *GetPermissionsRequest, opts ...grpc.CallOption) (*GetPermissionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPermissionsResponse)
+	err := c.cc.Invoke(ctx, LightningNode_GetPermissions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LightningNodeServer is the server API for LightningNode service.
 // All implementations must embed UnimplementedLightningNodeServer
 // for forward compatibility.
@@ -604,6 +774,8 @@ type LightningNodeServer interface {
 	OnchainReceive(context.Context, *OnchainReceiveRequest) (*OnchainReceiveResponse, error)
 	// Send an on-chain payment to the given address.
 	OnchainSend(context.Context, *OnchainSendRequest) (*OnchainSendResponse, error)
+	// Replace an unconfirmed outbound on-chain payment using RBF.
+	OnchainBumpFee(context.Context, *OnchainBumpFeeRequest) (*OnchainBumpFeeResponse, error)
 	// Return a BOLT11 payable invoice.
 	Bolt11Receive(context.Context, *Bolt11ReceiveRequest) (*Bolt11ReceiveResponse, error)
 	// Return a BOLT11 payable invoice for a given payment hash.
@@ -616,6 +788,10 @@ type LightningNodeServer interface {
 	Bolt11ReceiveViaJitChannel(context.Context, *Bolt11ReceiveViaJitChannelRequest) (*Bolt11ReceiveViaJitChannelResponse, error)
 	// Return a variable-amount BOLT11 invoice for receiving via a JIT channel.
 	Bolt11ReceiveVariableAmountViaJitChannel(context.Context, *Bolt11ReceiveVariableAmountViaJitChannelRequest) (*Bolt11ReceiveVariableAmountViaJitChannelResponse, error)
+	// Return a BOLT11 invoice for a given payment hash, received via a JIT channel.
+	Bolt11ReceiveViaJitChannelForHash(context.Context, *Bolt11ReceiveViaJitChannelForHashRequest) (*Bolt11ReceiveViaJitChannelForHashResponse, error)
+	// Return a variable-amount BOLT11 invoice for a given payment hash, received via a JIT channel.
+	Bolt11ReceiveVariableAmountViaJitChannelForHash(context.Context, *Bolt11ReceiveVariableAmountViaJitChannelForHashRequest) (*Bolt11ReceiveVariableAmountViaJitChannelForHashResponse, error)
 	// Send a payment for a BOLT11 invoice.
 	Bolt11Send(context.Context, *Bolt11SendRequest) (*Bolt11SendResponse, error)
 	// Send part of the amount for a fixed-amount BOLT11 invoice.
@@ -639,6 +815,9 @@ type LightningNodeServer interface {
 	SpliceIn(context.Context, *SpliceInRequest) (*SpliceInResponse, error)
 	// Splice funds out of a channel.
 	SpliceOut(context.Context, *SpliceOutRequest) (*SpliceOutResponse, error)
+	// Bump the fee of a pending splice.
+	// Channel-open funding transactions and caller-selected fee rates are not supported.
+	BumpChannelFundingFee(context.Context, *BumpChannelFundingFeeRequest) (*BumpChannelFundingFeeResponse, error)
 	// Update the config for a channel.
 	UpdateChannelConfig(context.Context, *UpdateChannelConfigRequest) (*UpdateChannelConfigResponse, error)
 	// Close a channel cooperatively.
@@ -651,7 +830,17 @@ type LightningNodeServer interface {
 	GetPaymentDetails(context.Context, *GetPaymentDetailsRequest) (*GetPaymentDetailsResponse, error)
 	// List all payments.
 	ListPayments(context.Context, *ListPaymentsRequest) (*ListPaymentsResponse, error)
-	// List all forwarded payments.
+	// Get a stored forwarded payment by its ID.
+	GetForwardedPaymentDetails(context.Context, *GetForwardedPaymentDetailsRequest) (*GetForwardedPaymentDetailsResponse, error)
+	// Get the configured forwarding history tracking mode.
+	GetForwardedPaymentTrackingMode(context.Context, *GetForwardedPaymentTrackingModeRequest) (*GetForwardedPaymentTrackingModeResponse, error)
+	// Get forwarding statistics for a channel.
+	GetChannelForwardingStats(context.Context, *GetChannelForwardingStatsRequest) (*GetChannelForwardingStatsResponse, error)
+	// List channel forwarding statistics (paginated).
+	ListChannelForwardingStats(context.Context, *ListChannelForwardingStatsRequest) (*ListChannelForwardingStatsResponse, error)
+	// List channel-pair forwarding statistics (paginated).
+	ListChannelPairForwardingStats(context.Context, *ListChannelPairForwardingStatsRequest) (*ListChannelPairForwardingStatsResponse, error)
+	// List forwarded payments.
 	ListForwardedPayments(context.Context, *ListForwardedPaymentsRequest) (*ListForwardedPaymentsResponse, error)
 	// Connect to a peer.
 	ConnectPeer(context.Context, *ConnectPeerRequest) (*ConnectPeerResponse, error)
@@ -681,6 +870,14 @@ type LightningNodeServer interface {
 	GraphGetNode(context.Context, *GraphGetNodeRequest) (*GraphGetNodeResponse, error)
 	// Subscribe to a stream of server events.
 	SubscribeEvents(*SubscribeEventsRequest, grpc.ServerStreamingServer[events.EventEnvelope]) error
+	// Create a macaroon. Requires macaroons:manage or admin permission.
+	CreateMacaroon(context.Context, *CreateMacaroonRequest) (*CreateMacaroonResponse, error)
+	// List macaroons. Requires macaroons:manage or admin permission.
+	ListMacaroons(context.Context, *ListMacaroonsRequest) (*ListMacaroonsResponse, error)
+	// Revoke a macaroon. Requires macaroons:manage or admin permission.
+	RevokeMacaroon(context.Context, *RevokeMacaroonRequest) (*RevokeMacaroonResponse, error)
+	// Show permissions for the calling macaroon.
+	GetPermissions(context.Context, *GetPermissionsRequest) (*GetPermissionsResponse, error)
 	mustEmbedUnimplementedLightningNodeServer()
 }
 
@@ -703,6 +900,9 @@ func (UnimplementedLightningNodeServer) OnchainReceive(context.Context, *Onchain
 func (UnimplementedLightningNodeServer) OnchainSend(context.Context, *OnchainSendRequest) (*OnchainSendResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method OnchainSend not implemented")
 }
+func (UnimplementedLightningNodeServer) OnchainBumpFee(context.Context, *OnchainBumpFeeRequest) (*OnchainBumpFeeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OnchainBumpFee not implemented")
+}
 func (UnimplementedLightningNodeServer) Bolt11Receive(context.Context, *Bolt11ReceiveRequest) (*Bolt11ReceiveResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Bolt11Receive not implemented")
 }
@@ -720,6 +920,12 @@ func (UnimplementedLightningNodeServer) Bolt11ReceiveViaJitChannel(context.Conte
 }
 func (UnimplementedLightningNodeServer) Bolt11ReceiveVariableAmountViaJitChannel(context.Context, *Bolt11ReceiveVariableAmountViaJitChannelRequest) (*Bolt11ReceiveVariableAmountViaJitChannelResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Bolt11ReceiveVariableAmountViaJitChannel not implemented")
+}
+func (UnimplementedLightningNodeServer) Bolt11ReceiveViaJitChannelForHash(context.Context, *Bolt11ReceiveViaJitChannelForHashRequest) (*Bolt11ReceiveViaJitChannelForHashResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Bolt11ReceiveViaJitChannelForHash not implemented")
+}
+func (UnimplementedLightningNodeServer) Bolt11ReceiveVariableAmountViaJitChannelForHash(context.Context, *Bolt11ReceiveVariableAmountViaJitChannelForHashRequest) (*Bolt11ReceiveVariableAmountViaJitChannelForHashResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Bolt11ReceiveVariableAmountViaJitChannelForHash not implemented")
 }
 func (UnimplementedLightningNodeServer) Bolt11Send(context.Context, *Bolt11SendRequest) (*Bolt11SendResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Bolt11Send not implemented")
@@ -754,6 +960,9 @@ func (UnimplementedLightningNodeServer) SpliceIn(context.Context, *SpliceInReque
 func (UnimplementedLightningNodeServer) SpliceOut(context.Context, *SpliceOutRequest) (*SpliceOutResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SpliceOut not implemented")
 }
+func (UnimplementedLightningNodeServer) BumpChannelFundingFee(context.Context, *BumpChannelFundingFeeRequest) (*BumpChannelFundingFeeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BumpChannelFundingFee not implemented")
+}
 func (UnimplementedLightningNodeServer) UpdateChannelConfig(context.Context, *UpdateChannelConfigRequest) (*UpdateChannelConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateChannelConfig not implemented")
 }
@@ -771,6 +980,21 @@ func (UnimplementedLightningNodeServer) GetPaymentDetails(context.Context, *GetP
 }
 func (UnimplementedLightningNodeServer) ListPayments(context.Context, *ListPaymentsRequest) (*ListPaymentsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListPayments not implemented")
+}
+func (UnimplementedLightningNodeServer) GetForwardedPaymentDetails(context.Context, *GetForwardedPaymentDetailsRequest) (*GetForwardedPaymentDetailsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetForwardedPaymentDetails not implemented")
+}
+func (UnimplementedLightningNodeServer) GetForwardedPaymentTrackingMode(context.Context, *GetForwardedPaymentTrackingModeRequest) (*GetForwardedPaymentTrackingModeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetForwardedPaymentTrackingMode not implemented")
+}
+func (UnimplementedLightningNodeServer) GetChannelForwardingStats(context.Context, *GetChannelForwardingStatsRequest) (*GetChannelForwardingStatsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetChannelForwardingStats not implemented")
+}
+func (UnimplementedLightningNodeServer) ListChannelForwardingStats(context.Context, *ListChannelForwardingStatsRequest) (*ListChannelForwardingStatsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListChannelForwardingStats not implemented")
+}
+func (UnimplementedLightningNodeServer) ListChannelPairForwardingStats(context.Context, *ListChannelPairForwardingStatsRequest) (*ListChannelPairForwardingStatsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListChannelPairForwardingStats not implemented")
 }
 func (UnimplementedLightningNodeServer) ListForwardedPayments(context.Context, *ListForwardedPaymentsRequest) (*ListForwardedPaymentsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListForwardedPayments not implemented")
@@ -816,6 +1040,18 @@ func (UnimplementedLightningNodeServer) GraphGetNode(context.Context, *GraphGetN
 }
 func (UnimplementedLightningNodeServer) SubscribeEvents(*SubscribeEventsRequest, grpc.ServerStreamingServer[events.EventEnvelope]) error {
 	return status.Errorf(codes.Unimplemented, "method SubscribeEvents not implemented")
+}
+func (UnimplementedLightningNodeServer) CreateMacaroon(context.Context, *CreateMacaroonRequest) (*CreateMacaroonResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateMacaroon not implemented")
+}
+func (UnimplementedLightningNodeServer) ListMacaroons(context.Context, *ListMacaroonsRequest) (*ListMacaroonsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListMacaroons not implemented")
+}
+func (UnimplementedLightningNodeServer) RevokeMacaroon(context.Context, *RevokeMacaroonRequest) (*RevokeMacaroonResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RevokeMacaroon not implemented")
+}
+func (UnimplementedLightningNodeServer) GetPermissions(context.Context, *GetPermissionsRequest) (*GetPermissionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPermissions not implemented")
 }
 func (UnimplementedLightningNodeServer) mustEmbedUnimplementedLightningNodeServer() {}
 func (UnimplementedLightningNodeServer) testEmbeddedByValue()                       {}
@@ -906,6 +1142,24 @@ func _LightningNode_OnchainSend_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(LightningNodeServer).OnchainSend(ctx, req.(*OnchainSendRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LightningNode_OnchainBumpFee_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OnchainBumpFeeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LightningNodeServer).OnchainBumpFee(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LightningNode_OnchainBumpFee_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LightningNodeServer).OnchainBumpFee(ctx, req.(*OnchainBumpFeeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1014,6 +1268,42 @@ func _LightningNode_Bolt11ReceiveVariableAmountViaJitChannel_Handler(srv interfa
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(LightningNodeServer).Bolt11ReceiveVariableAmountViaJitChannel(ctx, req.(*Bolt11ReceiveVariableAmountViaJitChannelRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LightningNode_Bolt11ReceiveViaJitChannelForHash_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Bolt11ReceiveViaJitChannelForHashRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LightningNodeServer).Bolt11ReceiveViaJitChannelForHash(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LightningNode_Bolt11ReceiveViaJitChannelForHash_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LightningNodeServer).Bolt11ReceiveViaJitChannelForHash(ctx, req.(*Bolt11ReceiveViaJitChannelForHashRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LightningNode_Bolt11ReceiveVariableAmountViaJitChannelForHash_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Bolt11ReceiveVariableAmountViaJitChannelForHashRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LightningNodeServer).Bolt11ReceiveVariableAmountViaJitChannelForHash(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LightningNode_Bolt11ReceiveVariableAmountViaJitChannelForHash_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LightningNodeServer).Bolt11ReceiveVariableAmountViaJitChannelForHash(ctx, req.(*Bolt11ReceiveVariableAmountViaJitChannelForHashRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1216,6 +1506,24 @@ func _LightningNode_SpliceOut_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LightningNode_BumpChannelFundingFee_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BumpChannelFundingFeeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LightningNodeServer).BumpChannelFundingFee(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LightningNode_BumpChannelFundingFee_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LightningNodeServer).BumpChannelFundingFee(ctx, req.(*BumpChannelFundingFeeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _LightningNode_UpdateChannelConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateChannelConfigRequest)
 	if err := dec(in); err != nil {
@@ -1320,6 +1628,96 @@ func _LightningNode_ListPayments_Handler(srv interface{}, ctx context.Context, d
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(LightningNodeServer).ListPayments(ctx, req.(*ListPaymentsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LightningNode_GetForwardedPaymentDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetForwardedPaymentDetailsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LightningNodeServer).GetForwardedPaymentDetails(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LightningNode_GetForwardedPaymentDetails_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LightningNodeServer).GetForwardedPaymentDetails(ctx, req.(*GetForwardedPaymentDetailsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LightningNode_GetForwardedPaymentTrackingMode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetForwardedPaymentTrackingModeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LightningNodeServer).GetForwardedPaymentTrackingMode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LightningNode_GetForwardedPaymentTrackingMode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LightningNodeServer).GetForwardedPaymentTrackingMode(ctx, req.(*GetForwardedPaymentTrackingModeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LightningNode_GetChannelForwardingStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetChannelForwardingStatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LightningNodeServer).GetChannelForwardingStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LightningNode_GetChannelForwardingStats_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LightningNodeServer).GetChannelForwardingStats(ctx, req.(*GetChannelForwardingStatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LightningNode_ListChannelForwardingStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListChannelForwardingStatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LightningNodeServer).ListChannelForwardingStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LightningNode_ListChannelForwardingStats_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LightningNodeServer).ListChannelForwardingStats(ctx, req.(*ListChannelForwardingStatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LightningNode_ListChannelPairForwardingStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListChannelPairForwardingStatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LightningNodeServer).ListChannelPairForwardingStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LightningNode_ListChannelPairForwardingStats_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LightningNodeServer).ListChannelPairForwardingStats(ctx, req.(*ListChannelPairForwardingStatsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1587,6 +1985,78 @@ func _LightningNode_SubscribeEvents_Handler(srv interface{}, stream grpc.ServerS
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type LightningNode_SubscribeEventsServer = grpc.ServerStreamingServer[events.EventEnvelope]
 
+func _LightningNode_CreateMacaroon_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateMacaroonRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LightningNodeServer).CreateMacaroon(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LightningNode_CreateMacaroon_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LightningNodeServer).CreateMacaroon(ctx, req.(*CreateMacaroonRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LightningNode_ListMacaroons_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListMacaroonsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LightningNodeServer).ListMacaroons(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LightningNode_ListMacaroons_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LightningNodeServer).ListMacaroons(ctx, req.(*ListMacaroonsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LightningNode_RevokeMacaroon_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RevokeMacaroonRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LightningNodeServer).RevokeMacaroon(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LightningNode_RevokeMacaroon_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LightningNodeServer).RevokeMacaroon(ctx, req.(*RevokeMacaroonRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LightningNode_GetPermissions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPermissionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LightningNodeServer).GetPermissions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LightningNode_GetPermissions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LightningNodeServer).GetPermissions(ctx, req.(*GetPermissionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LightningNode_ServiceDesc is the grpc.ServiceDesc for LightningNode service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1611,6 +2081,10 @@ var LightningNode_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _LightningNode_OnchainSend_Handler,
 		},
 		{
+			MethodName: "OnchainBumpFee",
+			Handler:    _LightningNode_OnchainBumpFee_Handler,
+		},
+		{
 			MethodName: "Bolt11Receive",
 			Handler:    _LightningNode_Bolt11Receive_Handler,
 		},
@@ -1633,6 +2107,14 @@ var LightningNode_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Bolt11ReceiveVariableAmountViaJitChannel",
 			Handler:    _LightningNode_Bolt11ReceiveVariableAmountViaJitChannel_Handler,
+		},
+		{
+			MethodName: "Bolt11ReceiveViaJitChannelForHash",
+			Handler:    _LightningNode_Bolt11ReceiveViaJitChannelForHash_Handler,
+		},
+		{
+			MethodName: "Bolt11ReceiveVariableAmountViaJitChannelForHash",
+			Handler:    _LightningNode_Bolt11ReceiveVariableAmountViaJitChannelForHash_Handler,
 		},
 		{
 			MethodName: "Bolt11Send",
@@ -1679,6 +2161,10 @@ var LightningNode_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _LightningNode_SpliceOut_Handler,
 		},
 		{
+			MethodName: "BumpChannelFundingFee",
+			Handler:    _LightningNode_BumpChannelFundingFee_Handler,
+		},
+		{
 			MethodName: "UpdateChannelConfig",
 			Handler:    _LightningNode_UpdateChannelConfig_Handler,
 		},
@@ -1701,6 +2187,26 @@ var LightningNode_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListPayments",
 			Handler:    _LightningNode_ListPayments_Handler,
+		},
+		{
+			MethodName: "GetForwardedPaymentDetails",
+			Handler:    _LightningNode_GetForwardedPaymentDetails_Handler,
+		},
+		{
+			MethodName: "GetForwardedPaymentTrackingMode",
+			Handler:    _LightningNode_GetForwardedPaymentTrackingMode_Handler,
+		},
+		{
+			MethodName: "GetChannelForwardingStats",
+			Handler:    _LightningNode_GetChannelForwardingStats_Handler,
+		},
+		{
+			MethodName: "ListChannelForwardingStats",
+			Handler:    _LightningNode_ListChannelForwardingStats_Handler,
+		},
+		{
+			MethodName: "ListChannelPairForwardingStats",
+			Handler:    _LightningNode_ListChannelPairForwardingStats_Handler,
 		},
 		{
 			MethodName: "ListForwardedPayments",
@@ -1757,6 +2263,22 @@ var LightningNode_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GraphGetNode",
 			Handler:    _LightningNode_GraphGetNode_Handler,
+		},
+		{
+			MethodName: "CreateMacaroon",
+			Handler:    _LightningNode_CreateMacaroon_Handler,
+		},
+		{
+			MethodName: "ListMacaroons",
+			Handler:    _LightningNode_ListMacaroons_Handler,
+		},
+		{
+			MethodName: "RevokeMacaroon",
+			Handler:    _LightningNode_RevokeMacaroon_Handler,
+		},
+		{
+			MethodName: "GetPermissions",
+			Handler:    _LightningNode_GetPermissions_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

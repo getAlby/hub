@@ -184,6 +184,58 @@ func (Network) EnumDescriptor() ([]byte, []int) {
 	return file_types_proto_rawDescGZIP(), []int{2}
 }
 
+// The forwarding history stored by LDK Node.
+type ForwardedPaymentTrackingMode int32
+
+const (
+	ForwardedPaymentTrackingMode_FORWARDED_PAYMENT_TRACKING_MODE_UNSPECIFIED ForwardedPaymentTrackingMode = 0
+	// Update per-channel totals without storing individual forwards.
+	ForwardedPaymentTrackingMode_FORWARDED_PAYMENT_TRACKING_MODE_STATS ForwardedPaymentTrackingMode = 1
+	// Also store individual forwards, which are later aggregated into channel-pair buckets.
+	ForwardedPaymentTrackingMode_FORWARDED_PAYMENT_TRACKING_MODE_DETAILED ForwardedPaymentTrackingMode = 2
+)
+
+// Enum value maps for ForwardedPaymentTrackingMode.
+var (
+	ForwardedPaymentTrackingMode_name = map[int32]string{
+		0: "FORWARDED_PAYMENT_TRACKING_MODE_UNSPECIFIED",
+		1: "FORWARDED_PAYMENT_TRACKING_MODE_STATS",
+		2: "FORWARDED_PAYMENT_TRACKING_MODE_DETAILED",
+	}
+	ForwardedPaymentTrackingMode_value = map[string]int32{
+		"FORWARDED_PAYMENT_TRACKING_MODE_UNSPECIFIED": 0,
+		"FORWARDED_PAYMENT_TRACKING_MODE_STATS":       1,
+		"FORWARDED_PAYMENT_TRACKING_MODE_DETAILED":    2,
+	}
+)
+
+func (x ForwardedPaymentTrackingMode) Enum() *ForwardedPaymentTrackingMode {
+	p := new(ForwardedPaymentTrackingMode)
+	*p = x
+	return p
+}
+
+func (x ForwardedPaymentTrackingMode) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ForwardedPaymentTrackingMode) Descriptor() protoreflect.EnumDescriptor {
+	return file_types_proto_enumTypes[3].Descriptor()
+}
+
+func (ForwardedPaymentTrackingMode) Type() protoreflect.EnumType {
+	return &file_types_proto_enumTypes[3]
+}
+
+func (x ForwardedPaymentTrackingMode) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ForwardedPaymentTrackingMode.Descriptor instead.
+func (ForwardedPaymentTrackingMode) EnumDescriptor() ([]byte, []int) {
+	return file_types_proto_rawDescGZIP(), []int{3}
+}
+
 // ChannelShutdownState mirrors LDK's `lightning::ln::channel_state::ChannelShutdownState`,
 // indicating how far along a channel is in the cooperative close process.
 type ChannelShutdownState int32
@@ -236,11 +288,11 @@ func (x ChannelShutdownState) String() string {
 }
 
 func (ChannelShutdownState) Descriptor() protoreflect.EnumDescriptor {
-	return file_types_proto_enumTypes[3].Descriptor()
+	return file_types_proto_enumTypes[4].Descriptor()
 }
 
 func (ChannelShutdownState) Type() protoreflect.EnumType {
-	return &file_types_proto_enumTypes[3]
+	return &file_types_proto_enumTypes[4]
 }
 
 func (x ChannelShutdownState) Number() protoreflect.EnumNumber {
@@ -249,7 +301,7 @@ func (x ChannelShutdownState) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ChannelShutdownState.Descriptor instead.
 func (ChannelShutdownState) EnumDescriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{3}
+	return file_types_proto_rawDescGZIP(), []int{4}
 }
 
 // ReserveType mirrors LDK Node's `ReserveType`, indicating the kind of on-chain reserve
@@ -295,11 +347,11 @@ func (x ReserveType) String() string {
 }
 
 func (ReserveType) Descriptor() protoreflect.EnumDescriptor {
-	return file_types_proto_enumTypes[4].Descriptor()
+	return file_types_proto_enumTypes[5].Descriptor()
 }
 
 func (ReserveType) Type() protoreflect.EnumType {
-	return &file_types_proto_enumTypes[4]
+	return &file_types_proto_enumTypes[5]
 }
 
 func (x ReserveType) Number() protoreflect.EnumNumber {
@@ -308,7 +360,7 @@ func (x ReserveType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ReserveType.Descriptor instead.
 func (ReserveType) EnumDescriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{4}
+	return file_types_proto_rawDescGZIP(), []int{5}
 }
 
 // Indicates whether the balance is derived from a cooperative close, a force-close (for holder or counterparty),
@@ -353,11 +405,11 @@ func (x BalanceSource) String() string {
 }
 
 func (BalanceSource) Descriptor() protoreflect.EnumDescriptor {
-	return file_types_proto_enumTypes[5].Descriptor()
+	return file_types_proto_enumTypes[6].Descriptor()
 }
 
 func (BalanceSource) Type() protoreflect.EnumType {
-	return &file_types_proto_enumTypes[5]
+	return &file_types_proto_enumTypes[6]
 }
 
 func (x BalanceSource) Number() protoreflect.EnumNumber {
@@ -366,7 +418,7 @@ func (x BalanceSource) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use BalanceSource.Descriptor instead.
 func (BalanceSource) EnumDescriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{5}
+	return file_types_proto_rawDescGZIP(), []int{6}
 }
 
 // Identifies one of the two endpoints of a channel, by lexicographic order of
@@ -403,11 +455,11 @@ func (x ChannelDirection) String() string {
 }
 
 func (ChannelDirection) Descriptor() protoreflect.EnumDescriptor {
-	return file_types_proto_enumTypes[6].Descriptor()
+	return file_types_proto_enumTypes[7].Descriptor()
 }
 
 func (ChannelDirection) Type() protoreflect.EnumType {
-	return &file_types_proto_enumTypes[6]
+	return &file_types_proto_enumTypes[7]
 }
 
 func (x ChannelDirection) Number() protoreflect.EnumNumber {
@@ -416,7 +468,7 @@ func (x ChannelDirection) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ChannelDirection.Descriptor instead.
 func (ChannelDirection) EnumDescriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{6}
+	return file_types_proto_rawDescGZIP(), []int{7}
 }
 
 // Represents a payment.
@@ -1960,8 +2012,7 @@ type HtlcLocator struct {
 	// This can be unset for older serialized events.
 	NodeId *string `protobuf:"bytes,3,opt,name=node_id,json=nodeId,proto3,oneof" json:"node_id,omitempty"`
 	// The amount in millisatoshis of the HTLC that was sent or received, if known.
-	// This can be unset for events serialized by LDK Node v0.7.0 and prior,
-	// or forwarding records stored by LDK Server before this field was added.
+	// This can be unset for events serialized by LDK Node v0.7.0 and prior.
 	AmountMsat    *uint64 `protobuf:"varint,4,opt,name=amount_msat,json=amountMsat,proto3,oneof" json:"amount_msat,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -2025,46 +2076,39 @@ func (x *HtlcLocator) GetAmountMsat() uint64 {
 	return 0
 }
 
-// A forwarded payment through our node.
-//
-// A forwarded payment can involve multiple incoming and outgoing HTLCs, e.g. when acting as a
-// trampoline router. The `prev_htlcs` and `next_htlcs` fields are the canonical representation of
-// the HTLCs associated with this forwarding event. Their indices do not imply pairwise
-// correspondence.
-//
-// See more: https://docs.rs/ldk-node/latest/ldk_node/enum.Event.html#variant.PaymentForwarded
+// A stored forwarding record from LDK Node's detailed history.
+// Each record describes one incoming and one outgoing HTLC.
 type ForwardedPayment struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The total fee, in milli-satoshis, which was earned as a result of the payment.
-	//
-	// Note that if we force-closed the channel over which we forwarded an HTLC while the HTLC was pending, the amount the
-	// next hop claimed will have been rounded down to the nearest whole satoshi. Thus, the fee calculated here may be
-	// higher than expected as we still claimed the full value in millisatoshis from the source.
-	// In this case, `claim_from_onchain_tx` will be set.
-	//
-	// If the channel which sent us the payment has been force-closed, we will claim the funds via an on-chain transaction.
-	// In that case we do not yet know the on-chain transaction fees which we will spend and will instead set this to `None`.
-	TotalFeeEarnedMsat *uint64 `protobuf:"varint,1,opt,name=total_fee_earned_msat,json=totalFeeEarnedMsat,proto3,oneof" json:"total_fee_earned_msat,omitempty"`
-	// The share of the total fee, in milli-satoshis, which was withheld in addition to the forwarding fee.
-	// This will only be set if we forwarded an intercepted HTLC with less than the expected amount. This means our
-	// counterparty accepted to receive less than the invoice amount.
-	//
-	// The caveat described above the `total_fee_earned_msat` field applies here as well.
-	SkimmedFeeMsat *uint64 `protobuf:"varint,2,opt,name=skimmed_fee_msat,json=skimmedFeeMsat,proto3,oneof" json:"skimmed_fee_msat,omitempty"`
-	// If this is true, the forwarded HTLC was claimed by our counterparty via an on-chain transaction.
-	ClaimFromOnchainTx bool `protobuf:"varint,3,opt,name=claim_from_onchain_tx,json=claimFromOnchainTx,proto3" json:"claim_from_onchain_tx,omitempty"`
-	// The final amount forwarded, in milli-satoshis, after the fee is deducted.
-	//
-	// The caveat described above the `total_fee_earned_msat` field applies here as well.
-	OutboundAmountForwardedMsat *uint64 `protobuf:"varint,4,opt,name=outbound_amount_forwarded_msat,json=outboundAmountForwardedMsat,proto3,oneof" json:"outbound_amount_forwarded_msat,omitempty"`
-	// The set of incoming HTLCs forwarded to our node that will be claimed by this forward.
-	// This is the canonical incoming HTLC representation.
-	PrevHtlcs []*HtlcLocator `protobuf:"bytes,5,rep,name=prev_htlcs,json=prevHtlcs,proto3" json:"prev_htlcs,omitempty"`
-	// The set of outgoing HTLCs forwarded by our node that have been claimed by this forward.
-	// This is the canonical outgoing HTLC representation.
-	NextHtlcs     []*HtlcLocator `protobuf:"bytes,6,rep,name=next_htlcs,json=nextHtlcs,proto3" json:"next_htlcs,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	// The opaque, hex-encoded identifier assigned by LDK Node.
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// The incoming channel ID.
+	PrevChannelId string `protobuf:"bytes,2,opt,name=prev_channel_id,json=prevChannelId,proto3" json:"prev_channel_id,omitempty"`
+	// The outgoing channel ID.
+	NextChannelId string `protobuf:"bytes,3,opt,name=next_channel_id,json=nextChannelId,proto3" json:"next_channel_id,omitempty"`
+	// The incoming user channel ID as a decimal string, if known.
+	PrevUserChannelId *string `protobuf:"bytes,4,opt,name=prev_user_channel_id,json=prevUserChannelId,proto3,oneof" json:"prev_user_channel_id,omitempty"`
+	// The outgoing user channel ID as a decimal string, if known.
+	NextUserChannelId *string `protobuf:"bytes,5,opt,name=next_user_channel_id,json=nextUserChannelId,proto3,oneof" json:"next_user_channel_id,omitempty"`
+	// The previous node's public key, if known.
+	PrevNodeId *string `protobuf:"bytes,6,opt,name=prev_node_id,json=prevNodeId,proto3,oneof" json:"prev_node_id,omitempty"`
+	// The next node's public key, if known.
+	NextNodeId *string `protobuf:"bytes,7,opt,name=next_node_id,json=nextNodeId,proto3,oneof" json:"next_node_id,omitempty"`
+	// The incoming amount, in millisatoshis, if known.
+	InboundAmountForwardedMsat *uint64 `protobuf:"varint,8,opt,name=inbound_amount_forwarded_msat,json=inboundAmountForwardedMsat,proto3,oneof" json:"inbound_amount_forwarded_msat,omitempty"`
+	// The total fee earned, in millisatoshis, if known.
+	TotalFeeEarnedMsat *uint64 `protobuf:"varint,9,opt,name=total_fee_earned_msat,json=totalFeeEarnedMsat,proto3,oneof" json:"total_fee_earned_msat,omitempty"`
+	// The share of the total fee withheld in addition to the forwarding fee, if known.
+	// This is included in total_fee_earned_msat; do not add the two amounts.
+	SkimmedFeeMsat *uint64 `protobuf:"varint,10,opt,name=skimmed_fee_msat,json=skimmedFeeMsat,proto3,oneof" json:"skimmed_fee_msat,omitempty"`
+	// Whether the next hop claimed the forwarded HTLC through an on-chain transaction.
+	ClaimFromOnchainTx bool `protobuf:"varint,11,opt,name=claim_from_onchain_tx,json=claimFromOnchainTx,proto3" json:"claim_from_onchain_tx,omitempty"`
+	// The outgoing amount, in millisatoshis, if known.
+	OutboundAmountForwardedMsat *uint64 `protobuf:"varint,12,opt,name=outbound_amount_forwarded_msat,json=outboundAmountForwardedMsat,proto3,oneof" json:"outbound_amount_forwarded_msat,omitempty"`
+	// LDK Node's stored forwarding time, in seconds since the Unix epoch.
+	ForwardedAtTimestamp uint64 `protobuf:"varint,13,opt,name=forwarded_at_timestamp,json=forwardedAtTimestamp,proto3" json:"forwarded_at_timestamp,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *ForwardedPayment) Reset() {
@@ -2097,6 +2141,62 @@ func (*ForwardedPayment) Descriptor() ([]byte, []int) {
 	return file_types_proto_rawDescGZIP(), []int{22}
 }
 
+func (x *ForwardedPayment) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ForwardedPayment) GetPrevChannelId() string {
+	if x != nil {
+		return x.PrevChannelId
+	}
+	return ""
+}
+
+func (x *ForwardedPayment) GetNextChannelId() string {
+	if x != nil {
+		return x.NextChannelId
+	}
+	return ""
+}
+
+func (x *ForwardedPayment) GetPrevUserChannelId() string {
+	if x != nil && x.PrevUserChannelId != nil {
+		return *x.PrevUserChannelId
+	}
+	return ""
+}
+
+func (x *ForwardedPayment) GetNextUserChannelId() string {
+	if x != nil && x.NextUserChannelId != nil {
+		return *x.NextUserChannelId
+	}
+	return ""
+}
+
+func (x *ForwardedPayment) GetPrevNodeId() string {
+	if x != nil && x.PrevNodeId != nil {
+		return *x.PrevNodeId
+	}
+	return ""
+}
+
+func (x *ForwardedPayment) GetNextNodeId() string {
+	if x != nil && x.NextNodeId != nil {
+		return *x.NextNodeId
+	}
+	return ""
+}
+
+func (x *ForwardedPayment) GetInboundAmountForwardedMsat() uint64 {
+	if x != nil && x.InboundAmountForwardedMsat != nil {
+		return *x.InboundAmountForwardedMsat
+	}
+	return 0
+}
+
 func (x *ForwardedPayment) GetTotalFeeEarnedMsat() uint64 {
 	if x != nil && x.TotalFeeEarnedMsat != nil {
 		return *x.TotalFeeEarnedMsat
@@ -2125,18 +2225,359 @@ func (x *ForwardedPayment) GetOutboundAmountForwardedMsat() uint64 {
 	return 0
 }
 
-func (x *ForwardedPayment) GetPrevHtlcs() []*HtlcLocator {
+func (x *ForwardedPayment) GetForwardedAtTimestamp() uint64 {
 	if x != nil {
-		return x.PrevHtlcs
+		return x.ForwardedAtTimestamp
 	}
-	return nil
+	return 0
 }
 
-func (x *ForwardedPayment) GetNextHtlcs() []*HtlcLocator {
+// Forwarding statistics reported by LDK Node.
+type ChannelForwardingStats struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The channel id these stats apply to.
+	ChannelId string `protobuf:"bytes,1,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
+	// The channel counterparty node id, if known.
+	CounterpartyNodeId *string `protobuf:"bytes,2,opt,name=counterparty_node_id,json=counterpartyNodeId,proto3,oneof" json:"counterparty_node_id,omitempty"`
+	// Number of forwarded payments where this was the incoming channel.
+	InboundPaymentsForwarded uint64 `protobuf:"varint,3,opt,name=inbound_payments_forwarded,json=inboundPaymentsForwarded,proto3" json:"inbound_payments_forwarded,omitempty"`
+	// Number of forwarded payments where this was the outgoing channel.
+	OutboundPaymentsForwarded uint64 `protobuf:"varint,4,opt,name=outbound_payments_forwarded,json=outboundPaymentsForwarded,proto3" json:"outbound_payments_forwarded,omitempty"`
+	// Total inbound amount forwarded through this channel, in millisatoshis.
+	TotalInboundAmountMsat uint64 `protobuf:"varint,5,opt,name=total_inbound_amount_msat,json=totalInboundAmountMsat,proto3" json:"total_inbound_amount_msat,omitempty"`
+	// Total outbound amount forwarded through this channel, in millisatoshis.
+	TotalOutboundAmountMsat uint64 `protobuf:"varint,6,opt,name=total_outbound_amount_msat,json=totalOutboundAmountMsat,proto3" json:"total_outbound_amount_msat,omitempty"`
+	// Total forwarding fees earned through this channel, in millisatoshis, if known for every
+	// recorded forward.
+	//
+	// A single record covers this channel in both roles. A forward contributes its fee here when
+	// this was the incoming channel, and contributes nothing when this was the outgoing channel,
+	// because fees are attributed to the incoming side.
+	TotalFeeEarnedMsat *uint64 `protobuf:"varint,7,opt,name=total_fee_earned_msat,json=totalFeeEarnedMsat,proto3,oneof" json:"total_fee_earned_msat,omitempty"`
+	// Total skimmed fees earned through this channel, in millisatoshis.
+	//
+	// This is the share of `total_fee_earned_msat` that was withheld in addition to the
+	// forwarding fee, not an amount earned on top of it. Adding the two would double-count.
+	TotalSkimmedFeeMsat uint64 `protobuf:"varint,8,opt,name=total_skimmed_fee_msat,json=totalSkimmedFeeMsat,proto3" json:"total_skimmed_fee_msat,omitempty"`
+	// Number of forwarded HTLCs that the next hop claimed from an on-chain transaction.
+	//
+	// A forward contributes here when this was the outgoing channel.
+	OnchainClaimsCount uint64 `protobuf:"varint,9,opt,name=onchain_claims_count,json=onchainClaimsCount,proto3" json:"onchain_claims_count,omitempty"`
+	// Timestamp of the first forward recorded for this channel, in seconds since the Unix epoch.
+	FirstForwardedAtTimestamp uint64 `protobuf:"varint,10,opt,name=first_forwarded_at_timestamp,json=firstForwardedAtTimestamp,proto3" json:"first_forwarded_at_timestamp,omitempty"`
+	// Timestamp of the latest forward recorded for this channel, in seconds since the Unix epoch.
+	LastForwardedAtTimestamp uint64 `protobuf:"varint,11,opt,name=last_forwarded_at_timestamp,json=lastForwardedAtTimestamp,proto3" json:"last_forwarded_at_timestamp,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
+}
+
+func (x *ChannelForwardingStats) Reset() {
+	*x = ChannelForwardingStats{}
+	mi := &file_types_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChannelForwardingStats) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChannelForwardingStats) ProtoMessage() {}
+
+func (x *ChannelForwardingStats) ProtoReflect() protoreflect.Message {
+	mi := &file_types_proto_msgTypes[23]
 	if x != nil {
-		return x.NextHtlcs
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
 	}
-	return nil
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChannelForwardingStats.ProtoReflect.Descriptor instead.
+func (*ChannelForwardingStats) Descriptor() ([]byte, []int) {
+	return file_types_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *ChannelForwardingStats) GetChannelId() string {
+	if x != nil {
+		return x.ChannelId
+	}
+	return ""
+}
+
+func (x *ChannelForwardingStats) GetCounterpartyNodeId() string {
+	if x != nil && x.CounterpartyNodeId != nil {
+		return *x.CounterpartyNodeId
+	}
+	return ""
+}
+
+func (x *ChannelForwardingStats) GetInboundPaymentsForwarded() uint64 {
+	if x != nil {
+		return x.InboundPaymentsForwarded
+	}
+	return 0
+}
+
+func (x *ChannelForwardingStats) GetOutboundPaymentsForwarded() uint64 {
+	if x != nil {
+		return x.OutboundPaymentsForwarded
+	}
+	return 0
+}
+
+func (x *ChannelForwardingStats) GetTotalInboundAmountMsat() uint64 {
+	if x != nil {
+		return x.TotalInboundAmountMsat
+	}
+	return 0
+}
+
+func (x *ChannelForwardingStats) GetTotalOutboundAmountMsat() uint64 {
+	if x != nil {
+		return x.TotalOutboundAmountMsat
+	}
+	return 0
+}
+
+func (x *ChannelForwardingStats) GetTotalFeeEarnedMsat() uint64 {
+	if x != nil && x.TotalFeeEarnedMsat != nil {
+		return *x.TotalFeeEarnedMsat
+	}
+	return 0
+}
+
+func (x *ChannelForwardingStats) GetTotalSkimmedFeeMsat() uint64 {
+	if x != nil {
+		return x.TotalSkimmedFeeMsat
+	}
+	return 0
+}
+
+func (x *ChannelForwardingStats) GetOnchainClaimsCount() uint64 {
+	if x != nil {
+		return x.OnchainClaimsCount
+	}
+	return 0
+}
+
+func (x *ChannelForwardingStats) GetFirstForwardedAtTimestamp() uint64 {
+	if x != nil {
+		return x.FirstForwardedAtTimestamp
+	}
+	return 0
+}
+
+func (x *ChannelForwardingStats) GetLastForwardedAtTimestamp() uint64 {
+	if x != nil {
+		return x.LastForwardedAtTimestamp
+	}
+	return 0
+}
+
+// Forwarding statistics reported by LDK Node.
+type ChannelPairForwardingStats struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// An opaque identifier for this channel-pair bucket.
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// The incoming channel id.
+	PrevChannelId string `protobuf:"bytes,2,opt,name=prev_channel_id,json=prevChannelId,proto3" json:"prev_channel_id,omitempty"`
+	// The outgoing channel id.
+	NextChannelId string `protobuf:"bytes,3,opt,name=next_channel_id,json=nextChannelId,proto3" json:"next_channel_id,omitempty"`
+	// Start timestamp of this aggregation bucket, in seconds since the Unix epoch.
+	BucketStartTimestamp uint64 `protobuf:"varint,4,opt,name=bucket_start_timestamp,json=bucketStartTimestamp,proto3" json:"bucket_start_timestamp,omitempty"`
+	// Width of this aggregation bucket, in seconds.
+	BucketSizeSecs uint64 `protobuf:"varint,5,opt,name=bucket_size_secs,json=bucketSizeSecs,proto3" json:"bucket_size_secs,omitempty"`
+	// The previous node id, if available.
+	PrevNodeId *string `protobuf:"bytes,6,opt,name=prev_node_id,json=prevNodeId,proto3,oneof" json:"prev_node_id,omitempty"`
+	// The next node id, if available.
+	NextNodeId *string `protobuf:"bytes,7,opt,name=next_node_id,json=nextNodeId,proto3,oneof" json:"next_node_id,omitempty"`
+	// Number of payments aggregated in this bucket.
+	PaymentCount uint64 `protobuf:"varint,8,opt,name=payment_count,json=paymentCount,proto3" json:"payment_count,omitempty"`
+	// Total inbound amount in this bucket, in millisatoshis.
+	TotalInboundAmountMsat uint64 `protobuf:"varint,9,opt,name=total_inbound_amount_msat,json=totalInboundAmountMsat,proto3" json:"total_inbound_amount_msat,omitempty"`
+	// Total outbound amount in this bucket, in millisatoshis.
+	TotalOutboundAmountMsat uint64 `protobuf:"varint,10,opt,name=total_outbound_amount_msat,json=totalOutboundAmountMsat,proto3" json:"total_outbound_amount_msat,omitempty"`
+	// Total forwarding fees earned in this bucket, in millisatoshis, if known for every payment.
+	TotalFeeEarnedMsat *uint64 `protobuf:"varint,11,opt,name=total_fee_earned_msat,json=totalFeeEarnedMsat,proto3,oneof" json:"total_fee_earned_msat,omitempty"`
+	// Total skimmed fees in this bucket, in millisatoshis.
+	//
+	// This is the share of `total_fee_earned_msat` that was withheld in addition to the
+	// forwarding fee, not an amount earned on top of it. Adding the two would double-count.
+	TotalSkimmedFeeMsat uint64 `protobuf:"varint,12,opt,name=total_skimmed_fee_msat,json=totalSkimmedFeeMsat,proto3" json:"total_skimmed_fee_msat,omitempty"`
+	// Number of forwarded HTLCs that the next hop claimed from an on-chain transaction.
+	OnchainClaimsCount uint64 `protobuf:"varint,13,opt,name=onchain_claims_count,json=onchainClaimsCount,proto3" json:"onchain_claims_count,omitempty"`
+	// Average forwarding fee per payment, in millisatoshis, if known for every payment.
+	AvgFeeMsat *uint64 `protobuf:"varint,14,opt,name=avg_fee_msat,json=avgFeeMsat,proto3,oneof" json:"avg_fee_msat,omitempty"`
+	// Average inbound amount per payment, in millisatoshis.
+	AvgInboundAmountMsat uint64 `protobuf:"varint,15,opt,name=avg_inbound_amount_msat,json=avgInboundAmountMsat,proto3" json:"avg_inbound_amount_msat,omitempty"`
+	// Timestamp of the first forward in this bucket, in seconds since the Unix epoch.
+	FirstForwardedAtTimestamp uint64 `protobuf:"varint,16,opt,name=first_forwarded_at_timestamp,json=firstForwardedAtTimestamp,proto3" json:"first_forwarded_at_timestamp,omitempty"`
+	// Timestamp of the latest forward in this bucket, in seconds since the Unix epoch.
+	LastForwardedAtTimestamp uint64 `protobuf:"varint,17,opt,name=last_forwarded_at_timestamp,json=lastForwardedAtTimestamp,proto3" json:"last_forwarded_at_timestamp,omitempty"`
+	// Timestamp when this bucket was aggregated, in seconds since the Unix epoch.
+	AggregatedAtTimestamp uint64 `protobuf:"varint,18,opt,name=aggregated_at_timestamp,json=aggregatedAtTimestamp,proto3" json:"aggregated_at_timestamp,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *ChannelPairForwardingStats) Reset() {
+	*x = ChannelPairForwardingStats{}
+	mi := &file_types_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ChannelPairForwardingStats) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ChannelPairForwardingStats) ProtoMessage() {}
+
+func (x *ChannelPairForwardingStats) ProtoReflect() protoreflect.Message {
+	mi := &file_types_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ChannelPairForwardingStats.ProtoReflect.Descriptor instead.
+func (*ChannelPairForwardingStats) Descriptor() ([]byte, []int) {
+	return file_types_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *ChannelPairForwardingStats) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ChannelPairForwardingStats) GetPrevChannelId() string {
+	if x != nil {
+		return x.PrevChannelId
+	}
+	return ""
+}
+
+func (x *ChannelPairForwardingStats) GetNextChannelId() string {
+	if x != nil {
+		return x.NextChannelId
+	}
+	return ""
+}
+
+func (x *ChannelPairForwardingStats) GetBucketStartTimestamp() uint64 {
+	if x != nil {
+		return x.BucketStartTimestamp
+	}
+	return 0
+}
+
+func (x *ChannelPairForwardingStats) GetBucketSizeSecs() uint64 {
+	if x != nil {
+		return x.BucketSizeSecs
+	}
+	return 0
+}
+
+func (x *ChannelPairForwardingStats) GetPrevNodeId() string {
+	if x != nil && x.PrevNodeId != nil {
+		return *x.PrevNodeId
+	}
+	return ""
+}
+
+func (x *ChannelPairForwardingStats) GetNextNodeId() string {
+	if x != nil && x.NextNodeId != nil {
+		return *x.NextNodeId
+	}
+	return ""
+}
+
+func (x *ChannelPairForwardingStats) GetPaymentCount() uint64 {
+	if x != nil {
+		return x.PaymentCount
+	}
+	return 0
+}
+
+func (x *ChannelPairForwardingStats) GetTotalInboundAmountMsat() uint64 {
+	if x != nil {
+		return x.TotalInboundAmountMsat
+	}
+	return 0
+}
+
+func (x *ChannelPairForwardingStats) GetTotalOutboundAmountMsat() uint64 {
+	if x != nil {
+		return x.TotalOutboundAmountMsat
+	}
+	return 0
+}
+
+func (x *ChannelPairForwardingStats) GetTotalFeeEarnedMsat() uint64 {
+	if x != nil && x.TotalFeeEarnedMsat != nil {
+		return *x.TotalFeeEarnedMsat
+	}
+	return 0
+}
+
+func (x *ChannelPairForwardingStats) GetTotalSkimmedFeeMsat() uint64 {
+	if x != nil {
+		return x.TotalSkimmedFeeMsat
+	}
+	return 0
+}
+
+func (x *ChannelPairForwardingStats) GetOnchainClaimsCount() uint64 {
+	if x != nil {
+		return x.OnchainClaimsCount
+	}
+	return 0
+}
+
+func (x *ChannelPairForwardingStats) GetAvgFeeMsat() uint64 {
+	if x != nil && x.AvgFeeMsat != nil {
+		return *x.AvgFeeMsat
+	}
+	return 0
+}
+
+func (x *ChannelPairForwardingStats) GetAvgInboundAmountMsat() uint64 {
+	if x != nil {
+		return x.AvgInboundAmountMsat
+	}
+	return 0
+}
+
+func (x *ChannelPairForwardingStats) GetFirstForwardedAtTimestamp() uint64 {
+	if x != nil {
+		return x.FirstForwardedAtTimestamp
+	}
+	return 0
+}
+
+func (x *ChannelPairForwardingStats) GetLastForwardedAtTimestamp() uint64 {
+	if x != nil {
+		return x.LastForwardedAtTimestamp
+	}
+	return 0
+}
+
+func (x *ChannelPairForwardingStats) GetAggregatedAtTimestamp() uint64 {
+	if x != nil {
+		return x.AggregatedAtTimestamp
+	}
+	return 0
 }
 
 type Channel struct {
@@ -2285,7 +2726,7 @@ type Channel struct {
 
 func (x *Channel) Reset() {
 	*x = Channel{}
-	mi := &file_types_proto_msgTypes[23]
+	mi := &file_types_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2297,7 +2738,7 @@ func (x *Channel) String() string {
 func (*Channel) ProtoMessage() {}
 
 func (x *Channel) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[23]
+	mi := &file_types_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2310,7 +2751,7 @@ func (x *Channel) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Channel.ProtoReflect.Descriptor instead.
 func (*Channel) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{23}
+	return file_types_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *Channel) GetChannelId() string {
@@ -2592,7 +3033,7 @@ type ChannelConfig struct {
 
 func (x *ChannelConfig) Reset() {
 	*x = ChannelConfig{}
-	mi := &file_types_proto_msgTypes[24]
+	mi := &file_types_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2604,7 +3045,7 @@ func (x *ChannelConfig) String() string {
 func (*ChannelConfig) ProtoMessage() {}
 
 func (x *ChannelConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[24]
+	mi := &file_types_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2617,7 +3058,7 @@ func (x *ChannelConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChannelConfig.ProtoReflect.Descriptor instead.
 func (*ChannelConfig) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{24}
+	return file_types_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *ChannelConfig) GetForwardingFeeProportionalMillionths() uint32 {
@@ -2713,7 +3154,7 @@ type OutPoint struct {
 
 func (x *OutPoint) Reset() {
 	*x = OutPoint{}
-	mi := &file_types_proto_msgTypes[25]
+	mi := &file_types_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2725,7 +3166,7 @@ func (x *OutPoint) String() string {
 func (*OutPoint) ProtoMessage() {}
 
 func (x *OutPoint) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[25]
+	mi := &file_types_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2738,7 +3179,7 @@ func (x *OutPoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OutPoint.ProtoReflect.Descriptor instead.
 func (*OutPoint) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{25}
+	return file_types_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *OutPoint) GetTxid() string {
@@ -2767,7 +3208,7 @@ type BestBlock struct {
 
 func (x *BestBlock) Reset() {
 	*x = BestBlock{}
-	mi := &file_types_proto_msgTypes[26]
+	mi := &file_types_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2779,7 +3220,7 @@ func (x *BestBlock) String() string {
 func (*BestBlock) ProtoMessage() {}
 
 func (x *BestBlock) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[26]
+	mi := &file_types_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2792,7 +3233,7 @@ func (x *BestBlock) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BestBlock.ProtoReflect.Descriptor instead.
 func (*BestBlock) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{26}
+	return file_types_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *BestBlock) GetBlockHash() string {
@@ -2827,7 +3268,7 @@ type LightningBalance struct {
 
 func (x *LightningBalance) Reset() {
 	*x = LightningBalance{}
-	mi := &file_types_proto_msgTypes[27]
+	mi := &file_types_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2839,7 +3280,7 @@ func (x *LightningBalance) String() string {
 func (*LightningBalance) ProtoMessage() {}
 
 func (x *LightningBalance) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[27]
+	mi := &file_types_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2852,7 +3293,7 @@ func (x *LightningBalance) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LightningBalance.ProtoReflect.Descriptor instead.
 func (*LightningBalance) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{27}
+	return file_types_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *LightningBalance) GetBalanceType() isLightningBalance_BalanceType {
@@ -3008,7 +3449,7 @@ type ClaimableOnChannelClose struct {
 
 func (x *ClaimableOnChannelClose) Reset() {
 	*x = ClaimableOnChannelClose{}
-	mi := &file_types_proto_msgTypes[28]
+	mi := &file_types_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3020,7 +3461,7 @@ func (x *ClaimableOnChannelClose) String() string {
 func (*ClaimableOnChannelClose) ProtoMessage() {}
 
 func (x *ClaimableOnChannelClose) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[28]
+	mi := &file_types_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3033,7 +3474,7 @@ func (x *ClaimableOnChannelClose) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClaimableOnChannelClose.ProtoReflect.Descriptor instead.
 func (*ClaimableOnChannelClose) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{28}
+	return file_types_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *ClaimableOnChannelClose) GetChannelId() string {
@@ -3113,7 +3554,7 @@ type ClaimableAwaitingConfirmations struct {
 
 func (x *ClaimableAwaitingConfirmations) Reset() {
 	*x = ClaimableAwaitingConfirmations{}
-	mi := &file_types_proto_msgTypes[29]
+	mi := &file_types_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3125,7 +3566,7 @@ func (x *ClaimableAwaitingConfirmations) String() string {
 func (*ClaimableAwaitingConfirmations) ProtoMessage() {}
 
 func (x *ClaimableAwaitingConfirmations) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[29]
+	mi := &file_types_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3138,7 +3579,7 @@ func (x *ClaimableAwaitingConfirmations) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClaimableAwaitingConfirmations.ProtoReflect.Descriptor instead.
 func (*ClaimableAwaitingConfirmations) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{29}
+	return file_types_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *ClaimableAwaitingConfirmations) GetChannelId() string {
@@ -3204,7 +3645,7 @@ type ContentiousClaimable struct {
 
 func (x *ContentiousClaimable) Reset() {
 	*x = ContentiousClaimable{}
-	mi := &file_types_proto_msgTypes[30]
+	mi := &file_types_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3216,7 +3657,7 @@ func (x *ContentiousClaimable) String() string {
 func (*ContentiousClaimable) ProtoMessage() {}
 
 func (x *ContentiousClaimable) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[30]
+	mi := &file_types_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3229,7 +3670,7 @@ func (x *ContentiousClaimable) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ContentiousClaimable.ProtoReflect.Descriptor instead.
 func (*ContentiousClaimable) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{30}
+	return file_types_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *ContentiousClaimable) GetChannelId() string {
@@ -3298,7 +3739,7 @@ type MaybeTimeoutClaimableHTLC struct {
 
 func (x *MaybeTimeoutClaimableHTLC) Reset() {
 	*x = MaybeTimeoutClaimableHTLC{}
-	mi := &file_types_proto_msgTypes[31]
+	mi := &file_types_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3310,7 +3751,7 @@ func (x *MaybeTimeoutClaimableHTLC) String() string {
 func (*MaybeTimeoutClaimableHTLC) ProtoMessage() {}
 
 func (x *MaybeTimeoutClaimableHTLC) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[31]
+	mi := &file_types_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3323,7 +3764,7 @@ func (x *MaybeTimeoutClaimableHTLC) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MaybeTimeoutClaimableHTLC.ProtoReflect.Descriptor instead.
 func (*MaybeTimeoutClaimableHTLC) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{31}
+	return file_types_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *MaybeTimeoutClaimableHTLC) GetChannelId() string {
@@ -3392,7 +3833,7 @@ type MaybePreimageClaimableHTLC struct {
 
 func (x *MaybePreimageClaimableHTLC) Reset() {
 	*x = MaybePreimageClaimableHTLC{}
-	mi := &file_types_proto_msgTypes[32]
+	mi := &file_types_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3404,7 +3845,7 @@ func (x *MaybePreimageClaimableHTLC) String() string {
 func (*MaybePreimageClaimableHTLC) ProtoMessage() {}
 
 func (x *MaybePreimageClaimableHTLC) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[32]
+	mi := &file_types_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3417,7 +3858,7 @@ func (x *MaybePreimageClaimableHTLC) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MaybePreimageClaimableHTLC.ProtoReflect.Descriptor instead.
 func (*MaybePreimageClaimableHTLC) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{32}
+	return file_types_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *MaybePreimageClaimableHTLC) GetChannelId() string {
@@ -3474,7 +3915,7 @@ type CounterpartyRevokedOutputClaimable struct {
 
 func (x *CounterpartyRevokedOutputClaimable) Reset() {
 	*x = CounterpartyRevokedOutputClaimable{}
-	mi := &file_types_proto_msgTypes[33]
+	mi := &file_types_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3486,7 +3927,7 @@ func (x *CounterpartyRevokedOutputClaimable) String() string {
 func (*CounterpartyRevokedOutputClaimable) ProtoMessage() {}
 
 func (x *CounterpartyRevokedOutputClaimable) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[33]
+	mi := &file_types_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3499,7 +3940,7 @@ func (x *CounterpartyRevokedOutputClaimable) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use CounterpartyRevokedOutputClaimable.ProtoReflect.Descriptor instead.
 func (*CounterpartyRevokedOutputClaimable) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{33}
+	return file_types_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *CounterpartyRevokedOutputClaimable) GetChannelId() string {
@@ -3538,7 +3979,7 @@ type PendingSweepBalance struct {
 
 func (x *PendingSweepBalance) Reset() {
 	*x = PendingSweepBalance{}
-	mi := &file_types_proto_msgTypes[34]
+	mi := &file_types_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3550,7 +3991,7 @@ func (x *PendingSweepBalance) String() string {
 func (*PendingSweepBalance) ProtoMessage() {}
 
 func (x *PendingSweepBalance) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[34]
+	mi := &file_types_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3563,7 +4004,7 @@ func (x *PendingSweepBalance) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PendingSweepBalance.ProtoReflect.Descriptor instead.
 func (*PendingSweepBalance) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{34}
+	return file_types_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *PendingSweepBalance) GetBalanceType() isPendingSweepBalance_BalanceType {
@@ -3636,7 +4077,7 @@ type PendingBroadcast struct {
 
 func (x *PendingBroadcast) Reset() {
 	*x = PendingBroadcast{}
-	mi := &file_types_proto_msgTypes[35]
+	mi := &file_types_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3648,7 +4089,7 @@ func (x *PendingBroadcast) String() string {
 func (*PendingBroadcast) ProtoMessage() {}
 
 func (x *PendingBroadcast) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[35]
+	mi := &file_types_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3661,7 +4102,7 @@ func (x *PendingBroadcast) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PendingBroadcast.ProtoReflect.Descriptor instead.
 func (*PendingBroadcast) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{35}
+	return file_types_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *PendingBroadcast) GetChannelId() string {
@@ -3696,7 +4137,7 @@ type BroadcastAwaitingConfirmation struct {
 
 func (x *BroadcastAwaitingConfirmation) Reset() {
 	*x = BroadcastAwaitingConfirmation{}
-	mi := &file_types_proto_msgTypes[36]
+	mi := &file_types_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3708,7 +4149,7 @@ func (x *BroadcastAwaitingConfirmation) String() string {
 func (*BroadcastAwaitingConfirmation) ProtoMessage() {}
 
 func (x *BroadcastAwaitingConfirmation) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[36]
+	mi := &file_types_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3721,7 +4162,7 @@ func (x *BroadcastAwaitingConfirmation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BroadcastAwaitingConfirmation.ProtoReflect.Descriptor instead.
 func (*BroadcastAwaitingConfirmation) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{36}
+	return file_types_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *BroadcastAwaitingConfirmation) GetChannelId() string {
@@ -3774,7 +4215,7 @@ type AwaitingThresholdConfirmations struct {
 
 func (x *AwaitingThresholdConfirmations) Reset() {
 	*x = AwaitingThresholdConfirmations{}
-	mi := &file_types_proto_msgTypes[37]
+	mi := &file_types_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3786,7 +4227,7 @@ func (x *AwaitingThresholdConfirmations) String() string {
 func (*AwaitingThresholdConfirmations) ProtoMessage() {}
 
 func (x *AwaitingThresholdConfirmations) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[37]
+	mi := &file_types_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3799,7 +4240,7 @@ func (x *AwaitingThresholdConfirmations) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AwaitingThresholdConfirmations.ProtoReflect.Descriptor instead.
 func (*AwaitingThresholdConfirmations) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{37}
+	return file_types_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *AwaitingThresholdConfirmations) GetChannelId() string {
@@ -3850,7 +4291,7 @@ type Bolt11InvoiceDescription struct {
 
 func (x *Bolt11InvoiceDescription) Reset() {
 	*x = Bolt11InvoiceDescription{}
-	mi := &file_types_proto_msgTypes[38]
+	mi := &file_types_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3862,7 +4303,7 @@ func (x *Bolt11InvoiceDescription) String() string {
 func (*Bolt11InvoiceDescription) ProtoMessage() {}
 
 func (x *Bolt11InvoiceDescription) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[38]
+	mi := &file_types_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3875,7 +4316,7 @@ func (x *Bolt11InvoiceDescription) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Bolt11InvoiceDescription.ProtoReflect.Descriptor instead.
 func (*Bolt11InvoiceDescription) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{38}
+	return file_types_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *Bolt11InvoiceDescription) GetKind() isBolt11InvoiceDescription_Kind {
@@ -3942,7 +4383,7 @@ type RouteParametersConfig struct {
 
 func (x *RouteParametersConfig) Reset() {
 	*x = RouteParametersConfig{}
-	mi := &file_types_proto_msgTypes[39]
+	mi := &file_types_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3954,7 +4395,7 @@ func (x *RouteParametersConfig) String() string {
 func (*RouteParametersConfig) ProtoMessage() {}
 
 func (x *RouteParametersConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[39]
+	mi := &file_types_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3967,7 +4408,7 @@ func (x *RouteParametersConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RouteParametersConfig.ProtoReflect.Descriptor instead.
 func (*RouteParametersConfig) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{39}
+	return file_types_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *RouteParametersConfig) GetMaxTotalRoutingFeeMsat() uint64 {
@@ -4011,7 +4452,7 @@ type GraphRoutingFees struct {
 
 func (x *GraphRoutingFees) Reset() {
 	*x = GraphRoutingFees{}
-	mi := &file_types_proto_msgTypes[40]
+	mi := &file_types_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4023,7 +4464,7 @@ func (x *GraphRoutingFees) String() string {
 func (*GraphRoutingFees) ProtoMessage() {}
 
 func (x *GraphRoutingFees) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[40]
+	mi := &file_types_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4036,7 +4477,7 @@ func (x *GraphRoutingFees) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GraphRoutingFees.ProtoReflect.Descriptor instead.
 func (*GraphRoutingFees) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{40}
+	return file_types_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *GraphRoutingFees) GetBaseMsat() uint32 {
@@ -4076,7 +4517,7 @@ type GraphChannelUpdate struct {
 
 func (x *GraphChannelUpdate) Reset() {
 	*x = GraphChannelUpdate{}
-	mi := &file_types_proto_msgTypes[41]
+	mi := &file_types_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4088,7 +4529,7 @@ func (x *GraphChannelUpdate) String() string {
 func (*GraphChannelUpdate) ProtoMessage() {}
 
 func (x *GraphChannelUpdate) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[41]
+	mi := &file_types_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4101,7 +4542,7 @@ func (x *GraphChannelUpdate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GraphChannelUpdate.ProtoReflect.Descriptor instead.
 func (*GraphChannelUpdate) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{41}
+	return file_types_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *GraphChannelUpdate) GetLastUpdate() uint32 {
@@ -4166,7 +4607,7 @@ type GraphChannel struct {
 
 func (x *GraphChannel) Reset() {
 	*x = GraphChannel{}
-	mi := &file_types_proto_msgTypes[42]
+	mi := &file_types_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4178,7 +4619,7 @@ func (x *GraphChannel) String() string {
 func (*GraphChannel) ProtoMessage() {}
 
 func (x *GraphChannel) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[42]
+	mi := &file_types_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4191,7 +4632,7 @@ func (x *GraphChannel) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GraphChannel.ProtoReflect.Descriptor instead.
 func (*GraphChannel) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{42}
+	return file_types_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *GraphChannel) GetNodeOne() string {
@@ -4250,7 +4691,7 @@ type GraphNodeAnnouncement struct {
 
 func (x *GraphNodeAnnouncement) Reset() {
 	*x = GraphNodeAnnouncement{}
-	mi := &file_types_proto_msgTypes[43]
+	mi := &file_types_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4262,7 +4703,7 @@ func (x *GraphNodeAnnouncement) String() string {
 func (*GraphNodeAnnouncement) ProtoMessage() {}
 
 func (x *GraphNodeAnnouncement) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[43]
+	mi := &file_types_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4275,7 +4716,7 @@ func (x *GraphNodeAnnouncement) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GraphNodeAnnouncement.ProtoReflect.Descriptor instead.
 func (*GraphNodeAnnouncement) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{43}
+	return file_types_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *GraphNodeAnnouncement) GetLastUpdate() uint32 {
@@ -4331,7 +4772,7 @@ type Peer struct {
 
 func (x *Peer) Reset() {
 	*x = Peer{}
-	mi := &file_types_proto_msgTypes[44]
+	mi := &file_types_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4343,7 +4784,7 @@ func (x *Peer) String() string {
 func (*Peer) ProtoMessage() {}
 
 func (x *Peer) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[44]
+	mi := &file_types_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4356,7 +4797,7 @@ func (x *Peer) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Peer.ProtoReflect.Descriptor instead.
 func (*Peer) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{44}
+	return file_types_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *Peer) GetNodeId() string {
@@ -4402,7 +4843,7 @@ type GraphNode struct {
 
 func (x *GraphNode) Reset() {
 	*x = GraphNode{}
-	mi := &file_types_proto_msgTypes[45]
+	mi := &file_types_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4414,7 +4855,7 @@ func (x *GraphNode) String() string {
 func (*GraphNode) ProtoMessage() {}
 
 func (x *GraphNode) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[45]
+	mi := &file_types_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4427,7 +4868,7 @@ func (x *GraphNode) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GraphNode.ProtoReflect.Descriptor instead.
 func (*GraphNode) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{45}
+	return file_types_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *GraphNode) GetChannels() []uint64 {
@@ -4455,7 +4896,7 @@ type Bolt11RouteHint struct {
 
 func (x *Bolt11RouteHint) Reset() {
 	*x = Bolt11RouteHint{}
-	mi := &file_types_proto_msgTypes[46]
+	mi := &file_types_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4467,7 +4908,7 @@ func (x *Bolt11RouteHint) String() string {
 func (*Bolt11RouteHint) ProtoMessage() {}
 
 func (x *Bolt11RouteHint) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[46]
+	mi := &file_types_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4480,7 +4921,7 @@ func (x *Bolt11RouteHint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Bolt11RouteHint.ProtoReflect.Descriptor instead.
 func (*Bolt11RouteHint) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{46}
+	return file_types_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *Bolt11RouteHint) GetHopHints() []*Bolt11HopHint {
@@ -4509,7 +4950,7 @@ type Bolt11HopHint struct {
 
 func (x *Bolt11HopHint) Reset() {
 	*x = Bolt11HopHint{}
-	mi := &file_types_proto_msgTypes[47]
+	mi := &file_types_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4521,7 +4962,7 @@ func (x *Bolt11HopHint) String() string {
 func (*Bolt11HopHint) ProtoMessage() {}
 
 func (x *Bolt11HopHint) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[47]
+	mi := &file_types_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4534,7 +4975,7 @@ func (x *Bolt11HopHint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Bolt11HopHint.ProtoReflect.Descriptor instead.
 func (*Bolt11HopHint) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{47}
+	return file_types_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *Bolt11HopHint) GetNodeId() string {
@@ -4586,7 +5027,7 @@ type OfferAmount struct {
 
 func (x *OfferAmount) Reset() {
 	*x = OfferAmount{}
-	mi := &file_types_proto_msgTypes[48]
+	mi := &file_types_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4598,7 +5039,7 @@ func (x *OfferAmount) String() string {
 func (*OfferAmount) ProtoMessage() {}
 
 func (x *OfferAmount) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[48]
+	mi := &file_types_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4611,7 +5052,7 @@ func (x *OfferAmount) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OfferAmount.ProtoReflect.Descriptor instead.
 func (*OfferAmount) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{48}
+	return file_types_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *OfferAmount) GetAmount() isOfferAmount_Amount {
@@ -4670,7 +5111,7 @@ type CurrencyAmount struct {
 
 func (x *CurrencyAmount) Reset() {
 	*x = CurrencyAmount{}
-	mi := &file_types_proto_msgTypes[49]
+	mi := &file_types_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4682,7 +5123,7 @@ func (x *CurrencyAmount) String() string {
 func (*CurrencyAmount) ProtoMessage() {}
 
 func (x *CurrencyAmount) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[49]
+	mi := &file_types_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4695,7 +5136,7 @@ func (x *CurrencyAmount) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CurrencyAmount.ProtoReflect.Descriptor instead.
 func (*CurrencyAmount) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{49}
+	return file_types_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *CurrencyAmount) GetIso4217Code() string {
@@ -4727,7 +5168,7 @@ type OfferQuantity struct {
 
 func (x *OfferQuantity) Reset() {
 	*x = OfferQuantity{}
-	mi := &file_types_proto_msgTypes[50]
+	mi := &file_types_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4739,7 +5180,7 @@ func (x *OfferQuantity) String() string {
 func (*OfferQuantity) ProtoMessage() {}
 
 func (x *OfferQuantity) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[50]
+	mi := &file_types_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4752,7 +5193,7 @@ func (x *OfferQuantity) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OfferQuantity.ProtoReflect.Descriptor instead.
 func (*OfferQuantity) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{50}
+	return file_types_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *OfferQuantity) GetQuantity() isOfferQuantity_Quantity {
@@ -4835,7 +5276,7 @@ type BlindedPath struct {
 
 func (x *BlindedPath) Reset() {
 	*x = BlindedPath{}
-	mi := &file_types_proto_msgTypes[51]
+	mi := &file_types_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4847,7 +5288,7 @@ func (x *BlindedPath) String() string {
 func (*BlindedPath) ProtoMessage() {}
 
 func (x *BlindedPath) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[51]
+	mi := &file_types_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4860,7 +5301,7 @@ func (x *BlindedPath) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BlindedPath.ProtoReflect.Descriptor instead.
 func (*BlindedPath) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{51}
+	return file_types_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *BlindedPath) GetIntroductionNode() isBlindedPath_IntroductionNode {
@@ -4934,7 +5375,7 @@ type DirectedShortChannelId struct {
 
 func (x *DirectedShortChannelId) Reset() {
 	*x = DirectedShortChannelId{}
-	mi := &file_types_proto_msgTypes[52]
+	mi := &file_types_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4946,7 +5387,7 @@ func (x *DirectedShortChannelId) String() string {
 func (*DirectedShortChannelId) ProtoMessage() {}
 
 func (x *DirectedShortChannelId) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[52]
+	mi := &file_types_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4959,7 +5400,7 @@ func (x *DirectedShortChannelId) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DirectedShortChannelId.ProtoReflect.Descriptor instead.
 func (*DirectedShortChannelId) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{52}
+	return file_types_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *DirectedShortChannelId) GetScid() uint64 {
@@ -4989,7 +5430,7 @@ type Feature struct {
 
 func (x *Feature) Reset() {
 	*x = Feature{}
-	mi := &file_types_proto_msgTypes[53]
+	mi := &file_types_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5001,7 +5442,7 @@ func (x *Feature) String() string {
 func (*Feature) ProtoMessage() {}
 
 func (x *Feature) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[53]
+	mi := &file_types_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5014,7 +5455,7 @@ func (x *Feature) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Feature.ProtoReflect.Descriptor instead.
 func (*Feature) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{53}
+	return file_types_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *Feature) GetName() string {
@@ -5044,7 +5485,7 @@ type CustomTlvRecord struct {
 
 func (x *CustomTlvRecord) Reset() {
 	*x = CustomTlvRecord{}
-	mi := &file_types_proto_msgTypes[54]
+	mi := &file_types_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5056,7 +5497,7 @@ func (x *CustomTlvRecord) String() string {
 func (*CustomTlvRecord) ProtoMessage() {}
 
 func (x *CustomTlvRecord) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[54]
+	mi := &file_types_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5069,7 +5510,7 @@ func (x *CustomTlvRecord) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CustomTlvRecord.ProtoReflect.Descriptor instead.
 func (*CustomTlvRecord) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{54}
+	return file_types_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *CustomTlvRecord) GetTypeNum() uint64 {
@@ -5223,19 +5664,75 @@ const file_types_proto_rawDesc = "" +
 	"\x10_user_channel_idB\n" +
 	"\n" +
 	"\b_node_idB\x0e\n" +
-	"\f_amount_msat\"\xae\x03\n" +
-	"\x10ForwardedPayment\x126\n" +
-	"\x15total_fee_earned_msat\x18\x01 \x01(\x04H\x00R\x12totalFeeEarnedMsat\x88\x01\x01\x12-\n" +
-	"\x10skimmed_fee_msat\x18\x02 \x01(\x04H\x01R\x0eskimmedFeeMsat\x88\x01\x01\x121\n" +
-	"\x15claim_from_onchain_tx\x18\x03 \x01(\bR\x12claimFromOnchainTx\x12H\n" +
-	"\x1eoutbound_amount_forwarded_msat\x18\x04 \x01(\x04H\x02R\x1boutboundAmountForwardedMsat\x88\x01\x01\x121\n" +
-	"\n" +
-	"prev_htlcs\x18\x05 \x03(\v2\x12.types.HtlcLocatorR\tprevHtlcs\x121\n" +
-	"\n" +
-	"next_htlcs\x18\x06 \x03(\v2\x12.types.HtlcLocatorR\tnextHtlcsB\x18\n" +
+	"\f_amount_msat\"\xd6\x06\n" +
+	"\x10ForwardedPayment\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12&\n" +
+	"\x0fprev_channel_id\x18\x02 \x01(\tR\rprevChannelId\x12&\n" +
+	"\x0fnext_channel_id\x18\x03 \x01(\tR\rnextChannelId\x124\n" +
+	"\x14prev_user_channel_id\x18\x04 \x01(\tH\x00R\x11prevUserChannelId\x88\x01\x01\x124\n" +
+	"\x14next_user_channel_id\x18\x05 \x01(\tH\x01R\x11nextUserChannelId\x88\x01\x01\x12%\n" +
+	"\fprev_node_id\x18\x06 \x01(\tH\x02R\n" +
+	"prevNodeId\x88\x01\x01\x12%\n" +
+	"\fnext_node_id\x18\a \x01(\tH\x03R\n" +
+	"nextNodeId\x88\x01\x01\x12F\n" +
+	"\x1dinbound_amount_forwarded_msat\x18\b \x01(\x04H\x04R\x1ainboundAmountForwardedMsat\x88\x01\x01\x126\n" +
+	"\x15total_fee_earned_msat\x18\t \x01(\x04H\x05R\x12totalFeeEarnedMsat\x88\x01\x01\x12-\n" +
+	"\x10skimmed_fee_msat\x18\n" +
+	" \x01(\x04H\x06R\x0eskimmedFeeMsat\x88\x01\x01\x121\n" +
+	"\x15claim_from_onchain_tx\x18\v \x01(\bR\x12claimFromOnchainTx\x12H\n" +
+	"\x1eoutbound_amount_forwarded_msat\x18\f \x01(\x04H\aR\x1boutboundAmountForwardedMsat\x88\x01\x01\x124\n" +
+	"\x16forwarded_at_timestamp\x18\r \x01(\x04R\x14forwardedAtTimestampB\x17\n" +
+	"\x15_prev_user_channel_idB\x17\n" +
+	"\x15_next_user_channel_idB\x0f\n" +
+	"\r_prev_node_idB\x0f\n" +
+	"\r_next_node_idB \n" +
+	"\x1e_inbound_amount_forwarded_msatB\x18\n" +
 	"\x16_total_fee_earned_msatB\x13\n" +
 	"\x11_skimmed_fee_msatB!\n" +
-	"\x1f_outbound_amount_forwarded_msat\"\x99\x16\n" +
+	"\x1f_outbound_amount_forwarded_msat\"\xb6\x05\n" +
+	"\x16ChannelForwardingStats\x12\x1d\n" +
+	"\n" +
+	"channel_id\x18\x01 \x01(\tR\tchannelId\x125\n" +
+	"\x14counterparty_node_id\x18\x02 \x01(\tH\x00R\x12counterpartyNodeId\x88\x01\x01\x12<\n" +
+	"\x1ainbound_payments_forwarded\x18\x03 \x01(\x04R\x18inboundPaymentsForwarded\x12>\n" +
+	"\x1boutbound_payments_forwarded\x18\x04 \x01(\x04R\x19outboundPaymentsForwarded\x129\n" +
+	"\x19total_inbound_amount_msat\x18\x05 \x01(\x04R\x16totalInboundAmountMsat\x12;\n" +
+	"\x1atotal_outbound_amount_msat\x18\x06 \x01(\x04R\x17totalOutboundAmountMsat\x126\n" +
+	"\x15total_fee_earned_msat\x18\a \x01(\x04H\x01R\x12totalFeeEarnedMsat\x88\x01\x01\x123\n" +
+	"\x16total_skimmed_fee_msat\x18\b \x01(\x04R\x13totalSkimmedFeeMsat\x120\n" +
+	"\x14onchain_claims_count\x18\t \x01(\x04R\x12onchainClaimsCount\x12?\n" +
+	"\x1cfirst_forwarded_at_timestamp\x18\n" +
+	" \x01(\x04R\x19firstForwardedAtTimestamp\x12=\n" +
+	"\x1blast_forwarded_at_timestamp\x18\v \x01(\x04R\x18lastForwardedAtTimestampB\x17\n" +
+	"\x15_counterparty_node_idB\x18\n" +
+	"\x16_total_fee_earned_msat\"\xc9\a\n" +
+	"\x1aChannelPairForwardingStats\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12&\n" +
+	"\x0fprev_channel_id\x18\x02 \x01(\tR\rprevChannelId\x12&\n" +
+	"\x0fnext_channel_id\x18\x03 \x01(\tR\rnextChannelId\x124\n" +
+	"\x16bucket_start_timestamp\x18\x04 \x01(\x04R\x14bucketStartTimestamp\x12(\n" +
+	"\x10bucket_size_secs\x18\x05 \x01(\x04R\x0ebucketSizeSecs\x12%\n" +
+	"\fprev_node_id\x18\x06 \x01(\tH\x00R\n" +
+	"prevNodeId\x88\x01\x01\x12%\n" +
+	"\fnext_node_id\x18\a \x01(\tH\x01R\n" +
+	"nextNodeId\x88\x01\x01\x12#\n" +
+	"\rpayment_count\x18\b \x01(\x04R\fpaymentCount\x129\n" +
+	"\x19total_inbound_amount_msat\x18\t \x01(\x04R\x16totalInboundAmountMsat\x12;\n" +
+	"\x1atotal_outbound_amount_msat\x18\n" +
+	" \x01(\x04R\x17totalOutboundAmountMsat\x126\n" +
+	"\x15total_fee_earned_msat\x18\v \x01(\x04H\x02R\x12totalFeeEarnedMsat\x88\x01\x01\x123\n" +
+	"\x16total_skimmed_fee_msat\x18\f \x01(\x04R\x13totalSkimmedFeeMsat\x120\n" +
+	"\x14onchain_claims_count\x18\r \x01(\x04R\x12onchainClaimsCount\x12%\n" +
+	"\favg_fee_msat\x18\x0e \x01(\x04H\x03R\n" +
+	"avgFeeMsat\x88\x01\x01\x125\n" +
+	"\x17avg_inbound_amount_msat\x18\x0f \x01(\x04R\x14avgInboundAmountMsat\x12?\n" +
+	"\x1cfirst_forwarded_at_timestamp\x18\x10 \x01(\x04R\x19firstForwardedAtTimestamp\x12=\n" +
+	"\x1blast_forwarded_at_timestamp\x18\x11 \x01(\x04R\x18lastForwardedAtTimestamp\x126\n" +
+	"\x17aggregated_at_timestamp\x18\x12 \x01(\x04R\x15aggregatedAtTimestampB\x0f\n" +
+	"\r_prev_node_idB\x0f\n" +
+	"\r_next_node_idB\x18\n" +
+	"\x16_total_fee_earned_msatB\x0f\n" +
+	"\r_avg_fee_msat\"\x99\x16\n" +
 	"\aChannel\x12\x1d\n" +
 	"\n" +
 	"channel_id\x18\x01 \x01(\tR\tchannelId\x120\n" +
@@ -5496,7 +5993,11 @@ const file_types_proto_rawDesc = "" +
 	"\bTESTNET4\x10\x02\x12\n" +
 	"\n" +
 	"\x06SIGNET\x10\x03\x12\v\n" +
-	"\aREGTEST\x10\x04*\xa9\x02\n" +
+	"\aREGTEST\x10\x04*\xa8\x01\n" +
+	"\x1cForwardedPaymentTrackingMode\x12/\n" +
+	"+FORWARDED_PAYMENT_TRACKING_MODE_UNSPECIFIED\x10\x00\x12)\n" +
+	"%FORWARDED_PAYMENT_TRACKING_MODE_STATS\x10\x01\x12,\n" +
+	"(FORWARDED_PAYMENT_TRACKING_MODE_DETAILED\x10\x02*\xa9\x02\n" +
 	"\x14ChannelShutdownState\x12&\n" +
 	"\"CHANNEL_SHUTDOWN_STATE_UNSPECIFIED\x10\x00\x12,\n" +
 	"(CHANNEL_SHUTDOWN_STATE_NOT_SHUTTING_DOWN\x10\x01\x12-\n" +
@@ -5531,133 +6032,134 @@ func file_types_proto_rawDescGZIP() []byte {
 	return file_types_proto_rawDescData
 }
 
-var file_types_proto_enumTypes = make([]protoimpl.EnumInfo, 7)
-var file_types_proto_msgTypes = make([]protoimpl.MessageInfo, 58)
+var file_types_proto_enumTypes = make([]protoimpl.EnumInfo, 8)
+var file_types_proto_msgTypes = make([]protoimpl.MessageInfo, 60)
 var file_types_proto_goTypes = []any{
 	(PaymentDirection)(0),                      // 0: types.PaymentDirection
 	(PaymentStatus)(0),                         // 1: types.PaymentStatus
 	(Network)(0),                               // 2: types.Network
-	(ChannelShutdownState)(0),                  // 3: types.ChannelShutdownState
-	(ReserveType)(0),                           // 4: types.ReserveType
-	(BalanceSource)(0),                         // 5: types.BalanceSource
-	(ChannelDirection)(0),                      // 6: types.ChannelDirection
-	(*Payment)(nil),                            // 7: types.Payment
-	(*PayerProofOptions)(nil),                  // 8: types.PayerProofOptions
-	(*PaymentKind)(nil),                        // 9: types.PaymentKind
-	(*Onchain)(nil),                            // 10: types.Onchain
-	(*TransactionChannel)(nil),                 // 11: types.TransactionChannel
-	(*TransactionType)(nil),                    // 12: types.TransactionType
-	(*Funding)(nil),                            // 13: types.Funding
-	(*CooperativeClose)(nil),                   // 14: types.CooperativeClose
-	(*UnilateralClose)(nil),                    // 15: types.UnilateralClose
-	(*AnchorBump)(nil),                         // 16: types.AnchorBump
-	(*Claim)(nil),                              // 17: types.Claim
-	(*Sweep)(nil),                              // 18: types.Sweep
-	(*InteractiveFunding)(nil),                 // 19: types.InteractiveFunding
-	(*ConfirmationStatus)(nil),                 // 20: types.ConfirmationStatus
-	(*Confirmed)(nil),                          // 21: types.Confirmed
-	(*Unconfirmed)(nil),                        // 22: types.Unconfirmed
-	(*Bolt11)(nil),                             // 23: types.Bolt11
-	(*Bolt12Offer)(nil),                        // 24: types.Bolt12Offer
-	(*Bolt12Refund)(nil),                       // 25: types.Bolt12Refund
-	(*Spontaneous)(nil),                        // 26: types.Spontaneous
-	(*LSPFeeLimits)(nil),                       // 27: types.LSPFeeLimits
-	(*HtlcLocator)(nil),                        // 28: types.HtlcLocator
-	(*ForwardedPayment)(nil),                   // 29: types.ForwardedPayment
-	(*Channel)(nil),                            // 30: types.Channel
-	(*ChannelConfig)(nil),                      // 31: types.ChannelConfig
-	(*OutPoint)(nil),                           // 32: types.OutPoint
-	(*BestBlock)(nil),                          // 33: types.BestBlock
-	(*LightningBalance)(nil),                   // 34: types.LightningBalance
-	(*ClaimableOnChannelClose)(nil),            // 35: types.ClaimableOnChannelClose
-	(*ClaimableAwaitingConfirmations)(nil),     // 36: types.ClaimableAwaitingConfirmations
-	(*ContentiousClaimable)(nil),               // 37: types.ContentiousClaimable
-	(*MaybeTimeoutClaimableHTLC)(nil),          // 38: types.MaybeTimeoutClaimableHTLC
-	(*MaybePreimageClaimableHTLC)(nil),         // 39: types.MaybePreimageClaimableHTLC
-	(*CounterpartyRevokedOutputClaimable)(nil), // 40: types.CounterpartyRevokedOutputClaimable
-	(*PendingSweepBalance)(nil),                // 41: types.PendingSweepBalance
-	(*PendingBroadcast)(nil),                   // 42: types.PendingBroadcast
-	(*BroadcastAwaitingConfirmation)(nil),      // 43: types.BroadcastAwaitingConfirmation
-	(*AwaitingThresholdConfirmations)(nil),     // 44: types.AwaitingThresholdConfirmations
-	(*Bolt11InvoiceDescription)(nil),           // 45: types.Bolt11InvoiceDescription
-	(*RouteParametersConfig)(nil),              // 46: types.RouteParametersConfig
-	(*GraphRoutingFees)(nil),                   // 47: types.GraphRoutingFees
-	(*GraphChannelUpdate)(nil),                 // 48: types.GraphChannelUpdate
-	(*GraphChannel)(nil),                       // 49: types.GraphChannel
-	(*GraphNodeAnnouncement)(nil),              // 50: types.GraphNodeAnnouncement
-	(*Peer)(nil),                               // 51: types.Peer
-	(*GraphNode)(nil),                          // 52: types.GraphNode
-	(*Bolt11RouteHint)(nil),                    // 53: types.Bolt11RouteHint
-	(*Bolt11HopHint)(nil),                      // 54: types.Bolt11HopHint
-	(*OfferAmount)(nil),                        // 55: types.OfferAmount
-	(*CurrencyAmount)(nil),                     // 56: types.CurrencyAmount
-	(*OfferQuantity)(nil),                      // 57: types.OfferQuantity
-	(*BlindedPath)(nil),                        // 58: types.BlindedPath
-	(*DirectedShortChannelId)(nil),             // 59: types.DirectedShortChannelId
-	(*Feature)(nil),                            // 60: types.Feature
-	(*CustomTlvRecord)(nil),                    // 61: types.CustomTlvRecord
-	nil,                                        // 62: types.Channel.ChannelTypeEntry
-	nil,                                        // 63: types.Channel.CounterpartyFeaturesEntry
-	nil,                                        // 64: types.GraphNodeAnnouncement.FeaturesEntry
+	(ForwardedPaymentTrackingMode)(0),          // 3: types.ForwardedPaymentTrackingMode
+	(ChannelShutdownState)(0),                  // 4: types.ChannelShutdownState
+	(ReserveType)(0),                           // 5: types.ReserveType
+	(BalanceSource)(0),                         // 6: types.BalanceSource
+	(ChannelDirection)(0),                      // 7: types.ChannelDirection
+	(*Payment)(nil),                            // 8: types.Payment
+	(*PayerProofOptions)(nil),                  // 9: types.PayerProofOptions
+	(*PaymentKind)(nil),                        // 10: types.PaymentKind
+	(*Onchain)(nil),                            // 11: types.Onchain
+	(*TransactionChannel)(nil),                 // 12: types.TransactionChannel
+	(*TransactionType)(nil),                    // 13: types.TransactionType
+	(*Funding)(nil),                            // 14: types.Funding
+	(*CooperativeClose)(nil),                   // 15: types.CooperativeClose
+	(*UnilateralClose)(nil),                    // 16: types.UnilateralClose
+	(*AnchorBump)(nil),                         // 17: types.AnchorBump
+	(*Claim)(nil),                              // 18: types.Claim
+	(*Sweep)(nil),                              // 19: types.Sweep
+	(*InteractiveFunding)(nil),                 // 20: types.InteractiveFunding
+	(*ConfirmationStatus)(nil),                 // 21: types.ConfirmationStatus
+	(*Confirmed)(nil),                          // 22: types.Confirmed
+	(*Unconfirmed)(nil),                        // 23: types.Unconfirmed
+	(*Bolt11)(nil),                             // 24: types.Bolt11
+	(*Bolt12Offer)(nil),                        // 25: types.Bolt12Offer
+	(*Bolt12Refund)(nil),                       // 26: types.Bolt12Refund
+	(*Spontaneous)(nil),                        // 27: types.Spontaneous
+	(*LSPFeeLimits)(nil),                       // 28: types.LSPFeeLimits
+	(*HtlcLocator)(nil),                        // 29: types.HtlcLocator
+	(*ForwardedPayment)(nil),                   // 30: types.ForwardedPayment
+	(*ChannelForwardingStats)(nil),             // 31: types.ChannelForwardingStats
+	(*ChannelPairForwardingStats)(nil),         // 32: types.ChannelPairForwardingStats
+	(*Channel)(nil),                            // 33: types.Channel
+	(*ChannelConfig)(nil),                      // 34: types.ChannelConfig
+	(*OutPoint)(nil),                           // 35: types.OutPoint
+	(*BestBlock)(nil),                          // 36: types.BestBlock
+	(*LightningBalance)(nil),                   // 37: types.LightningBalance
+	(*ClaimableOnChannelClose)(nil),            // 38: types.ClaimableOnChannelClose
+	(*ClaimableAwaitingConfirmations)(nil),     // 39: types.ClaimableAwaitingConfirmations
+	(*ContentiousClaimable)(nil),               // 40: types.ContentiousClaimable
+	(*MaybeTimeoutClaimableHTLC)(nil),          // 41: types.MaybeTimeoutClaimableHTLC
+	(*MaybePreimageClaimableHTLC)(nil),         // 42: types.MaybePreimageClaimableHTLC
+	(*CounterpartyRevokedOutputClaimable)(nil), // 43: types.CounterpartyRevokedOutputClaimable
+	(*PendingSweepBalance)(nil),                // 44: types.PendingSweepBalance
+	(*PendingBroadcast)(nil),                   // 45: types.PendingBroadcast
+	(*BroadcastAwaitingConfirmation)(nil),      // 46: types.BroadcastAwaitingConfirmation
+	(*AwaitingThresholdConfirmations)(nil),     // 47: types.AwaitingThresholdConfirmations
+	(*Bolt11InvoiceDescription)(nil),           // 48: types.Bolt11InvoiceDescription
+	(*RouteParametersConfig)(nil),              // 49: types.RouteParametersConfig
+	(*GraphRoutingFees)(nil),                   // 50: types.GraphRoutingFees
+	(*GraphChannelUpdate)(nil),                 // 51: types.GraphChannelUpdate
+	(*GraphChannel)(nil),                       // 52: types.GraphChannel
+	(*GraphNodeAnnouncement)(nil),              // 53: types.GraphNodeAnnouncement
+	(*Peer)(nil),                               // 54: types.Peer
+	(*GraphNode)(nil),                          // 55: types.GraphNode
+	(*Bolt11RouteHint)(nil),                    // 56: types.Bolt11RouteHint
+	(*Bolt11HopHint)(nil),                      // 57: types.Bolt11HopHint
+	(*OfferAmount)(nil),                        // 58: types.OfferAmount
+	(*CurrencyAmount)(nil),                     // 59: types.CurrencyAmount
+	(*OfferQuantity)(nil),                      // 60: types.OfferQuantity
+	(*BlindedPath)(nil),                        // 61: types.BlindedPath
+	(*DirectedShortChannelId)(nil),             // 62: types.DirectedShortChannelId
+	(*Feature)(nil),                            // 63: types.Feature
+	(*CustomTlvRecord)(nil),                    // 64: types.CustomTlvRecord
+	nil,                                        // 65: types.Channel.ChannelTypeEntry
+	nil,                                        // 66: types.Channel.CounterpartyFeaturesEntry
+	nil,                                        // 67: types.GraphNodeAnnouncement.FeaturesEntry
 }
 var file_types_proto_depIdxs = []int32{
-	9,  // 0: types.Payment.kind:type_name -> types.PaymentKind
+	10, // 0: types.Payment.kind:type_name -> types.PaymentKind
 	0,  // 1: types.Payment.direction:type_name -> types.PaymentDirection
 	1,  // 2: types.Payment.status:type_name -> types.PaymentStatus
-	10, // 3: types.PaymentKind.onchain:type_name -> types.Onchain
-	23, // 4: types.PaymentKind.bolt11:type_name -> types.Bolt11
-	24, // 5: types.PaymentKind.bolt12_offer:type_name -> types.Bolt12Offer
-	25, // 6: types.PaymentKind.bolt12_refund:type_name -> types.Bolt12Refund
-	26, // 7: types.PaymentKind.spontaneous:type_name -> types.Spontaneous
-	20, // 8: types.Onchain.status:type_name -> types.ConfirmationStatus
-	12, // 9: types.Onchain.tx_type:type_name -> types.TransactionType
-	13, // 10: types.TransactionType.funding:type_name -> types.Funding
-	14, // 11: types.TransactionType.cooperative_close:type_name -> types.CooperativeClose
-	15, // 12: types.TransactionType.unilateral_close:type_name -> types.UnilateralClose
-	16, // 13: types.TransactionType.anchor_bump:type_name -> types.AnchorBump
-	17, // 14: types.TransactionType.claim:type_name -> types.Claim
-	18, // 15: types.TransactionType.sweep:type_name -> types.Sweep
-	19, // 16: types.TransactionType.interactive_funding:type_name -> types.InteractiveFunding
-	11, // 17: types.Funding.channels:type_name -> types.TransactionChannel
-	11, // 18: types.Sweep.channels:type_name -> types.TransactionChannel
-	11, // 19: types.InteractiveFunding.channels:type_name -> types.TransactionChannel
-	21, // 20: types.ConfirmationStatus.confirmed:type_name -> types.Confirmed
-	22, // 21: types.ConfirmationStatus.unconfirmed:type_name -> types.Unconfirmed
-	28, // 22: types.ForwardedPayment.prev_htlcs:type_name -> types.HtlcLocator
-	28, // 23: types.ForwardedPayment.next_htlcs:type_name -> types.HtlcLocator
-	32, // 24: types.Channel.funding_txo:type_name -> types.OutPoint
-	31, // 25: types.Channel.channel_config:type_name -> types.ChannelConfig
-	3,  // 26: types.Channel.channel_shutdown_state:type_name -> types.ChannelShutdownState
-	4,  // 27: types.Channel.reserve_type:type_name -> types.ReserveType
-	62, // 28: types.Channel.channel_type:type_name -> types.Channel.ChannelTypeEntry
-	63, // 29: types.Channel.counterparty_features:type_name -> types.Channel.CounterpartyFeaturesEntry
-	35, // 30: types.LightningBalance.claimable_on_channel_close:type_name -> types.ClaimableOnChannelClose
-	36, // 31: types.LightningBalance.claimable_awaiting_confirmations:type_name -> types.ClaimableAwaitingConfirmations
-	37, // 32: types.LightningBalance.contentious_claimable:type_name -> types.ContentiousClaimable
-	38, // 33: types.LightningBalance.maybe_timeout_claimable_htlc:type_name -> types.MaybeTimeoutClaimableHTLC
-	39, // 34: types.LightningBalance.maybe_preimage_claimable_htlc:type_name -> types.MaybePreimageClaimableHTLC
-	40, // 35: types.LightningBalance.counterparty_revoked_output_claimable:type_name -> types.CounterpartyRevokedOutputClaimable
-	5,  // 36: types.ClaimableAwaitingConfirmations.source:type_name -> types.BalanceSource
-	42, // 37: types.PendingSweepBalance.pending_broadcast:type_name -> types.PendingBroadcast
-	43, // 38: types.PendingSweepBalance.broadcast_awaiting_confirmation:type_name -> types.BroadcastAwaitingConfirmation
-	44, // 39: types.PendingSweepBalance.awaiting_threshold_confirmations:type_name -> types.AwaitingThresholdConfirmations
-	47, // 40: types.GraphChannelUpdate.fees:type_name -> types.GraphRoutingFees
-	48, // 41: types.GraphChannel.one_to_two:type_name -> types.GraphChannelUpdate
-	48, // 42: types.GraphChannel.two_to_one:type_name -> types.GraphChannelUpdate
-	64, // 43: types.GraphNodeAnnouncement.features:type_name -> types.GraphNodeAnnouncement.FeaturesEntry
-	50, // 44: types.GraphNode.announcement_info:type_name -> types.GraphNodeAnnouncement
-	54, // 45: types.Bolt11RouteHint.hop_hints:type_name -> types.Bolt11HopHint
-	56, // 46: types.OfferAmount.currency_amount:type_name -> types.CurrencyAmount
-	59, // 47: types.BlindedPath.directed_scid:type_name -> types.DirectedShortChannelId
-	6,  // 48: types.DirectedShortChannelId.direction:type_name -> types.ChannelDirection
-	60, // 49: types.Channel.ChannelTypeEntry.value:type_name -> types.Feature
-	60, // 50: types.Channel.CounterpartyFeaturesEntry.value:type_name -> types.Feature
-	60, // 51: types.GraphNodeAnnouncement.FeaturesEntry.value:type_name -> types.Feature
-	52, // [52:52] is the sub-list for method output_type
-	52, // [52:52] is the sub-list for method input_type
-	52, // [52:52] is the sub-list for extension type_name
-	52, // [52:52] is the sub-list for extension extendee
-	0,  // [0:52] is the sub-list for field type_name
+	11, // 3: types.PaymentKind.onchain:type_name -> types.Onchain
+	24, // 4: types.PaymentKind.bolt11:type_name -> types.Bolt11
+	25, // 5: types.PaymentKind.bolt12_offer:type_name -> types.Bolt12Offer
+	26, // 6: types.PaymentKind.bolt12_refund:type_name -> types.Bolt12Refund
+	27, // 7: types.PaymentKind.spontaneous:type_name -> types.Spontaneous
+	21, // 8: types.Onchain.status:type_name -> types.ConfirmationStatus
+	13, // 9: types.Onchain.tx_type:type_name -> types.TransactionType
+	14, // 10: types.TransactionType.funding:type_name -> types.Funding
+	15, // 11: types.TransactionType.cooperative_close:type_name -> types.CooperativeClose
+	16, // 12: types.TransactionType.unilateral_close:type_name -> types.UnilateralClose
+	17, // 13: types.TransactionType.anchor_bump:type_name -> types.AnchorBump
+	18, // 14: types.TransactionType.claim:type_name -> types.Claim
+	19, // 15: types.TransactionType.sweep:type_name -> types.Sweep
+	20, // 16: types.TransactionType.interactive_funding:type_name -> types.InteractiveFunding
+	12, // 17: types.Funding.channels:type_name -> types.TransactionChannel
+	12, // 18: types.Sweep.channels:type_name -> types.TransactionChannel
+	12, // 19: types.InteractiveFunding.channels:type_name -> types.TransactionChannel
+	22, // 20: types.ConfirmationStatus.confirmed:type_name -> types.Confirmed
+	23, // 21: types.ConfirmationStatus.unconfirmed:type_name -> types.Unconfirmed
+	35, // 22: types.Channel.funding_txo:type_name -> types.OutPoint
+	34, // 23: types.Channel.channel_config:type_name -> types.ChannelConfig
+	4,  // 24: types.Channel.channel_shutdown_state:type_name -> types.ChannelShutdownState
+	5,  // 25: types.Channel.reserve_type:type_name -> types.ReserveType
+	65, // 26: types.Channel.channel_type:type_name -> types.Channel.ChannelTypeEntry
+	66, // 27: types.Channel.counterparty_features:type_name -> types.Channel.CounterpartyFeaturesEntry
+	38, // 28: types.LightningBalance.claimable_on_channel_close:type_name -> types.ClaimableOnChannelClose
+	39, // 29: types.LightningBalance.claimable_awaiting_confirmations:type_name -> types.ClaimableAwaitingConfirmations
+	40, // 30: types.LightningBalance.contentious_claimable:type_name -> types.ContentiousClaimable
+	41, // 31: types.LightningBalance.maybe_timeout_claimable_htlc:type_name -> types.MaybeTimeoutClaimableHTLC
+	42, // 32: types.LightningBalance.maybe_preimage_claimable_htlc:type_name -> types.MaybePreimageClaimableHTLC
+	43, // 33: types.LightningBalance.counterparty_revoked_output_claimable:type_name -> types.CounterpartyRevokedOutputClaimable
+	6,  // 34: types.ClaimableAwaitingConfirmations.source:type_name -> types.BalanceSource
+	45, // 35: types.PendingSweepBalance.pending_broadcast:type_name -> types.PendingBroadcast
+	46, // 36: types.PendingSweepBalance.broadcast_awaiting_confirmation:type_name -> types.BroadcastAwaitingConfirmation
+	47, // 37: types.PendingSweepBalance.awaiting_threshold_confirmations:type_name -> types.AwaitingThresholdConfirmations
+	50, // 38: types.GraphChannelUpdate.fees:type_name -> types.GraphRoutingFees
+	51, // 39: types.GraphChannel.one_to_two:type_name -> types.GraphChannelUpdate
+	51, // 40: types.GraphChannel.two_to_one:type_name -> types.GraphChannelUpdate
+	67, // 41: types.GraphNodeAnnouncement.features:type_name -> types.GraphNodeAnnouncement.FeaturesEntry
+	53, // 42: types.GraphNode.announcement_info:type_name -> types.GraphNodeAnnouncement
+	57, // 43: types.Bolt11RouteHint.hop_hints:type_name -> types.Bolt11HopHint
+	59, // 44: types.OfferAmount.currency_amount:type_name -> types.CurrencyAmount
+	62, // 45: types.BlindedPath.directed_scid:type_name -> types.DirectedShortChannelId
+	7,  // 46: types.DirectedShortChannelId.direction:type_name -> types.ChannelDirection
+	63, // 47: types.Channel.ChannelTypeEntry.value:type_name -> types.Feature
+	63, // 48: types.Channel.CounterpartyFeaturesEntry.value:type_name -> types.Feature
+	63, // 49: types.GraphNodeAnnouncement.FeaturesEntry.value:type_name -> types.Feature
+	50, // [50:50] is the sub-list for method output_type
+	50, // [50:50] is the sub-list for method input_type
+	50, // [50:50] is the sub-list for extension type_name
+	50, // [50:50] is the sub-list for extension extendee
+	0,  // [0:50] is the sub-list for field type_name
 }
 
 func init() { file_types_proto_init() }
@@ -5696,11 +6198,13 @@ func file_types_proto_init() {
 	file_types_proto_msgTypes[21].OneofWrappers = []any{}
 	file_types_proto_msgTypes[22].OneofWrappers = []any{}
 	file_types_proto_msgTypes[23].OneofWrappers = []any{}
-	file_types_proto_msgTypes[24].OneofWrappers = []any{
+	file_types_proto_msgTypes[24].OneofWrappers = []any{}
+	file_types_proto_msgTypes[25].OneofWrappers = []any{}
+	file_types_proto_msgTypes[26].OneofWrappers = []any{
 		(*ChannelConfig_FixedLimitMsat)(nil),
 		(*ChannelConfig_FeeRateMultiplier)(nil),
 	}
-	file_types_proto_msgTypes[27].OneofWrappers = []any{
+	file_types_proto_msgTypes[29].OneofWrappers = []any{
 		(*LightningBalance_ClaimableOnChannelClose)(nil),
 		(*LightningBalance_ClaimableAwaitingConfirmations)(nil),
 		(*LightningBalance_ContentiousClaimable)(nil),
@@ -5708,30 +6212,30 @@ func file_types_proto_init() {
 		(*LightningBalance_MaybePreimageClaimableHtlc)(nil),
 		(*LightningBalance_CounterpartyRevokedOutputClaimable)(nil),
 	}
-	file_types_proto_msgTypes[34].OneofWrappers = []any{
+	file_types_proto_msgTypes[36].OneofWrappers = []any{
 		(*PendingSweepBalance_PendingBroadcast)(nil),
 		(*PendingSweepBalance_BroadcastAwaitingConfirmation)(nil),
 		(*PendingSweepBalance_AwaitingThresholdConfirmations)(nil),
 	}
-	file_types_proto_msgTypes[35].OneofWrappers = []any{}
-	file_types_proto_msgTypes[36].OneofWrappers = []any{}
 	file_types_proto_msgTypes[37].OneofWrappers = []any{}
-	file_types_proto_msgTypes[38].OneofWrappers = []any{
+	file_types_proto_msgTypes[38].OneofWrappers = []any{}
+	file_types_proto_msgTypes[39].OneofWrappers = []any{}
+	file_types_proto_msgTypes[40].OneofWrappers = []any{
 		(*Bolt11InvoiceDescription_Direct)(nil),
 		(*Bolt11InvoiceDescription_Hash)(nil),
 	}
-	file_types_proto_msgTypes[39].OneofWrappers = []any{}
-	file_types_proto_msgTypes[42].OneofWrappers = []any{}
-	file_types_proto_msgTypes[48].OneofWrappers = []any{
+	file_types_proto_msgTypes[41].OneofWrappers = []any{}
+	file_types_proto_msgTypes[44].OneofWrappers = []any{}
+	file_types_proto_msgTypes[50].OneofWrappers = []any{
 		(*OfferAmount_BitcoinAmountMsats)(nil),
 		(*OfferAmount_CurrencyAmount)(nil),
 	}
-	file_types_proto_msgTypes[50].OneofWrappers = []any{
+	file_types_proto_msgTypes[52].OneofWrappers = []any{
 		(*OfferQuantity_One)(nil),
 		(*OfferQuantity_Bounded)(nil),
 		(*OfferQuantity_Unbounded)(nil),
 	}
-	file_types_proto_msgTypes[51].OneofWrappers = []any{
+	file_types_proto_msgTypes[53].OneofWrappers = []any{
 		(*BlindedPath_NodeId)(nil),
 		(*BlindedPath_DirectedScid)(nil),
 	}
@@ -5740,8 +6244,8 @@ func file_types_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_types_proto_rawDesc), len(file_types_proto_rawDesc)),
-			NumEnums:      7,
-			NumMessages:   58,
+			NumEnums:      8,
+			NumMessages:   60,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

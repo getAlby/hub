@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -26,6 +27,9 @@ func TestStartOfferPaymentForwardsFeeLimit(t *testing.T) {
 				require.Equal(t, ldkapi.LightningNode_Bolt12Send_FullMethodName, r.URL.Path)
 				body, err := io.ReadAll(r.Body)
 				require.NoError(t, err)
+				token := decodeMacaroon(t, r.Header.Get("macaroon"))
+				caveats := token.Caveats()
+				require.Equal(t, requestCaveat("Bolt12Send", body, time.Unix(parseRequestCaveatTimestamp(t, string(caveats[len(caveats)-1].Id)), 0)), string(caveats[len(caveats)-1].Id))
 				payload, err := decodeSingleFrame(body)
 				require.NoError(t, err)
 				var request ldkapi.Bolt12SendRequest
@@ -43,7 +47,7 @@ func TestStartOfferPaymentForwardsFeeLimit(t *testing.T) {
 				_, _ = w.Write(grpcFrame(response))
 			}))
 			defer server.Close()
-			svc := &LDKServerService{baseURL: server.URL, client: server.Client()}
+			svc := &LDKServerService{baseURL: server.URL, client: server.Client(), macaroon: testMacaroon(t)}
 			amount := uint64(1719000)
 			id, err := svc.StartOfferPaymentWithFeeLimit(context.Background(), "offer", &amount, "attempt", limit)
 			require.NoError(t, err)

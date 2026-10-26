@@ -389,8 +389,8 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 	case config.LDKServerBackendType:
 		ldkServerAddress, _ := svc.cfg.Get("LDKServerAddress", encryptionKey)
 		ldkServerTlsCertPem, _ := svc.cfg.Get("LDKServerTlsCertPem", encryptionKey)
-		ldkServerApiKey, _ := svc.cfg.Get("LDKServerApiKey", encryptionKey)
-		lnClient, err = ldkserver.NewLDKServerService(ctx, svc.eventPublisher, ldkServerAddress, ldkServerTlsCertPem, ldkServerApiKey)
+		ldkServerMacaroonHex, _ := svc.cfg.Get("LDKServerMacaroonHex", encryptionKey)
+		lnClient, err = ldkserver.NewLDKServerService(ctx, svc.eventPublisher, ldkServerAddress, ldkServerTlsCertPem, ldkServerMacaroonHex)
 		if err == nil {
 			svc.connectToSuggestedChannelPeers(ctx, lnClient)
 		}

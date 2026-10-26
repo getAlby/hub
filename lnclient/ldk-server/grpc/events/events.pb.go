@@ -1307,7 +1307,7 @@ func (x *PaymentFailed) GetReason() PaymentFailureReason {
 }
 
 // PaymentClaimable indicates a payment has arrived and is waiting to be manually claimed or failed.
-// This event is only emitted for payments created via `Bolt11ReceiveForHash`.
+// This event is only emitted for payments created via `Bolt11ReceiveForHash`, `Bolt11ReceiveViaJitChannelForHash` or `Bolt11ReceiveVariableAmountViaJitChannelForHash`.
 // Handle every event by its payment ID before `claim_deadline`.
 // The same invoice can produce more than one event. Fail unexpected duplicate or late payments.
 // Delivery through SubscribeEvents is best-effort and is not replayed. If the event is missed and
@@ -1395,12 +1395,35 @@ func (x *PaymentClaimable) GetClaimableAmountMsat() uint64 {
 	return 0
 }
 
-// PaymentForwarded indicates a payment was forwarded through the node.
+// A payment was forwarded through the node.
+// Events can contain multiple HTLCs and do not always have a stored history record.
+// LDK Node does not supply a history record ID with the event.
 type PaymentForwarded struct {
-	state            protoimpl.MessageState  `protogen:"open.v1"`
-	ForwardedPayment *types.ForwardedPayment `protobuf:"bytes,1,opt,name=forwarded_payment,json=forwardedPayment,proto3" json:"forwarded_payment,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The incoming HTLCs. May contain multiple entries for trampoline payments.
+	// Indices do not imply pairwise correspondence with next_htlcs.
+	PrevHtlcs []*types.HtlcLocator `protobuf:"bytes,1,rep,name=prev_htlcs,json=prevHtlcs,proto3" json:"prev_htlcs,omitempty"`
+	// The outgoing HTLCs. May contain multiple entries for trampoline payments.
+	NextHtlcs []*types.HtlcLocator `protobuf:"bytes,2,rep,name=next_htlcs,json=nextHtlcs,proto3" json:"next_htlcs,omitempty"`
+	// The total fee earned, in millisatoshis, if known.
+	// An on-chain claim by the next hop rounds its amount down to whole satoshis,
+	// which can increase this fee. In that case claim_from_onchain_tx is true.
+	// If the incoming channel was force-closed, the fee is unknown until the
+	// on-chain transaction fees are known.
+	TotalFeeEarnedMsat *uint64 `protobuf:"varint,3,opt,name=total_fee_earned_msat,json=totalFeeEarnedMsat,proto3,oneof" json:"total_fee_earned_msat,omitempty"`
+	// The share of the total fee withheld in addition to the forwarding fee.
+	// Set only for an intercepted HTLC forwarded with less than the expected amount,
+	// if the fee is known. This is included in total_fee_earned_msat; do not add the two.
+	SkimmedFeeMsat *uint64 `protobuf:"varint,4,opt,name=skimmed_fee_msat,json=skimmedFeeMsat,proto3,oneof" json:"skimmed_fee_msat,omitempty"`
+	// Whether the next hop claimed the forwarded HTLC through an on-chain transaction.
+	ClaimFromOnchainTx bool `protobuf:"varint,5,opt,name=claim_from_onchain_tx,json=claimFromOnchainTx,proto3" json:"claim_from_onchain_tx,omitempty"`
+	// The total outgoing amount after fees, in millisatoshis.
+	OutboundAmountForwardedMsat uint64 `protobuf:"varint,6,opt,name=outbound_amount_forwarded_msat,json=outboundAmountForwardedMsat,proto3" json:"outbound_amount_forwarded_msat,omitempty"`
+	// The time the server handles the event, in seconds since the Unix epoch.
+	// This can be later than the stored forwarding time, including after a restart.
+	ObservedAtTimestamp uint64 `protobuf:"varint,7,opt,name=observed_at_timestamp,json=observedAtTimestamp,proto3" json:"observed_at_timestamp,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *PaymentForwarded) Reset() {
@@ -1433,11 +1456,53 @@ func (*PaymentForwarded) Descriptor() ([]byte, []int) {
 	return file_events_proto_rawDescGZIP(), []int{14}
 }
 
-func (x *PaymentForwarded) GetForwardedPayment() *types.ForwardedPayment {
+func (x *PaymentForwarded) GetPrevHtlcs() []*types.HtlcLocator {
 	if x != nil {
-		return x.ForwardedPayment
+		return x.PrevHtlcs
 	}
 	return nil
+}
+
+func (x *PaymentForwarded) GetNextHtlcs() []*types.HtlcLocator {
+	if x != nil {
+		return x.NextHtlcs
+	}
+	return nil
+}
+
+func (x *PaymentForwarded) GetTotalFeeEarnedMsat() uint64 {
+	if x != nil && x.TotalFeeEarnedMsat != nil {
+		return *x.TotalFeeEarnedMsat
+	}
+	return 0
+}
+
+func (x *PaymentForwarded) GetSkimmedFeeMsat() uint64 {
+	if x != nil && x.SkimmedFeeMsat != nil {
+		return *x.SkimmedFeeMsat
+	}
+	return 0
+}
+
+func (x *PaymentForwarded) GetClaimFromOnchainTx() bool {
+	if x != nil {
+		return x.ClaimFromOnchainTx
+	}
+	return false
+}
+
+func (x *PaymentForwarded) GetOutboundAmountForwardedMsat() uint64 {
+	if x != nil {
+		return x.OutboundAmountForwardedMsat
+	}
+	return 0
+}
+
+func (x *PaymentForwarded) GetObservedAtTimestamp() uint64 {
+	if x != nil {
+		return x.ObservedAtTimestamp
+	}
+	return 0
 }
 
 var File_events_proto protoreflect.FileDescriptor
@@ -1531,9 +1596,19 @@ const file_events_proto_rawDesc = "" +
 	"\x0ecustom_records\x18\x03 \x03(\v2\x16.types.CustomTlvRecordR\rcustomRecords\x12*\n" +
 	"\x0eclaim_deadline\x18\x04 \x01(\rH\x00R\rclaimDeadline\x88\x01\x01\x122\n" +
 	"\x15claimable_amount_msat\x18\x05 \x01(\x04R\x13claimableAmountMsatB\x11\n" +
-	"\x0f_claim_deadline\"X\n" +
-	"\x10PaymentForwarded\x12D\n" +
-	"\x11forwarded_payment\x18\x01 \x01(\v2\x17.types.ForwardedPaymentR\x10forwardedPayment*\x9a\x01\n" +
+	"\x0f_claim_deadline\"\xba\x03\n" +
+	"\x10PaymentForwarded\x121\n" +
+	"\n" +
+	"prev_htlcs\x18\x01 \x03(\v2\x12.types.HtlcLocatorR\tprevHtlcs\x121\n" +
+	"\n" +
+	"next_htlcs\x18\x02 \x03(\v2\x12.types.HtlcLocatorR\tnextHtlcs\x126\n" +
+	"\x15total_fee_earned_msat\x18\x03 \x01(\x04H\x00R\x12totalFeeEarnedMsat\x88\x01\x01\x12-\n" +
+	"\x10skimmed_fee_msat\x18\x04 \x01(\x04H\x01R\x0eskimmedFeeMsat\x88\x01\x01\x121\n" +
+	"\x15claim_from_onchain_tx\x18\x05 \x01(\bR\x12claimFromOnchainTx\x12C\n" +
+	"\x1eoutbound_amount_forwarded_msat\x18\x06 \x01(\x04R\x1boutboundAmountForwardedMsat\x122\n" +
+	"\x15observed_at_timestamp\x18\a \x01(\x04R\x13observedAtTimestampB\x18\n" +
+	"\x16_total_fee_earned_msatB\x13\n" +
+	"\x11_skimmed_fee_msat*\x9a\x01\n" +
 	"\fChannelState\x12\x1d\n" +
 	"\x19CHANNEL_STATE_UNSPECIFIED\x10\x00\x12\x19\n" +
 	"\x15CHANNEL_STATE_PENDING\x10\x01\x12\x17\n" +
@@ -1613,7 +1688,7 @@ var file_events_proto_goTypes = []any{
 	(*PaymentForwarded)(nil),               // 18: events.PaymentForwarded
 	(*types.Payment)(nil),                  // 19: types.Payment
 	(*types.CustomTlvRecord)(nil),          // 20: types.CustomTlvRecord
-	(*types.ForwardedPayment)(nil),         // 21: types.ForwardedPayment
+	(*types.HtlcLocator)(nil),              // 21: types.HtlcLocator
 }
 var file_events_proto_depIdxs = []int32{
 	14, // 0: events.EventEnvelope.payment_received:type_name -> events.PaymentReceived
@@ -1640,12 +1715,13 @@ var file_events_proto_depIdxs = []int32{
 	2,  // 21: events.PaymentFailed.reason:type_name -> events.PaymentFailureReason
 	19, // 22: events.PaymentClaimable.payment:type_name -> types.Payment
 	20, // 23: events.PaymentClaimable.custom_records:type_name -> types.CustomTlvRecord
-	21, // 24: events.PaymentForwarded.forwarded_payment:type_name -> types.ForwardedPayment
-	25, // [25:25] is the sub-list for method output_type
-	25, // [25:25] is the sub-list for method input_type
-	25, // [25:25] is the sub-list for extension type_name
-	25, // [25:25] is the sub-list for extension extendee
-	0,  // [0:25] is the sub-list for field type_name
+	21, // 24: events.PaymentForwarded.prev_htlcs:type_name -> types.HtlcLocator
+	21, // 25: events.PaymentForwarded.next_htlcs:type_name -> types.HtlcLocator
+	26, // [26:26] is the sub-list for method output_type
+	26, // [26:26] is the sub-list for method input_type
+	26, // [26:26] is the sub-list for extension type_name
+	26, // [26:26] is the sub-list for extension extendee
+	0,  // [0:26] is the sub-list for field type_name
 }
 
 func init() { file_events_proto_init() }
@@ -1676,6 +1752,7 @@ func file_events_proto_init() {
 	file_events_proto_msgTypes[11].OneofWrappers = []any{}
 	file_events_proto_msgTypes[12].OneofWrappers = []any{}
 	file_events_proto_msgTypes[13].OneofWrappers = []any{}
+	file_events_proto_msgTypes[14].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

@@ -487,7 +487,7 @@ export type SetupNodeInfo = Partial<{
 
   ldkServerAddress?: string;
   ldkServerTlsCertFile?: string;
-  ldkServerApiKey?: string;
+  ldkServerMacaroonHex?: string;
 
   clnAddress?: string;
   clnLightningDir?: string;
