@@ -2170,6 +2170,9 @@ func (api *api) Health(ctx context.Context) (*HealthResponse, error) {
 			}
 			alarms = append(alarms, NewHealthAlarm(HealthAlarmKindNodeNotReady, apiNodeStatus))
 		}
+		if nodeStatus != nil && nodeStatus.ChainSyncStale {
+			alarms = append(alarms, NewHealthAlarm(HealthAlarmKindChainSyncStale, nil))
+		}
 
 		channels, err := lnClient.ListChannels(ctx)
 		if err != nil {
