@@ -343,19 +343,46 @@ func (svc *CLNService) subscribeFailedPayments(ctx context.Context) {
 					}
 				}
 
-				transaction, err := svc.clnSendpayFailureToTransaction(ctx, payment)
-				if err != nil {
+				if err := svc.handleSendpayFailure(ctx, payment); err != nil {
 					logger.Logger.WithError(err).Error("Failed to convert notification to transaction")
 					continue
 				}
-				svc.eventPublisher.Publish(&events.Event{
-					Event:      "nwc_lnclient_payment_failed",
-					Properties: transaction,
-				})
 
 			}
 		}
 	}
+}
+
+// handleSendpayFailure converts a CLN sendpay_failure notification to a
+// transaction and publishes the nwc_lnclient_payment_failed event in the
+// payload type asserted by the transactions service consumer.
+func (svc *CLNService) handleSendpayFailure(ctx context.Context, payment *clngrpc.SendPayFailureNotification) error {
+	transaction, err := svc.clnSendpayFailureToTransaction(ctx, payment)
+	if err != nil {
+		return err
+	}
+	svc.eventPublisher.Publish(&events.Event{
+		Event: "nwc_lnclient_payment_failed",
+		Properties: &lnclient.PaymentFailedEventProperties{
+			Transaction: transaction,
+			Reason:      clnSendpayFailureReason(payment),
+		},
+	})
+	return nil
+}
+
+func clnSendpayFailureReason(payment *clngrpc.SendPayFailureNotification) string {
+	if payment.Data == nil {
+		return payment.Message
+	}
+	reason := payment.Data.GetStatus().String()
+	if failcodename := payment.Data.GetFailcodename(); failcodename != "" {
+		reason = failcodename
+	}
+	if payment.Message != "" {
+		reason = reason + ": " + payment.Message
+	}
+	return reason
 }
 
 func (svc *CLNService) clnSendpayFailureToTransaction(ctx context.Context, payment *clngrpc.SendPayFailureNotification) (*lnclient.Transaction, error) {
