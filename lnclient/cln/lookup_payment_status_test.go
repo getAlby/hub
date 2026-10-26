@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/getAlby/hub/lnclient"
 	clngrpc "github.com/getAlby/hub/lnclient/cln/clngrpc"
@@ -213,6 +214,41 @@ func TestLookupPaymentStatus_InvalidHashIsError(t *testing.T) {
 
 	_, err := svc.LookupPaymentStatus("not-hex")
 	assert.Error(t, err)
+}
+
+// The lookup runs while the hub holds its global payment validation lock, so
+// the RPC must carry a per-call deadline — a hung (not refused) node socket
+// may never block all payment activity.
+func TestLookupPaymentStatus_SetsDeadlineOnListPays(t *testing.T) {
+	var captured context.Context
+	svc, _ := newLookupSvc(t, func(ctx context.Context, _ *clngrpc.ListpaysRequest, _ ...grpc.CallOption) (*clngrpc.ListpaysResponse, error) {
+		captured = ctx
+		return &clngrpc.ListpaysResponse{}, nil
+	})
+
+	_, err := svc.LookupPaymentStatus(testHash)
+	require.NoError(t, err)
+	require.NotNil(t, captured)
+	_, ok := captured.Deadline()
+	assert.True(t, ok, "listpays must run under a per-call deadline")
+}
+
+func TestLookupPaymentStatus_HungRpcTimesOutFailsClosed(t *testing.T) {
+	original := lookupPaymentStatusTimeout
+	lookupPaymentStatusTimeout = 20 * time.Millisecond
+	defer func() { lookupPaymentStatusTimeout = original }()
+
+	svc, _ := newLookupSvc(t, func(ctx context.Context, _ *clngrpc.ListpaysRequest, _ ...grpc.CallOption) (*clngrpc.ListpaysResponse, error) {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-time.After(2 * time.Second):
+			return nil, errors.New("test harness: listpays was never cancelled")
+		}
+	})
+
+	_, err := svc.LookupPaymentStatus(testHash)
+	assert.ErrorIs(t, err, context.DeadlineExceeded)
 }
 
 // CLNService must satisfy the optional capability interface used by the

@@ -2393,6 +2393,11 @@ func (c *CLNService) SendPaymentSync(payReq string, amount *uint64) (*lnclient.P
 	}, err
 }
 
+// lookupPaymentStatusTimeout bounds the listpays RPC: the result is consulted
+// while the hub holds its global payment validation lock, so a hung (not
+// refused) node connection must not stall all payment activity.
+var lookupPaymentStatusTimeout = 10 * time.Second
+
 // LookupPaymentStatus reports the authoritative state of an outgoing payment
 // by payment hash, read from the node with listpays. COMPLETE dominates
 // PENDING, which dominates FAILED, so a payment is only considered failed
@@ -2410,7 +2415,10 @@ func (c *CLNService) LookupPaymentStatus(paymentHash string) (*lnclient.PaymentS
 		return nil, fmt.Errorf("invalid payment hash: %w", err)
 	}
 
-	resp, err := c.client.ListPays(c.ctx, &clngrpc.ListpaysRequest{PaymentHash: hashBytes})
+	ctx, cancel := context.WithTimeout(c.ctx, lookupPaymentStatusTimeout)
+	defer cancel()
+
+	resp, err := c.client.ListPays(ctx, &clngrpc.ListpaysRequest{PaymentHash: hashBytes})
 	if err != nil {
 		return nil, err
 	}
