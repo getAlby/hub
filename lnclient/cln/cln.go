@@ -2392,6 +2392,61 @@ func (c *CLNService) SendPaymentSync(payReq string, amount *uint64) (*lnclient.P
 	}, err
 }
 
+// LookupPaymentStatus reports the authoritative state of an outgoing payment
+// by payment hash, read from the node with listpays. COMPLETE dominates
+// PENDING, which dominates FAILED, so a payment is only considered failed
+// when the node has no in-flight or settled attempt for the hash.
+func (c *CLNService) LookupPaymentStatus(paymentHash string) (*lnclient.PaymentStatusResponse, error) {
+	hashBytes, err := hex.DecodeString(paymentHash)
+	if err != nil {
+		return nil, fmt.Errorf("invalid payment hash: %w", err)
+	}
+
+	resp, err := c.client.ListPays(c.ctx, &clngrpc.ListpaysRequest{PaymentHash: hashBytes})
+	if err != nil {
+		return nil, err
+	}
+
+	status := &lnclient.PaymentStatusResponse{Status: lnclient.PAYMENT_STATUS_UNKNOWN}
+	if resp == nil {
+		return status, nil
+	}
+
+	for _, pay := range resp.GetPays() {
+		switch pay.GetStatus() {
+		case clngrpc.ListpaysPays_COMPLETE:
+			feeMsat := uint64(0)
+			amountMsat := pay.GetAmountMsat().GetMsat()
+			amountSentMsat := pay.GetAmountSentMsat().GetMsat()
+			if amountSentMsat > amountMsat {
+				feeMsat = amountSentMsat - amountMsat
+			}
+			status = &lnclient.PaymentStatusResponse{
+				Status:     lnclient.PAYMENT_STATUS_COMPLETE,
+				Preimage:   hex.EncodeToString(pay.GetPreimage()),
+				FeeMsat:    feeMsat,
+				AmountMsat: amountMsat,
+			}
+		case clngrpc.ListpaysPays_PENDING:
+			if status.Status != lnclient.PAYMENT_STATUS_COMPLETE {
+				status = &lnclient.PaymentStatusResponse{
+					Status:     lnclient.PAYMENT_STATUS_PENDING,
+					AmountMsat: pay.GetAmountMsat().GetMsat(),
+				}
+			}
+		case clngrpc.ListpaysPays_FAILED:
+			if status.Status == lnclient.PAYMENT_STATUS_UNKNOWN {
+				status = &lnclient.PaymentStatusResponse{
+					Status:     lnclient.PAYMENT_STATUS_FAILED,
+					AmountMsat: pay.GetAmountMsat().GetMsat(),
+				}
+			}
+		}
+	}
+
+	return status, nil
+}
+
 func (c *CLNService) SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error {
 	return nil
 }
