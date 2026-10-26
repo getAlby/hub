@@ -1,6 +1,7 @@
 package cln
 
 import (
+	"bytes"
 	"context"
 	crand "crypto/rand"
 	"crypto/sha256"
@@ -2396,6 +2397,13 @@ func (c *CLNService) SendPaymentSync(payReq string, amount *uint64) (*lnclient.P
 // by payment hash, read from the node with listpays. COMPLETE dominates
 // PENDING, which dominates FAILED, so a payment is only considered failed
 // when the node has no in-flight or settled attempt for the hash.
+//
+// A successful RPC with no records is a CONFIRMED ABSENCE (UNKNOWN): the node
+// never started a payment for this hash. Anything else — RPC error, nil
+// response, foreign or missing payment_hash, unrecognized status enum, or a
+// COMPLETE record without a valid preimage — is returned as an error so the
+// caller treats the settlement state as unresolved and refuses to pay,
+// rather than reading it as permission to pay.
 func (c *CLNService) LookupPaymentStatus(paymentHash string) (*lnclient.PaymentStatusResponse, error) {
 	hashBytes, err := hex.DecodeString(paymentHash)
 	if err != nil {
@@ -2406,15 +2414,21 @@ func (c *CLNService) LookupPaymentStatus(paymentHash string) (*lnclient.PaymentS
 	if err != nil {
 		return nil, err
 	}
-
-	status := &lnclient.PaymentStatusResponse{Status: lnclient.PAYMENT_STATUS_UNKNOWN}
 	if resp == nil {
-		return status, nil
+		return nil, errors.New("malformed listpays response: nil response")
 	}
 
+	status := &lnclient.PaymentStatusResponse{Status: lnclient.PAYMENT_STATUS_UNKNOWN}
 	for _, pay := range resp.GetPays() {
+		if !bytes.Equal(pay.GetPaymentHash(), hashBytes) {
+			return nil, errors.New("listpays returned a record that does not match the requested payment hash")
+		}
 		switch pay.GetStatus() {
 		case clngrpc.ListpaysPays_COMPLETE:
+			preimage := pay.GetPreimage()
+			if len(preimage) != 32 {
+				return nil, errors.New("listpays COMPLETE record is missing a valid preimage")
+			}
 			feeMsat := uint64(0)
 			amountMsat := pay.GetAmountMsat().GetMsat()
 			amountSentMsat := pay.GetAmountSentMsat().GetMsat()
@@ -2423,7 +2437,7 @@ func (c *CLNService) LookupPaymentStatus(paymentHash string) (*lnclient.PaymentS
 			}
 			status = &lnclient.PaymentStatusResponse{
 				Status:     lnclient.PAYMENT_STATUS_COMPLETE,
-				Preimage:   hex.EncodeToString(pay.GetPreimage()),
+				Preimage:   hex.EncodeToString(preimage),
 				FeeMsat:    feeMsat,
 				AmountMsat: amountMsat,
 			}
@@ -2441,6 +2455,8 @@ func (c *CLNService) LookupPaymentStatus(paymentHash string) (*lnclient.PaymentS
 					AmountMsat: pay.GetAmountMsat().GetMsat(),
 				}
 			}
+		default:
+			return nil, fmt.Errorf("unrecognized listpays status %d for payment", int32(pay.GetStatus()))
 		}
 	}
 

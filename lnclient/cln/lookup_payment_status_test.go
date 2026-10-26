@@ -2,6 +2,7 @@ package cln
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"testing"
 
@@ -27,12 +28,28 @@ func amount(msat uint64) *clngrpc.Amount {
 	return &clngrpc.Amount{Msat: msat}
 }
 
+const testHash = "0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20"
+
+func testHashBytes() []byte {
+	b, _ := hex.DecodeString(testHash)
+	return b
+}
+
 func completePay(preimage []byte, amountMsat, amountSentMsat uint64) *clngrpc.ListpaysPays {
 	return &clngrpc.ListpaysPays{
+		PaymentHash:    testHashBytes(),
 		Status:         clngrpc.ListpaysPays_COMPLETE,
 		Preimage:       preimage,
 		AmountMsat:     amount(amountMsat),
 		AmountSentMsat: amount(amountSentMsat),
+	}
+}
+
+func statusPay(status clngrpc.ListpaysPays_ListpaysPaysStatus, amountMsat uint64) *clngrpc.ListpaysPays {
+	return &clngrpc.ListpaysPays{
+		PaymentHash: testHashBytes(),
+		Status:      status,
+		AmountMsat:  amount(amountMsat),
 	}
 }
 
@@ -41,8 +58,6 @@ func newLookupSvc(t *testing.T, fn func(context.Context, *clngrpc.ListpaysReques
 	stub := &stubListPaysClient{listPaysFn: fn}
 	return &CLNService{ctx: context.Background(), client: stub}, stub
 }
-
-const testHash = "0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20"
 
 func TestLookupPaymentStatus_Complete(t *testing.T) {
 	preimage := make([]byte, 32)
@@ -68,8 +83,8 @@ func TestLookupPaymentStatus_Complete(t *testing.T) {
 func TestLookupPaymentStatus_PendingBeatsFailed(t *testing.T) {
 	svc, _ := newLookupSvc(t, func(_ context.Context, _ *clngrpc.ListpaysRequest, _ ...grpc.CallOption) (*clngrpc.ListpaysResponse, error) {
 		return &clngrpc.ListpaysResponse{Pays: []*clngrpc.ListpaysPays{
-			{Status: clngrpc.ListpaysPays_FAILED, AmountMsat: amount(100)},
-			{Status: clngrpc.ListpaysPays_PENDING, AmountMsat: amount(100)},
+			statusPay(clngrpc.ListpaysPays_FAILED, 100),
+			statusPay(clngrpc.ListpaysPays_PENDING, 100),
 		}}, nil
 	})
 
@@ -78,12 +93,16 @@ func TestLookupPaymentStatus_PendingBeatsFailed(t *testing.T) {
 	assert.Equal(t, lnclient.PAYMENT_STATUS_PENDING, status.Status)
 }
 
+// Historical FAILED attempts alongside a later settled group: COMPLETE must
+// win so the hub reconciles instead of re-paying.
 func TestLookupPaymentStatus_CompleteDominatesAll(t *testing.T) {
+	preimage := make([]byte, 32)
+	preimage[31] = 0x01
 	svc, _ := newLookupSvc(t, func(_ context.Context, _ *clngrpc.ListpaysRequest, _ ...grpc.CallOption) (*clngrpc.ListpaysResponse, error) {
 		return &clngrpc.ListpaysResponse{Pays: []*clngrpc.ListpaysPays{
-			{Status: clngrpc.ListpaysPays_PENDING, AmountMsat: amount(100)},
-			completePay([]byte{0x01}, 100, 101),
-			{Status: clngrpc.ListpaysPays_FAILED, AmountMsat: amount(100)},
+			statusPay(clngrpc.ListpaysPays_PENDING, 100),
+			completePay(preimage, 100, 101),
+			statusPay(clngrpc.ListpaysPays_FAILED, 100),
 		}}, nil
 	})
 
@@ -91,12 +110,13 @@ func TestLookupPaymentStatus_CompleteDominatesAll(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, lnclient.PAYMENT_STATUS_COMPLETE, status.Status)
 	assert.Equal(t, uint64(1), status.FeeMsat)
+	assert.Len(t, status.Preimage, 64)
 }
 
 func TestLookupPaymentStatus_AllFailed(t *testing.T) {
 	svc, _ := newLookupSvc(t, func(_ context.Context, _ *clngrpc.ListpaysRequest, _ ...grpc.CallOption) (*clngrpc.ListpaysResponse, error) {
 		return &clngrpc.ListpaysResponse{Pays: []*clngrpc.ListpaysPays{
-			{Status: clngrpc.ListpaysPays_FAILED, AmountMsat: amount(100)},
+			statusPay(clngrpc.ListpaysPays_FAILED, 100),
 		}}, nil
 	})
 
@@ -118,6 +138,68 @@ func TestLookupPaymentStatus_NoRecordIsUnknown(t *testing.T) {
 func TestLookupPaymentStatus_RpcErrorPropagates(t *testing.T) {
 	svc, _ := newLookupSvc(t, func(_ context.Context, _ *clngrpc.ListpaysRequest, _ ...grpc.CallOption) (*clngrpc.ListpaysResponse, error) {
 		return nil, errors.New("rpc deadline exceeded")
+	})
+
+	_, err := svc.LookupPaymentStatus(testHash)
+	assert.Error(t, err)
+}
+
+// A nil response with a nil error is malformed, not a confirmed absence.
+func TestLookupPaymentStatus_NilResponseIsError(t *testing.T) {
+	svc, _ := newLookupSvc(t, func(_ context.Context, _ *clngrpc.ListpaysRequest, _ ...grpc.CallOption) (*clngrpc.ListpaysResponse, error) {
+		return nil, nil
+	})
+
+	_, err := svc.LookupPaymentStatus(testHash)
+	assert.Error(t, err)
+}
+
+// Records whose payment_hash does not exactly match the requested hash make
+// the result inconsistent — never interpret another payment's state.
+func TestLookupPaymentStatus_HashMismatchIsError(t *testing.T) {
+	other := make([]byte, 32)
+	other[0] = 0xff
+	svc, _ := newLookupSvc(t, func(_ context.Context, _ *clngrpc.ListpaysRequest, _ ...grpc.CallOption) (*clngrpc.ListpaysResponse, error) {
+		return &clngrpc.ListpaysResponse{Pays: []*clngrpc.ListpaysPays{
+			{PaymentHash: other, Status: clngrpc.ListpaysPays_COMPLETE, Preimage: make([]byte, 32), AmountMsat: amount(100), AmountSentMsat: amount(100)},
+		}}, nil
+	})
+
+	_, err := svc.LookupPaymentStatus(testHash)
+	assert.Error(t, err)
+}
+
+func TestLookupPaymentStatus_MissingHashInRecordIsError(t *testing.T) {
+	svc, _ := newLookupSvc(t, func(_ context.Context, _ *clngrpc.ListpaysRequest, _ ...grpc.CallOption) (*clngrpc.ListpaysResponse, error) {
+		return &clngrpc.ListpaysResponse{Pays: []*clngrpc.ListpaysPays{
+			{Status: clngrpc.ListpaysPays_PENDING, AmountMsat: amount(100)},
+		}}, nil
+	})
+
+	_, err := svc.LookupPaymentStatus(testHash)
+	assert.Error(t, err)
+}
+
+// An enum value outside PENDING/FAILED/COMPLETE is ambiguous state, not
+// absence — fail closed so the caller never reads it as permission to pay.
+func TestLookupPaymentStatus_UnrecognizedStatusIsError(t *testing.T) {
+	svc, _ := newLookupSvc(t, func(_ context.Context, _ *clngrpc.ListpaysRequest, _ ...grpc.CallOption) (*clngrpc.ListpaysResponse, error) {
+		return &clngrpc.ListpaysResponse{Pays: []*clngrpc.ListpaysPays{
+			statusPay(clngrpc.ListpaysPays_ListpaysPaysStatus(99), 100),
+		}}, nil
+	})
+
+	_, err := svc.LookupPaymentStatus(testHash)
+	assert.Error(t, err)
+}
+
+// COMPLETE without a valid 32-byte preimage cannot settle anything: treat the
+// response as malformed rather than reconciling a bogus preimage.
+func TestLookupPaymentStatus_CompleteWithoutPreimageIsError(t *testing.T) {
+	svc, _ := newLookupSvc(t, func(_ context.Context, _ *clngrpc.ListpaysRequest, _ ...grpc.CallOption) (*clngrpc.ListpaysResponse, error) {
+		return &clngrpc.ListpaysResponse{Pays: []*clngrpc.ListpaysPays{
+			{PaymentHash: testHashBytes(), Status: clngrpc.ListpaysPays_COMPLETE, AmountMsat: amount(100), AmountSentMsat: amount(101)},
+		}}, nil
 	})
 
 	_, err := svc.LookupPaymentStatus(testHash)

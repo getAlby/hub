@@ -1,6 +1,7 @@
 package transactions
 
 import (
+	"context"
 	"errors"
 	"sync"
 	"testing"
@@ -53,9 +54,10 @@ func newBackendLookupMockLn(svc *tests.TestService, fn func(string) (*lnclient.P
 
 func completeStatus() *lnclient.PaymentStatusResponse {
 	return &lnclient.PaymentStatusResponse{
-		Status:   lnclient.PAYMENT_STATUS_COMPLETE,
-		Preimage: "abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234",
-		FeeMsat:  2000,
+		Status:     lnclient.PAYMENT_STATUS_COMPLETE,
+		Preimage:   "abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234",
+		FeeMsat:    2000,
+		AmountMsat: 123000,
 	}
 }
 
@@ -221,15 +223,132 @@ func TestDedup_BackendUnknown_ProceedsWithLegacyGuard(t *testing.T) {
 	assert.Equal(t, 1, mock.sendCount())
 }
 
-// A lookup RPC failure must not block the legacy path (backstop stays the DB
-// guard plus the node's own checks).
-func TestDedup_LookupError_ProceedsWithLegacyGuard(t *testing.T) {
+// Financial-safety invariant: an unresolved backend state is NOT permission to
+// pay. A lookup RPC failure must block the payment, create no row, and make no
+// backend call. (The legacy DB guard cannot distinguish "never sent" from
+// "sent, response lost" — only the node can.)
+func TestDedup_LookupError_BlocksPayment(t *testing.T) {
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
 	mock := newBackendLookupMockLn(svc, func(string) (*lnclient.PaymentStatusResponse, error) {
-		return nil, errors.New("rpc timeout")
+		return nil, errors.New("rpc error: connection refused")
+	})
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+	transaction, err := transactionsService.SendPaymentSync(tests.MockLNClientTransaction.Invoice, nil, nil, mock, nil, nil)
+
+	assert.Error(t, err)
+	assert.Nil(t, transaction)
+	assert.Equal(t, 0, mock.sendCount())
+	assert.Equal(t, 0, len(findRows(svc)))
+}
+
+// Scenario: the xpay response was lost after the node settled, and now even
+// the status lookup times out. Payment intent remains unresolved — nothing
+// may be reissued while the timeout persists.
+func TestDedup_LookupTimeout_BlocksPayment(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	createOutgoingRow(svc, constants.TRANSACTION_STATE_FAILED, 0)
+
+	mock := newBackendLookupMockLn(svc, func(string) (*lnclient.PaymentStatusResponse, error) {
+		return nil, context.DeadlineExceeded
+	})
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+	transaction, err := transactionsService.SendPaymentSync(tests.MockLNClientTransaction.Invoice, nil, nil, mock, nil, nil)
+
+	assert.ErrorIs(t, err, context.DeadlineExceeded)
+	assert.Nil(t, transaction)
+	assert.Equal(t, 0, mock.sendCount())
+
+	rows := findRows(svc)
+	require.Equal(t, 1, len(rows))
+	assert.Equal(t, constants.TRANSACTION_STATE_FAILED, rows[0].State)
+}
+
+// A lookup that reports success but returns no status object is a malformed
+// response, not a confirmed absence. Fail closed.
+func TestDedup_LookupNilResponse_BlocksPayment(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	mock := newBackendLookupMockLn(svc, func(string) (*lnclient.PaymentStatusResponse, error) {
+		return nil, nil
+	})
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+	transaction, err := transactionsService.SendPaymentSync(tests.MockLNClientTransaction.Invoice, nil, nil, mock, nil, nil)
+
+	assert.Error(t, err)
+	assert.Nil(t, transaction)
+	assert.Equal(t, 0, mock.sendCount())
+	assert.Equal(t, 0, len(findRows(svc)))
+}
+
+// A status string outside the defined vocabulary is ambiguous, not a
+// confirmed terminal failure. Fail closed.
+func TestDedup_LookupMalformedStatus_BlocksPayment(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	mock := newBackendLookupMockLn(svc, func(string) (*lnclient.PaymentStatusResponse, error) {
+		return &lnclient.PaymentStatusResponse{Status: "IN_FLIGHT_MAYBE"}, nil
+	})
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+	transaction, err := transactionsService.SendPaymentSync(tests.MockLNClientTransaction.Invoice, nil, nil, mock, nil, nil)
+
+	assert.Error(t, err)
+	assert.Nil(t, transaction)
+	assert.Equal(t, 0, mock.sendCount())
+	assert.Equal(t, 0, len(findRows(svc)))
+}
+
+// A backend COMPLETE whose amount disagrees with this invoice is an
+// inconsistent result — do not reconcile it onto this invoice and do not
+// re-pay.
+func TestDedup_BackendCompleteAmountMismatch_BlocksPayment(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	createOutgoingRow(svc, constants.TRANSACTION_STATE_FAILED, 0)
+
+	mock := newBackendLookupMockLn(svc, func(string) (*lnclient.PaymentStatusResponse, error) {
+		status := completeStatus()
+		status.AmountMsat = 999000
+		return status, nil
+	})
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+	transaction, err := transactionsService.SendPaymentSync(tests.MockLNClientTransaction.Invoice, nil, nil, mock, nil, nil)
+
+	assert.Error(t, err)
+	assert.Nil(t, transaction)
+	assert.Equal(t, 0, mock.sendCount())
+
+	rows := findRows(svc)
+	require.Equal(t, 1, len(rows))
+	assert.Equal(t, constants.TRANSACTION_STATE_FAILED, rows[0].State)
+}
+
+// Lost-sync-response recovery with no application row at all (e.g. the hub
+// DB was rebuilt after the payment): the node says COMPLETE, so the hub
+// creates the settled record from node state and makes zero payments.
+func TestDedup_BackendComplete_WithoutRow_CreatesSettledRecordWithoutPaying(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	mock := newBackendLookupMockLn(svc, func(string) (*lnclient.PaymentStatusResponse, error) {
+		return completeStatus(), nil
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
@@ -237,7 +356,88 @@ func TestDedup_LookupError_ProceedsWithLegacyGuard(t *testing.T) {
 
 	assert.NoError(t, err)
 	require.NotNil(t, transaction)
-	assert.Equal(t, 1, mock.sendCount())
+	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, transaction.State)
+	assert.Equal(t, 0, mock.sendCount())
+
+	rows := findRows(svc)
+	require.Equal(t, 1, len(rows))
+	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, rows[0].State)
+}
+
+// Process restart after payment initiation: the hub comes back with an empty
+// DB while the node still has the group PENDING. The new instance must
+// consult the node and refuse, not treat the missing row as permission.
+func TestDedup_RestartWithEmptyDB_PendingOnNode_BlocksPayment(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	mock := newBackendLookupMockLn(svc, func(string) (*lnclient.PaymentStatusResponse, error) {
+		return &lnclient.PaymentStatusResponse{Status: lnclient.PAYMENT_STATUS_PENDING, AmountMsat: 123000}, nil
+	})
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+	transaction, err := transactionsService.SendPaymentSync(tests.MockLNClientTransaction.Invoice, nil, nil, mock, nil, nil)
+
+	assert.Error(t, err)
+	assert.Nil(t, transaction)
+	assert.Equal(t, 0, mock.sendCount())
+	assert.Equal(t, 0, len(findRows(svc)))
+}
+
+// Duplicate NWC pay_invoice requests arriving on two different app
+// connections for the same invoice: exactly one backend payment, and the
+// second request is refused.
+func TestDedup_DuplicateRequests_DifferentApps_SingleBackendPayment(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	delay := 200 * time.Millisecond
+	svc.LNClient.(*tests.MockLn).PaymentDelay = &delay
+
+	mock := newBackendLookupMockLn(svc, func(string) (*lnclient.PaymentStatusResponse, error) {
+		return &lnclient.PaymentStatusResponse{Status: lnclient.PAYMENT_STATUS_UNKNOWN}, nil
+	})
+
+	app1, _, err := tests.CreateApp(svc)
+	require.NoError(t, err)
+	app2, _, err := tests.CreateApp(svc)
+	require.NoError(t, err)
+	for _, app := range []*db.App{app1, app2} {
+		require.NoError(t, svc.DB.Create(&db.AppPermission{
+			AppId: app.ID,
+			App:   *app,
+			Scope: constants.PAY_INVOICE_SCOPE,
+		}).Error)
+	}
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+
+	var wg sync.WaitGroup
+	results := make([]error, 2)
+	apps := []*uint{&app1.ID, &app2.ID}
+	for i := 0; i < 2; i++ {
+		wg.Add(1)
+		go func(idx int) {
+			defer wg.Done()
+			_, results[idx] = transactionsService.SendPaymentSync(tests.MockLNClientTransaction.Invoice, nil, nil, mock, apps[idx], nil)
+		}(i)
+	}
+	wg.Wait()
+
+	successes := 0
+	for _, rerr := range results {
+		if rerr == nil {
+			successes++
+		}
+	}
+	assert.Equal(t, 1, successes)
+	assert.Equal(t, 1, mock.sendCount(), "the node must receive exactly one payment across two app connections")
+
+	rows := findRows(svc)
+	require.Equal(t, 1, len(rows))
+	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, rows[0].State)
 }
 
 // Two concurrent callers for the same invoice must result in exactly one
