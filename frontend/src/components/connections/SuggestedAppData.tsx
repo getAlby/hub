@@ -47,6 +47,7 @@ import wavespace from "src/assets/suggested-apps/wave-space.png";
 import wavlake from "src/assets/suggested-apps/wavlake.png";
 import wherostr from "src/assets/suggested-apps/wherostr.png";
 import yakihonne from "src/assets/suggested-apps/yakihonne.png";
+import zapobserver from "src/assets/suggested-apps/zap-observer.png";
 import zapstream from "src/assets/suggested-apps/zap-stream.png";
 import zapplanner from "src/assets/suggested-apps/zapplanner.png";
 import zapplepay from "src/assets/suggested-apps/zapple-pay.png";
@@ -2286,6 +2287,53 @@ export const appStoreApps: AppStoreApp[] = (
           </div>
         </>
       ),
+    },
+    {
+      id: "zap-observer",
+      title: "zap.observer",
+      description: "Live Nostr zap explorer",
+      webLink: "https://zap.observer",
+      logo: zapobserver,
+      extendedDescription:
+        "Watch zaps flow across Nostr and zap the people and notes on the board in one press from your Hub",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://zap.observer"
+              className="font-medium text-foreground underline"
+            >
+              zap.observer
+            </ExternalLink>{" "}
+            in your browser
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In zap.observer</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Press <span className="font-medium text-foreground">zap</span>{" "}
+                on any profile or note
+              </li>
+              <li>
+                Under the zap key, press{" "}
+                <span className="font-medium text-foreground">
+                  Connect a wallet
+                </span>
+              </li>
+              <li>
+                Scan the QR code, or paste the connection secret from Alby Hub
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["social-media"],
+      addedDate: "2026-09-19",
     },
     {
       id: "jumble",
