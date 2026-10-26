@@ -402,19 +402,22 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 						return errors.New("this invoice has already been paid")
 					}
 
+					// Reconcile the LIVE pending attempt when one exists (it holds
+					// a fee reserve that only settling can release); a failed
+					// historical attempt stays FAILED as a record of that try.
 					var existingAttempt db.Transaction
 					attemptFound := svc.db.Limit(1).Order("id desc").Find(&existingAttempt, &db.Transaction{
 						Type:           constants.TRANSACTION_TYPE_OUTGOING,
 						PaymentHash:    paymentRequest.PaymentHash,
 						PaymentRequest: payReq,
-						State:          constants.TRANSACTION_STATE_FAILED,
+						State:          constants.TRANSACTION_STATE_PENDING,
 					}).RowsAffected > 0
 					if !attemptFound {
 						attemptFound = svc.db.Limit(1).Order("id desc").Find(&existingAttempt, &db.Transaction{
 							Type:           constants.TRANSACTION_TYPE_OUTGOING,
 							PaymentHash:    paymentRequest.PaymentHash,
 							PaymentRequest: payReq,
-							State:          constants.TRANSACTION_STATE_PENDING,
+							State:          constants.TRANSACTION_STATE_FAILED,
 						}).RowsAffected > 0
 					}
 

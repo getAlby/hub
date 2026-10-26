@@ -134,6 +134,51 @@ func TestDedup_BackendComplete_WithPendingRow_SettlesWithoutRepay(t *testing.T) 
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, rows[0].State)
 }
 
+// A failed first attempt leaves a FAILED row while a later attempt is still
+// PENDING on the hub. When the node reports COMPLETE, the LIVE PENDING row
+// must be the one reconciled to SETTLED (releasing its fee reserve); the
+// historical FAILED row stays FAILED. Settling the FAILED row instead would
+// strand the PENDING row's fee reserve indefinitely.
+func TestDedup_BackendComplete_PendingAndFailedRows_SettlesPendingRow(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	createOutgoingRow(svc, constants.TRANSACTION_STATE_FAILED, 0)
+	createOutgoingRow(svc, constants.TRANSACTION_STATE_PENDING, 10000)
+
+	mock := newBackendLookupMockLn(svc, func(string) (*lnclient.PaymentStatusResponse, error) {
+		return completeStatus(), nil
+	})
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+	transaction, err := transactionsService.SendPaymentSync(tests.MockLNClientTransaction.Invoice, nil, nil, mock, nil, nil)
+
+	assert.NoError(t, err)
+	require.NotNil(t, transaction)
+	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, transaction.State)
+	assert.Zero(t, transaction.FeeReserveMsat)
+	assert.Equal(t, 0, mock.sendCount())
+
+	rows := findRows(svc)
+	require.Equal(t, 2, len(rows))
+	settled, failed, pending := 0, 0, 0
+	for _, row := range rows {
+		switch row.State {
+		case constants.TRANSACTION_STATE_SETTLED:
+			settled++
+			assert.Zero(t, row.FeeReserveMsat)
+		case constants.TRANSACTION_STATE_FAILED:
+			failed++
+		case constants.TRANSACTION_STATE_PENDING:
+			pending++
+		}
+	}
+	assert.Equal(t, 1, settled, "exactly one row reconciled to SETTLED")
+	assert.Equal(t, 1, failed, "the historical FAILED row stays FAILED")
+	assert.Equal(t, 0, pending, "no row may be left PENDING with a locked fee reserve")
+}
+
 // The DB row says FAILED (sync error path) but the node's payment group is
 // still in progress. This is the groupid retry-collision: a new send must NOT
 // be initiated.
