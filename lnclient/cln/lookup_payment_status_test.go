@@ -42,14 +42,14 @@ func newLookupSvc(t *testing.T, fn func(context.Context, *clngrpc.ListpaysReques
 	return &CLNService{ctx: context.Background(), client: stub}, stub
 }
 
-const testHash = "29fe2fa11131c8450e3b659b0bcb13f5cffe094cd9a1248a635ca99cae04531d"
+const testHash = "0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20"
 
 func TestLookupPaymentStatus_Complete(t *testing.T) {
 	preimage := make([]byte, 32)
 	preimage[0] = 0xab
 	svc, stub := newLookupSvc(t, func(_ context.Context, in *clngrpc.ListpaysRequest, _ ...grpc.CallOption) (*clngrpc.ListpaysResponse, error) {
 		return &clngrpc.ListpaysResponse{Pays: []*clngrpc.ListpaysPays{
-			completePay(preimage, 48157000, 48386995),
+			completePay(preimage, 100000, 105000),
 		}}, nil
 	})
 
@@ -57,8 +57,8 @@ func TestLookupPaymentStatus_Complete(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, lnclient.PAYMENT_STATUS_COMPLETE, status.Status)
 	assert.Equal(t, "ab"+""+repeatZeroes(62), status.Preimage)
-	assert.Equal(t, uint64(229995), status.FeeMsat)
-	assert.Equal(t, uint64(48157000), status.AmountMsat)
+	assert.Equal(t, uint64(5000), status.FeeMsat)
+	assert.Equal(t, uint64(100000), status.AmountMsat)
 
 	// request must filter by the raw 32-byte hash
 	require.NotNil(t, stub.lastRequest)

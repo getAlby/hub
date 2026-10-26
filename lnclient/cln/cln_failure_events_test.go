@@ -56,17 +56,17 @@ func testSendpayFailure(t *testing.T) *clngrpc.SendPayFailureNotification {
 		Message: "xpay: Failed after 23 attempts",
 		Data: &clngrpc.SendpayFailureData{
 			Id:             u64(421),
-			PaymentHash:    hash32(t, "34ff9cdf3ef1c31baec62558bec466f5a4e0280178794eac6d83acde93a74ed0"),
-			Groupid:        u64(2345541325835717021),
+			PaymentHash:    hash32(t, "0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20"),
+			Groupid:        u64(8675309876543),
 			Partid:         u64(7),
 			Status:         &status,
 			Failcode:       u32(209),
 			Failcodename:   &failcodename,
-			AmountMsat:     &clngrpc.Amount{Msat: 30352272},
-			AmountSentMsat: &clngrpc.Amount{Msat: 30407384},
-			CreatedAt:      u64(1793049627),
-			CompletedAt:    u64(1793049679),
-			Description:    str("Send to BTC address"),
+			AmountMsat:     &clngrpc.Amount{Msat: 1001000},
+			AmountSentMsat: &clngrpc.Amount{Msat: 1002500},
+			CreatedAt:      u64(1700000000),
+			CompletedAt:    u64(1700000100),
+			Description:    str("mock description"),
 		},
 	}
 }
@@ -91,7 +91,7 @@ func TestHandleSendpayFailure_PublishesWrapperProperties(t *testing.T) {
 
 	require.NotNil(t, props.Transaction)
 	assert.Equal(t,
-		"34ff9cdf3ef1c31baec62558bec466f5a4e0280178794eac6d83acde93a74ed0",
+		"0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20",
 		props.Transaction.PaymentHash,
 	)
 	assert.Equal(t, "outgoing", props.Transaction.Type)
