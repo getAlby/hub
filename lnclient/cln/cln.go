@@ -364,10 +364,29 @@ func (svc *CLNService) subscribeFailedPayments(ctx context.Context) {
 // handleSendpayFailure converts a CLN sendpay_failure notification to a
 // transaction and publishes the nwc_lnclient_payment_failed event in the
 // payload type asserted by the transactions service consumer.
+//
+// CLN emits sendpay_failure whenever an individual xpay attempt fails,
+// including transient part failures that the payment group retries with a
+// new attempt — the payment can still settle after one. The hub may only
+// treat the payment as failed when the node itself reports the payment
+// failed (no pending and no settled attempt for the hash); otherwise a
+// live payment would be marked FAILED and its fee reserve released
+// mid-retry. If the node's state cannot be resolved, the failure is still
+// published: async failures must keep marking pending rows FAILED rather
+// than silently disappear behind a broken lookup path.
 func (svc *CLNService) handleSendpayFailure(ctx context.Context, payment *clngrpc.SendPayFailureNotification) error {
 	transaction, err := svc.clnSendpayFailureToTransaction(ctx, payment)
 	if err != nil {
 		return err
+	}
+	status, lookupErr := svc.LookupPaymentStatus(transaction.PaymentHash)
+	if lookupErr == nil && status != nil &&
+		(status.Status == lnclient.PAYMENT_STATUS_PENDING || status.Status == lnclient.PAYMENT_STATUS_COMPLETE) {
+		logger.Logger.WithFields(logrus.Fields{
+			"payment_hash":   transaction.PaymentHash,
+			"backend_status": status.Status,
+		}).Info("Ignoring sendpay_failure notification: node still reports the payment as in flight or settled")
+		return nil
 	}
 	svc.eventPublisher.Publish(&events.Event{
 		Event: "nwc_lnclient_payment_failed",

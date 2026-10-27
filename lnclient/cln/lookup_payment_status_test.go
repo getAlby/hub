@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"errors"
+	"sync"
 	"testing"
 	"time"
 
@@ -16,12 +17,15 @@ import (
 
 type stubListPaysClient struct {
 	clngrpc.NodeClient
+	mu          sync.Mutex
 	lastRequest *clngrpc.ListpaysRequest
 	listPaysFn  func(ctx context.Context, in *clngrpc.ListpaysRequest, opts ...grpc.CallOption) (*clngrpc.ListpaysResponse, error)
 }
 
 func (s *stubListPaysClient) ListPays(ctx context.Context, in *clngrpc.ListpaysRequest, opts ...grpc.CallOption) (*clngrpc.ListpaysResponse, error) {
+	s.mu.Lock()
 	s.lastRequest = in
+	s.mu.Unlock()
 	return s.listPaysFn(ctx, in, opts...)
 }
 

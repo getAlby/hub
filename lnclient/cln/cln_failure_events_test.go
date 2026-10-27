@@ -3,6 +3,7 @@ package cln
 import (
 	"context"
 	"encoding/hex"
+	"errors"
 	"strings"
 	"sync"
 	"testing"
@@ -12,6 +13,7 @@ import (
 	clngrpc "github.com/getAlby/hub/lnclient/cln/clngrpc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc"
 )
 
 type capturingEventPublisher struct {
@@ -71,13 +73,32 @@ func testSendpayFailure(t *testing.T) *clngrpc.SendPayFailureNotification {
 	}
 }
 
+// newFailureSvc builds a CLNService whose listpays RPC answers with pays,
+// so handleSendpayFailure's terminality check sees the node's authoritative
+// payment state.
+func newFailureSvc(publisher events.EventPublisher, pays ...*clngrpc.ListpaysPays) *CLNService {
+	stub := &stubListPaysClient{listPaysFn: func(_ context.Context, _ *clngrpc.ListpaysRequest, _ ...grpc.CallOption) (*clngrpc.ListpaysResponse, error) {
+		return &clngrpc.ListpaysResponse{Pays: pays}, nil
+	}}
+	return &CLNService{ctx: context.Background(), eventPublisher: publisher, client: stub}
+}
+
+// newFailingSvc builds a CLNService whose listpays RPC always errors, so the
+// terminality check cannot resolve the node's state.
+func newFailingSvc(publisher events.EventPublisher) *CLNService {
+	stub := &stubListPaysClient{listPaysFn: func(_ context.Context, _ *clngrpc.ListpaysRequest, _ ...grpc.CallOption) (*clngrpc.ListpaysResponse, error) {
+		return nil, errors.New("rpc error: listpays unreachable")
+	}}
+	return &CLNService{ctx: context.Background(), eventPublisher: publisher, client: stub}
+}
+
 // The consumer in transactions/transactions_service.go asserts
 // *lnclient.PaymentFailedEventProperties. Events published by this backend
 // MUST satisfy that assertion, or the failure is silently dropped
 // ("Failed to cast event") and pending transactions are never marked failed.
 func TestHandleSendpayFailure_PublishesWrapperProperties(t *testing.T) {
 	publisher := &capturingEventPublisher{}
-	svc := &CLNService{eventPublisher: publisher}
+	svc := newFailureSvc(publisher, statusPay(clngrpc.ListpaysPays_FAILED, 100))
 
 	err := svc.handleSendpayFailure(context.Background(), testSendpayFailure(t))
 	require.NoError(t, err)
@@ -104,16 +125,78 @@ func TestHandleSendpayFailure_PublishesWrapperProperties(t *testing.T) {
 
 func TestHandleSendpayFailure_NilDataIsErrorNoPublish(t *testing.T) {
 	publisher := &capturingEventPublisher{}
-	svc := &CLNService{eventPublisher: publisher}
+	svc := newFailureSvc(publisher)
 
 	err := svc.handleSendpayFailure(context.Background(), &clngrpc.SendPayFailureNotification{})
 	assert.Error(t, err)
 	assert.Empty(t, publisher.drain(), "nothing may be published when conversion fails")
 }
 
+// CLN emits sendpay_failure for individual xpay attempts, including transient
+// part failures the payment group retries immediately. While the node still
+// reports the payment PENDING, publishing payment_failed would mark the live
+// hub transaction FAILED and release its fee reserve mid-retry.
+func TestHandleSendpayFailure_TransientPartFailureWhileGroupPendingNoPublish(t *testing.T) {
+	publisher := &capturingEventPublisher{}
+	svc := newFailureSvc(publisher,
+		statusPay(clngrpc.ListpaysPays_FAILED, 100),
+		statusPay(clngrpc.ListpaysPays_PENDING, 100),
+	)
+
+	err := svc.handleSendpayFailure(context.Background(), testSendpayFailure(t))
+	require.NoError(t, err)
+	assert.Empty(t, publisher.drain(), "a failed part with a pending retry must not fail the payment")
+}
+
+// Failed part followed by a successful retry: the node reports the payment
+// COMPLETE. The settlement arrives through payment_sent; a payment_failed
+// event here would race the settle and mis-report a succeeded payment.
+func TestHandleSendpayFailure_FailedPartSettledByRetryNoPublish(t *testing.T) {
+	publisher := &capturingEventPublisher{}
+	preimage := make([]byte, 32)
+	preimage[0] = 0xcd
+	svc := newFailureSvc(publisher,
+		statusPay(clngrpc.ListpaysPays_FAILED, 100),
+		completePay(preimage, 100, 101),
+	)
+
+	err := svc.handleSendpayFailure(context.Background(), testSendpayFailure(t))
+	require.NoError(t, err)
+	assert.Empty(t, publisher.drain(), "a payment already settled on the node must not be reported failed")
+}
+
+// If the node's state cannot be resolved, the failure is still published:
+// the defect-1 guarantee (async terminal failures mark pending rows FAILED)
+// must not silently disappear behind a broken lookup path.
+func TestHandleSendpayFailure_LookupErrorStillPublishes(t *testing.T) {
+	publisher := &capturingEventPublisher{}
+	svc := newFailingSvc(publisher)
+
+	err := svc.handleSendpayFailure(context.Background(), testSendpayFailure(t))
+	require.NoError(t, err)
+
+	published := publisher.drain()
+	require.Len(t, published, 1)
+	assert.Equal(t, "nwc_lnclient_payment_failed", published[0].Event)
+}
+
+// A successful listpays with no record (confirmed absence) still publishes:
+// there is no pending or settled attempt protecting this payment.
+func TestHandleSendpayFailure_ConfirmedAbsenceStillPublishes(t *testing.T) {
+	publisher := &capturingEventPublisher{}
+	svc := newFailureSvc(publisher)
+
+	err := svc.handleSendpayFailure(context.Background(), testSendpayFailure(t))
+	require.NoError(t, err)
+
+	published := publisher.drain()
+	require.Len(t, published, 1)
+	assert.Equal(t, "nwc_lnclient_payment_failed", published[0].Event)
+}
+
 func TestHandleSendpayFailure_ConcurrentAllWrapped(t *testing.T) {
 	publisher := &capturingEventPublisher{}
-	svc := &CLNService{eventPublisher: publisher}
+	svc := newFailureSvc(publisher, statusPay(clngrpc.ListpaysPays_FAILED, 100))
 
 	var wg sync.WaitGroup
 	for range 50 {
