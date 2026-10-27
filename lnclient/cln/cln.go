@@ -49,6 +49,13 @@ type CLNService struct {
 	cancel              context.CancelFunc
 }
 
+// The payment-safety dedup guard in transactions/ refuses to re-pay while a
+// previous payment's state is unresolved only if the backend can report
+// payment status. CLN MUST keep implementing this interface: if the method is
+// ever removed, this assertion breaks the build rather than silently letting
+// CLN hubs fall back to the DB-only dedup that double-paid in production.
+var _ lnclient.PaymentStatusLookup = (*CLNService)(nil)
+
 func NewCLNService(ctx context.Context, eventPublisher events.EventPublisher, address, lightningDir, addressHold string) (lnclient lnclient.LNClient, err error) {
 	logger.Logger.WithFields(logrus.Fields{
 		"address":      address,
@@ -2379,6 +2386,16 @@ func (c *CLNService) SendPaymentSync(payReq string, amount *uint64) (*lnclient.P
 		logger.Logger.WithError(err).Error("xpay failed")
 		return nil, fmt.Errorf("xpay failed: %w", err)
 	}
+	// xpay has already been issued: a malformed response must not panic
+	// (crashing the hub mid-payment) and must not be reported as success
+	// with an empty preimage. The caller sees an error so the transaction
+	// stays reconcilable from backend state on retry.
+	if resp == nil {
+		return nil, errors.New("xpay returned no response")
+	}
+	if len(resp.PaymentPreimage) != 32 {
+		return nil, errors.New("xpay response is missing a valid preimage")
+	}
 
 	feePaidMsat := uint64(0)
 	if resp.AmountSentMsat != nil {
@@ -2390,7 +2407,7 @@ func (c *CLNService) SendPaymentSync(payReq string, amount *uint64) (*lnclient.P
 	return &lnclient.PayInvoiceResponse{
 		Preimage: hex.EncodeToString(resp.PaymentPreimage),
 		FeeMsat:  feePaidMsat,
-	}, err
+	}, nil
 }
 
 // lookupPaymentStatusTimeout bounds the listpays RPC: the result is consulted
