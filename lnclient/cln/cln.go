@@ -1,6 +1,7 @@
 package cln
 
 import (
+	"bytes"
 	"context"
 	crand "crypto/rand"
 	"crypto/sha256"
@@ -47,6 +48,13 @@ type CLNService struct {
 	enableNotifications bool
 	cancel              context.CancelFunc
 }
+
+// The payment-safety dedup guard in transactions/ refuses to re-pay while a
+// previous payment's state is unresolved only if the backend can report
+// payment status. CLN MUST keep implementing this interface: if the method is
+// ever removed, this assertion breaks the build rather than silently letting
+// CLN hubs fall back to the DB-only dedup that double-paid in production.
+var _ lnclient.PaymentStatusLookup = (*CLNService)(nil)
 
 func NewCLNService(ctx context.Context, eventPublisher events.EventPublisher, address, lightningDir, addressHold string) (lnclient lnclient.LNClient, err error) {
 	logger.Logger.WithFields(logrus.Fields{
@@ -343,19 +351,65 @@ func (svc *CLNService) subscribeFailedPayments(ctx context.Context) {
 					}
 				}
 
-				transaction, err := svc.clnSendpayFailureToTransaction(ctx, payment)
-				if err != nil {
+				if err := svc.handleSendpayFailure(ctx, payment); err != nil {
 					logger.Logger.WithError(err).Error("Failed to convert notification to transaction")
 					continue
 				}
-				svc.eventPublisher.Publish(&events.Event{
-					Event:      "nwc_lnclient_payment_failed",
-					Properties: transaction,
-				})
 
 			}
 		}
 	}
+}
+
+// handleSendpayFailure converts a CLN sendpay_failure notification to a
+// transaction and publishes the nwc_lnclient_payment_failed event in the
+// payload type asserted by the transactions service consumer.
+//
+// CLN emits sendpay_failure whenever an individual xpay attempt fails,
+// including transient part failures that the payment group retries with a
+// new attempt — the payment can still settle after one. The hub may only
+// treat the payment as failed when the node itself reports the payment
+// failed (no pending and no settled attempt for the hash); otherwise a
+// live payment would be marked FAILED and its fee reserve released
+// mid-retry. If the node's state cannot be resolved, the failure is still
+// published: async failures must keep marking pending rows FAILED rather
+// than silently disappear behind a broken lookup path.
+func (svc *CLNService) handleSendpayFailure(ctx context.Context, payment *clngrpc.SendPayFailureNotification) error {
+	transaction, err := svc.clnSendpayFailureToTransaction(ctx, payment)
+	if err != nil {
+		return err
+	}
+	status, lookupErr := svc.LookupPaymentStatus(transaction.PaymentHash)
+	if lookupErr == nil && status != nil &&
+		(status.Status == lnclient.PAYMENT_STATUS_PENDING || status.Status == lnclient.PAYMENT_STATUS_COMPLETE) {
+		logger.Logger.WithFields(logrus.Fields{
+			"payment_hash":   transaction.PaymentHash,
+			"backend_status": status.Status,
+		}).Info("Ignoring sendpay_failure notification: node still reports the payment as in flight or settled")
+		return nil
+	}
+	svc.eventPublisher.Publish(&events.Event{
+		Event: "nwc_lnclient_payment_failed",
+		Properties: &lnclient.PaymentFailedEventProperties{
+			Transaction: transaction,
+			Reason:      clnSendpayFailureReason(payment),
+		},
+	})
+	return nil
+}
+
+func clnSendpayFailureReason(payment *clngrpc.SendPayFailureNotification) string {
+	if payment.Data == nil {
+		return payment.Message
+	}
+	reason := payment.Data.GetStatus().String()
+	if failcodename := payment.Data.GetFailcodename(); failcodename != "" {
+		reason = failcodename
+	}
+	if payment.Message != "" {
+		reason = reason + ": " + payment.Message
+	}
+	return reason
 }
 
 func (svc *CLNService) clnSendpayFailureToTransaction(ctx context.Context, payment *clngrpc.SendPayFailureNotification) (*lnclient.Transaction, error) {
@@ -2351,6 +2405,16 @@ func (c *CLNService) SendPaymentSync(payReq string, amount *uint64) (*lnclient.P
 		logger.Logger.WithError(err).Error("xpay failed")
 		return nil, fmt.Errorf("xpay failed: %w", err)
 	}
+	// xpay has already been issued: a malformed response must not panic
+	// (crashing the hub mid-payment) and must not be reported as success
+	// with an empty preimage. The caller sees an error so the transaction
+	// stays reconcilable from backend state on retry.
+	if resp == nil {
+		return nil, errors.New("xpay returned no response")
+	}
+	if len(resp.PaymentPreimage) != 32 {
+		return nil, errors.New("xpay response is missing a valid preimage")
+	}
 
 	feePaidMsat := uint64(0)
 	if resp.AmountSentMsat != nil {
@@ -2362,7 +2426,85 @@ func (c *CLNService) SendPaymentSync(payReq string, amount *uint64) (*lnclient.P
 	return &lnclient.PayInvoiceResponse{
 		Preimage: hex.EncodeToString(resp.PaymentPreimage),
 		FeeMsat:  feePaidMsat,
-	}, err
+	}, nil
+}
+
+// lookupPaymentStatusTimeout bounds the listpays RPC: the result is consulted
+// while the hub holds its global payment validation lock, so a hung (not
+// refused) node connection must not stall all payment activity.
+var lookupPaymentStatusTimeout = 10 * time.Second
+
+// LookupPaymentStatus reports the authoritative state of an outgoing payment
+// by payment hash, read from the node with listpays. COMPLETE dominates
+// PENDING, which dominates FAILED, so a payment is only considered failed
+// when the node has no in-flight or settled attempt for the hash.
+//
+// A successful RPC with no records is a CONFIRMED ABSENCE (UNKNOWN): the node
+// never started a payment for this hash. Anything else — RPC error, nil
+// response, foreign or missing payment_hash, unrecognized status enum, or a
+// COMPLETE record without a valid preimage — is returned as an error so the
+// caller treats the settlement state as unresolved and refuses to pay,
+// rather than reading it as permission to pay.
+func (c *CLNService) LookupPaymentStatus(paymentHash string) (*lnclient.PaymentStatusResponse, error) {
+	hashBytes, err := hex.DecodeString(paymentHash)
+	if err != nil {
+		return nil, fmt.Errorf("invalid payment hash: %w", err)
+	}
+
+	ctx, cancel := context.WithTimeout(c.ctx, lookupPaymentStatusTimeout)
+	defer cancel()
+
+	resp, err := c.client.ListPays(ctx, &clngrpc.ListpaysRequest{PaymentHash: hashBytes})
+	if err != nil {
+		return nil, err
+	}
+	if resp == nil {
+		return nil, errors.New("malformed listpays response: nil response")
+	}
+
+	status := &lnclient.PaymentStatusResponse{Status: lnclient.PAYMENT_STATUS_UNKNOWN}
+	for _, pay := range resp.GetPays() {
+		if !bytes.Equal(pay.GetPaymentHash(), hashBytes) {
+			return nil, errors.New("listpays returned a record that does not match the requested payment hash")
+		}
+		switch pay.GetStatus() {
+		case clngrpc.ListpaysPays_COMPLETE:
+			preimage := pay.GetPreimage()
+			if len(preimage) != 32 {
+				return nil, errors.New("listpays COMPLETE record is missing a valid preimage")
+			}
+			feeMsat := uint64(0)
+			amountMsat := pay.GetAmountMsat().GetMsat()
+			amountSentMsat := pay.GetAmountSentMsat().GetMsat()
+			if amountSentMsat > amountMsat {
+				feeMsat = amountSentMsat - amountMsat
+			}
+			status = &lnclient.PaymentStatusResponse{
+				Status:     lnclient.PAYMENT_STATUS_COMPLETE,
+				Preimage:   hex.EncodeToString(preimage),
+				FeeMsat:    feeMsat,
+				AmountMsat: amountMsat,
+			}
+		case clngrpc.ListpaysPays_PENDING:
+			if status.Status != lnclient.PAYMENT_STATUS_COMPLETE {
+				status = &lnclient.PaymentStatusResponse{
+					Status:     lnclient.PAYMENT_STATUS_PENDING,
+					AmountMsat: pay.GetAmountMsat().GetMsat(),
+				}
+			}
+		case clngrpc.ListpaysPays_FAILED:
+			if status.Status == lnclient.PAYMENT_STATUS_UNKNOWN {
+				status = &lnclient.PaymentStatusResponse{
+					Status:     lnclient.PAYMENT_STATUS_FAILED,
+					AmountMsat: pay.GetAmountMsat().GetMsat(),
+				}
+			}
+		default:
+			return nil, fmt.Errorf("unrecognized listpays status %d for payment", int32(pay.GetStatus()))
+		}
+	}
+
+	return status, nil
 }
 
 func (c *CLNService) SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error {
