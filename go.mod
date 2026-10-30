@@ -47,14 +47,15 @@ require (
 	github.com/btcsuite/btcd/btcutil/psbt v1.1.10 // indirect
 	github.com/btcsuite/btcd/chainhash/v2 v2.0.0 // indirect
 	github.com/btcsuite/btcd/v2transport v1.0.1 // indirect
+	github.com/btcsuite/btcd/wire/v2 v2.0.0 // indirect
 	github.com/btcsuite/btclog v1.0.0 // indirect
 	github.com/btcsuite/btclog/v2 v2.0.1-0.20250728225537-6090e87c6c5b // indirect
-	github.com/btcsuite/btcwallet v0.16.20-0.20260915140118-f2c79d772865 // indirect
+	github.com/btcsuite/btcwallet v0.16.20-0.20261020152346-4423f4716968 // indirect
 	github.com/btcsuite/btcwallet/wallet/txauthor v1.3.5 // indirect
 	github.com/btcsuite/btcwallet/wallet/txrules v1.2.2 // indirect
 	github.com/btcsuite/btcwallet/wallet/txsizes v1.2.5 // indirect
 	github.com/btcsuite/btcwallet/walletdb v1.5.1 // indirect
-	github.com/btcsuite/btcwallet/wtxmgr v1.5.7-0.20260915140118-f2c79d772865 // indirect
+	github.com/btcsuite/btcwallet/wtxmgr v1.5.7-0.20261020152322-a4ace3b44809 // indirect
 	github.com/btcsuite/go-socks v0.0.0-20170105172521-4720035b7bfd // indirect
 	github.com/btcsuite/websocket v0.0.0-20150119174127-31079b680792 // indirect
 	github.com/btcsuite/winsvc v1.0.0 // indirect
@@ -131,14 +132,15 @@ require (
 	github.com/lightninglabs/neutrino v0.17.1 // indirect
 	github.com/lightninglabs/neutrino/cache v1.1.3 // indirect
 	github.com/lightningnetwork/lightning-onion v1.3.0 // indirect
+	github.com/lightningnetwork/lnd/actor v0.0.6 // indirect
 	github.com/lightningnetwork/lnd/clock v1.1.1 // indirect
-	github.com/lightningnetwork/lnd/fn/v2 v2.0.9 // indirect
+	github.com/lightningnetwork/lnd/fn/v2 v2.0.10 // indirect
 	github.com/lightningnetwork/lnd/healthcheck v1.2.6 // indirect
 	github.com/lightningnetwork/lnd/kvdb v1.5.1 // indirect
 	github.com/lightningnetwork/lnd/queue v1.2.0 // indirect
 	github.com/lightningnetwork/lnd/sqldb v1.0.13 // indirect
 	github.com/lightningnetwork/lnd/ticker v1.1.1 // indirect
-	github.com/lightningnetwork/lnd/tlv v1.3.2 // indirect
+	github.com/lightningnetwork/lnd/tlv v1.4.1 // indirect
 	github.com/lightningnetwork/lnd/tor v1.1.7 // indirect
 	github.com/ltcsuite/ltcd v0.23.5 // indirect
 	github.com/ltcsuite/ltcd/chaincfg/chainhash v1.0.2 // indirect
@@ -255,7 +257,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/labstack/echo-jwt/v4 v4.4.0
-	github.com/lightningnetwork/lnd v0.21.4-beta
+	github.com/lightningnetwork/lnd v0.21.5-beta.rc1
 	github.com/sirupsen/logrus v1.10.2
 	github.com/tyler-smith/go-bip32 v1.0.0
 	golang.org/x/exp v0.0.0-20250811191247-51f88131bc50 // indirect
