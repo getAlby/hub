@@ -1271,7 +1271,7 @@ export const appStoreApps: AppStoreApp[] = (
       webLink: "https://gitlab.com/nodesignal/hopp",
       logo: hopp,
       extendedDescription:
-        "Hopp is an open-source Podcasting 2.0 player for Android and iOS. No account, no tracking: connect your own wallet to boost shows and stream sats while you listen — Hopp never holds your sats and takes no cut.",
+        "Hopp is an open-source Podcasting 2.0 player for Android. No account, no tracking: connect your own wallet to boost shows and stream sats while you listen — Hopp never holds your sats and takes no cut.",
       installGuide: (
         <>
           <p className="text-muted-foreground">
