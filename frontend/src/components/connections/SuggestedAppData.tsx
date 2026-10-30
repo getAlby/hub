@@ -18,6 +18,7 @@ import coracle from "src/assets/suggested-apps/coracle.png";
 import damus from "src/assets/suggested-apps/damus.png";
 import fountain from "src/assets/suggested-apps/fountain.png";
 import hablanews from "src/assets/suggested-apps/habla-news.png";
+import hopp from "src/assets/suggested-apps/hopp.png";
 import iris from "src/assets/suggested-apps/iris.png";
 import jumble from "src/assets/suggested-apps/jumble.png";
 import lightningMessageboard from "src/assets/suggested-apps/lightning-messageboard.png";
@@ -1262,6 +1263,39 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["audio"],
+    },
+    {
+      id: "hopp",
+      title: "Hopp",
+      description: "Honest open podcast player with Value4Value",
+      webLink: "https://gitlab.com/nodesignal/hopp",
+      zapStoreLink: "https://zapstore.dev/apps/space.sovereigncast.hopp",
+      logo: hopp,
+      extendedDescription:
+        "Hopp is an open-source Podcasting 2.0 player for Android. No account, no tracking: connect your own wallet to boost shows and stream sats while you listen — Hopp never holds your sats and takes no cut.",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Download and open{" "}
+            <span className="font-medium text-foreground">Hopp</span> on your
+            Android device
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In Hopp</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>Go to Settings {"->"} Wallet & payments</li>
+              <li>Scan or paste the connection secret from Alby Hub</li>
+              <li>Tap Connect</li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["audio"],
+      addedDate: "2026-10-30",
     },
     {
       id: "wavespace",
