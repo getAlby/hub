@@ -1269,6 +1269,7 @@ export const appStoreApps: AppStoreApp[] = (
       title: "Hopp",
       description: "Honest open podcast player with Value4Value",
       webLink: "https://gitlab.com/nodesignal/hopp",
+      zapStoreLink: "https://zapstore.dev/apps/space.sovereigncast.hopp",
       logo: hopp,
       extendedDescription:
         "Hopp is an open-source Podcasting 2.0 player for Android. No account, no tracking: connect your own wallet to boost shows and stream sats while you listen — Hopp never holds your sats and takes no cut.",
