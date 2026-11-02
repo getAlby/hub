@@ -2,6 +2,11 @@ module github.com/getAlby/hub
 
 go 1.26.10
 
+// Temporarily disable MPTCP to reduce exposure to CVE-2026-98432 in Linux kernels.
+// This is an interim mitigation; host kernels still need to be patched.
+// TODO: Remove this override once patched kernels are widely deployed.
+godebug multipathtcp=0
+
 require (
 	github.com/adrg/xdg v0.5.3
 	github.com/btcsuite/btcd v0.25.1-0.20260310163610-1c55c7c18179
