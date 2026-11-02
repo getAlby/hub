@@ -54,6 +54,9 @@ RUN ./copy_dylibs.sh $(echo "$TARGETPLATFORM" | cut -d'/' -f2)
 # Start a new, final image to reduce size.
 FROM debian:12-slim AS final
 
+# Disable Go MPTCP as an interim mitigation for CVE-2026-98432.
+# The host kernel still needs to be patched.
+ENV GODEBUG=multipathtcp=0
 ENV LD_LIBRARY_PATH=/usr/lib/nwc
 #
 # # Copy the binaries and entrypoint from the builder image.
