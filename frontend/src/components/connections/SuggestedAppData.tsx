@@ -1268,7 +1268,7 @@ export const appStoreApps: AppStoreApp[] = (
       id: "hopp",
       title: "Hopp",
       description: "Honest open podcast player with Value4Value",
-      webLink: "https://gitlab.com/nodesignal/hopp",
+      webLink: "https://hopp.sovereigncast.space",
       zapStoreLink: "https://zapstore.dev/apps/space.sovereigncast.hopp",
       logo: hopp,
       extendedDescription:
