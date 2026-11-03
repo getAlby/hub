@@ -3,6 +3,9 @@ name: Release
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build-server:
     uses: ./.github/workflows/http.yml
@@ -27,6 +30,8 @@ jobs:
       APPLE_USERNAME: ${{ secrets.APPLE_USERNAME }}
 
   release-draft:
+    permissions:
+      contents: write
     needs:
       - build-server
       - build-wails
