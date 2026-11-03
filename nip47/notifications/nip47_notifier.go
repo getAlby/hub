@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/getAlby/go-nostr"
 	"github.com/getAlby/hub/config"
@@ -233,10 +234,12 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 	publishResultChannel := notifier.pool.PublishMany(ctx, notifier.cfg.GetRelayUrls(), *event)
 
 	publishSuccessful := false
+	var relayErrors []error
 	for result := range publishResultChannel {
 		if result.Error == nil {
 			publishSuccessful = true
 		} else {
+			relayErrors = append(relayErrors, fmt.Errorf("%s: %w", result.RelayURL, result.Error))
 			logger.Logger.WithFields(logrus.Fields{
 				"notification": notification,
 				"appId":        app.ID,
@@ -246,12 +249,13 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 	}
 
 	if !publishSuccessful {
+		err = fmt.Errorf("failed to publish notification to any relay: %w", errors.Join(relayErrors...))
 		logger.Logger.WithFields(logrus.Fields{
 			"notification": notification,
 			"appId":        app.ID,
 			"encryption":   encryption,
-		}).Error("Failed to publish notification")
-		return errors.New("failed to publish notification to any relay")
+		}).WithError(err).Error("Failed to publish notification")
+		return err
 	}
 	logger.Logger.WithFields(logrus.Fields{
 		"appId":      app.ID,
