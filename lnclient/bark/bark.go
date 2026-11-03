@@ -557,7 +557,7 @@ func (bs *BarkService) SendPaymentSync(invoice string, amountMsat *uint64) (*lnc
 	}
 	defer bs.clearInflightSend(paymentHash)
 
-	if _, err := bs.wallet.PayLightningInvoice(invoice, nil, false); err != nil {
+	if _, err := bs.wallet.PayLightningInvoice(invoice, nil, false, nil); err != nil {
 		return nil, fmt.Errorf("bark PayLightningInvoice failed: %w", err)
 	}
 
@@ -652,6 +652,10 @@ func (bs *BarkService) GetBalances(ctx context.Context, includeInactiveChannels 
 		return nil, err
 	}
 	spendableMsat := int64(balance.SpendableSats) * 1000
+	// Since bark 0.8.0, SpendableSats excludes VTXOs awaiting refresh. They are
+	// still the user's funds (maintenance refreshes them), so count them in the
+	// total but not in what can be sent right now.
+	totalMsat := spendableMsat + int64(balance.NeedsRefreshSats)*1000
 
 	return &lnclient.BalancesResponse{
 		Onchain: lnclient.OnchainBalanceResponse{
@@ -659,7 +663,7 @@ func (bs *BarkService) GetBalances(ctx context.Context, includeInactiveChannels 
 			PendingSweepBalancesDetails: []lnclient.PendingBalanceDetails{},
 		},
 		Lightning: lnclient.LightningBalanceResponse{
-			TotalSpendableMsat:      spendableMsat,
+			TotalSpendableMsat:      totalMsat,
 			NextMaxSpendableMsat:    spendableMsat,
 			NextMaxSpendableMPPMsat: spendableMsat,
 		},
