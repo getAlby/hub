@@ -66,12 +66,16 @@ func (svc *nip47Service) ConsumeEvent(ctx context.Context, event *events.Event, 
 	svc.nip47NotificationQueue.AddToQueue(event)
 }
 
+// attempts are at least 5s apart, so we give up after 5+ minutes
+const maxNotificationAttempts = 60
+
 // The notifier is decoupled from the notification queue
 // so that if Alby Hub disconnects from the relay, it will wait to reconnect
 // to send notifications rather than dropping them
 func (svc *nip47Service) StartNotifier(ctx context.Context, pool *nostr.SimplePool) {
 	nip47Notifier := notifications.NewNip47Notifier(pool, svc.db, svc.cfg, svc.keys, svc.permissionsService)
 	go func() {
+		failedAttempts := map[*events.Event]int{}
 		for {
 			select {
 			case <-ctx.Done():
@@ -82,10 +86,26 @@ func (svc *nip47Service) StartNotifier(ctx context.Context, pool *nostr.SimplePo
 				err := nip47Notifier.ConsumeEvent(ctx, event)
 				if err != nil {
 					logger.Logger.WithError(err).WithField("event", event).Error("Failed to consume event from notification queue")
+					failedAttempts[event]++
+					if failedAttempts[event] >= maxNotificationAttempts {
+						logger.Logger.WithField("event", event).Error("Giving up on notification event after max attempts")
+						delete(failedAttempts, event)
+						continue
+					}
 					// wait and then re-add the item to the queue
-					time.Sleep(5 * time.Second)
-					svc.nip47NotificationQueue.AddToQueue(event)
+					select {
+					case <-ctx.Done():
+						// app exited: keep the event for the next notifier
+						svc.nip47NotificationQueue.AddToQueue(event)
+						return
+					case <-time.After(5 * time.Second):
+					}
+					if !svc.nip47NotificationQueue.AddToQueue(event) {
+						delete(failedAttempts, event)
+					}
+					continue
 				}
+				delete(failedAttempts, event)
 			}
 		}
 	}()

@@ -7,7 +7,7 @@ import (
 
 type Nip47NotificationQueue interface {
 	Channel() <-chan *events.Event
-	AddToQueue(event *events.Event)
+	AddToQueue(event *events.Event) bool
 }
 
 type nip47NotificationQueue struct {
@@ -23,13 +23,15 @@ func NewNip47NotificationQueue() *nip47NotificationQueue {
 	}
 }
 
-func (q *nip47NotificationQueue) AddToQueue(event *events.Event) {
+func (q *nip47NotificationQueue) AddToQueue(event *events.Event) bool {
 	select {
 	case q.channel <- event: // Put in the channel unless it is full
 		// successfully sent to channel
+		return true
 	default:
 		// channel full
 		logger.Logger.WithField("event", event).Error("NIP47NotificationQueue channel full. Discarding value")
+		return false
 	}
 }
 

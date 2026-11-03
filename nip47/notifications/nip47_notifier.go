@@ -20,6 +20,8 @@ import (
 	"gorm.io/gorm"
 )
 
+var errPublishFailed = errors.New("failed to publish notification to all relays")
+
 type Nip47Notifier struct {
 	pool           nostrmodels.SimplePool
 	cfg            config.Config
@@ -51,7 +53,7 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 			Transaction: *models.ToNip47Transaction(transaction),
 		}
 
-		notifier.notifySubscribers(ctx, &Notification{
+		return notifier.notifySubscribers(ctx, &Notification{
 			Notification:     notification,
 			NotificationType: PAYMENT_RECEIVED_NOTIFICATION,
 		}, nostr.Tags{}, transaction.AppId)
@@ -67,7 +69,7 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 			Transaction: *models.ToNip47Transaction(transaction),
 		}
 
-		notifier.notifySubscribers(ctx, &Notification{
+		return notifier.notifySubscribers(ctx, &Notification{
 			Notification:     notification,
 			NotificationType: PAYMENT_SENT_NOTIFICATION,
 		}, nostr.Tags{}, transaction.AppId)
@@ -85,7 +87,7 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 			Transaction: *nip47Transaction,
 		}
 
-		notifier.notifySubscribers(ctx, &Notification{
+		return notifier.notifySubscribers(ctx, &Notification{
 			Notification:     notification,
 			NotificationType: HOLD_INVOICE_ACCEPTED_NOTIFICATION,
 		}, nostr.Tags{}, dbTransaction.AppId)
@@ -103,6 +105,8 @@ func (notifier *Nip47Notifier) notifySubscribers(ctx context.Context, notificati
 		return errors.New("failed to list apps")
 	}
 
+	published := false
+	publishFailed := false
 	for _, app := range apps {
 		if app.Isolated && (appId == nil || app.ID != *appId) {
 			continue
@@ -121,7 +125,7 @@ func (notifier *Nip47Notifier) notifySubscribers(ctx context.Context, notificati
 					"notification": notification,
 					"appId":        app.ID,
 				}).WithError(err).Error("error deriving child key")
-				return errors.New("failed to derive child key")
+				continue
 			}
 		}
 
@@ -131,19 +135,22 @@ func (notifier *Nip47Notifier) notifySubscribers(ctx context.Context, notificati
 				"notification": notification,
 				"appId":        app.ID,
 			}).WithError(err).Error("Failed to calculate app wallet pub key")
-			return errors.New("failed to calculate app wallet pubkey")
+			continue
 		}
 
-		err = notifier.notifySubscriber(ctx, &app, notification, tags, appWalletPubKey, appWalletPrivKey, constants.ENCRYPTION_TYPE_NIP04)
-		if err != nil {
-			logger.Logger.WithError(err).Error("failed to notify subscriber (NIP-04)")
-			return err
+		for _, encryption := range []string{constants.ENCRYPTION_TYPE_NIP04, constants.ENCRYPTION_TYPE_NIP44_V2} {
+			err = notifier.notifySubscriber(ctx, &app, notification, tags, appWalletPubKey, appWalletPrivKey, encryption)
+			if err == nil {
+				published = true
+			} else if errors.Is(err, errPublishFailed) {
+				publishFailed = true
+			}
 		}
-		err = notifier.notifySubscriber(ctx, &app, notification, tags, appWalletPubKey, appWalletPrivKey, constants.ENCRYPTION_TYPE_NIP44_V2)
-		if err != nil {
-			logger.Logger.WithError(err).Error("failed to notify subscriber (NIP-44)")
-			return err
-		}
+	}
+
+	// only retry if nothing was published (e.g. relays offline), otherwise apps that got it would get duplicates
+	if publishFailed && !published {
+		return errPublishFailed
 	}
 	return nil
 }
@@ -232,8 +239,8 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 			"notification": notification,
 			"appId":        app.ID,
 			"encryption":   encryption,
-		}).WithError(err).Error("Failed to publish notification")
-		return err
+		}).Error("Failed to publish notification")
+		return errPublishFailed
 	}
 	logger.Logger.WithFields(logrus.Fields{
 		"appId":      app.ID,
