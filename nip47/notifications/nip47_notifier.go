@@ -9,7 +9,6 @@ import (
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
-	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/cipher"
 	"github.com/getAlby/hub/nip47/models"
@@ -38,20 +37,23 @@ func NewNip47Notifier(pool nostrmodels.SimplePool, db *gorm.DB, cfg config.Confi
 	}
 }
 
-func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.Event) error {
+// ConsumeEvent sends the notification to the subscribed apps and returns
+// the deliveries that failed, so that only those are retried
+func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, queued *QueuedNotification) []*QueuedNotification {
+	event := queued.Event
 	switch event.Event {
 	case "nwc_payment_received":
 		transaction, ok := event.Properties.(*db.Transaction)
 		if !ok {
 			logger.Logger.WithField("event", event).Error("Failed to cast event")
-			return errors.New("failed to cast event")
+			return nil
 		}
 
 		notification := PaymentReceivedNotification{
 			Transaction: *models.ToNip47Transaction(transaction),
 		}
 
-		return notifier.notifySubscribers(ctx, &Notification{
+		return notifier.notifySubscribers(ctx, queued, &Notification{
 			Notification:     notification,
 			NotificationType: PAYMENT_RECEIVED_NOTIFICATION,
 		}, nostr.Tags{}, transaction.AppId)
@@ -60,14 +62,14 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 		transaction, ok := event.Properties.(*db.Transaction)
 		if !ok {
 			logger.Logger.WithField("event", event).Error("Failed to cast event")
-			return errors.New("failed to cast event")
+			return nil
 		}
 
 		notification := PaymentSentNotification{
 			Transaction: *models.ToNip47Transaction(transaction),
 		}
 
-		return notifier.notifySubscribers(ctx, &Notification{
+		return notifier.notifySubscribers(ctx, queued, &Notification{
 			Notification:     notification,
 			NotificationType: PAYMENT_SENT_NOTIFICATION,
 		}, nostr.Tags{}, transaction.AppId)
@@ -76,7 +78,7 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 		dbTransaction, ok := event.Properties.(*db.Transaction)
 		if !ok {
 			logger.Logger.WithField("event", event).Error("Failed to cast event properties to db.Transaction for hold invoice accepted")
-			return errors.New("failed to cast event")
+			return nil
 		}
 
 		nip47Transaction := models.ToNip47Transaction(dbTransaction)
@@ -85,7 +87,7 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 			Transaction: *nip47Transaction,
 		}
 
-		return notifier.notifySubscribers(ctx, &Notification{
+		return notifier.notifySubscribers(ctx, queued, &Notification{
 			Notification:     notification,
 			NotificationType: HOLD_INVOICE_ACCEPTED_NOTIFICATION,
 		}, nostr.Tags{}, dbTransaction.AppId)
@@ -93,14 +95,28 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 	return nil
 }
 
-func (notifier *Nip47Notifier) notifySubscribers(ctx context.Context, notification *Notification, tags nostr.Tags, appId *uint) error {
+func (notifier *Nip47Notifier) notifySubscribers(ctx context.Context, queued *QueuedNotification, notification *Notification, tags nostr.Tags, appId *uint) []*QueuedNotification {
 	apps := []db.App{}
 
 	// TODO: join apps and permissions
-	err := notifier.db.Find(&apps).Error
+	query := notifier.db
+	if queued.AppId != nil {
+		query = query.Where("id = ?", *queued.AppId)
+	}
+	err := query.Find(&apps).Error
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to list apps")
-		return errors.New("failed to list apps")
+		return []*QueuedNotification{queued}
+	}
+
+	var failed []*QueuedNotification
+	retryForApp := func(appId uint, encryption string) {
+		failed = append(failed, &QueuedNotification{
+			Event:      queued.Event,
+			AppId:      &appId,
+			Encryption: encryption,
+			Attempt:    queued.Attempt,
+		})
 	}
 
 	for _, app := range apps {
@@ -121,7 +137,8 @@ func (notifier *Nip47Notifier) notifySubscribers(ctx context.Context, notificati
 					"notification": notification,
 					"appId":        app.ID,
 				}).WithError(err).Error("error deriving child key")
-				return errors.New("failed to derive child key")
+				retryForApp(app.ID, queued.Encryption)
+				continue
 			}
 		}
 
@@ -131,21 +148,22 @@ func (notifier *Nip47Notifier) notifySubscribers(ctx context.Context, notificati
 				"notification": notification,
 				"appId":        app.ID,
 			}).WithError(err).Error("Failed to calculate app wallet pub key")
-			return errors.New("failed to calculate app wallet pubkey")
+			retryForApp(app.ID, queued.Encryption)
+			continue
 		}
 
-		err = notifier.notifySubscriber(ctx, &app, notification, tags, appWalletPubKey, appWalletPrivKey, constants.ENCRYPTION_TYPE_NIP04)
-		if err != nil {
-			logger.Logger.WithError(err).Error("failed to notify subscriber (NIP-04)")
-			return err
-		}
-		err = notifier.notifySubscriber(ctx, &app, notification, tags, appWalletPubKey, appWalletPrivKey, constants.ENCRYPTION_TYPE_NIP44_V2)
-		if err != nil {
-			logger.Logger.WithError(err).Error("failed to notify subscriber (NIP-44)")
-			return err
+		for _, encryption := range []string{constants.ENCRYPTION_TYPE_NIP04, constants.ENCRYPTION_TYPE_NIP44_V2} {
+			if queued.Encryption != "" && queued.Encryption != encryption {
+				continue
+			}
+			err = notifier.notifySubscriber(ctx, &app, notification, tags, appWalletPubKey, appWalletPrivKey, encryption)
+			if err != nil {
+				logger.Logger.WithError(err).WithField("encryption", encryption).Error("failed to notify subscriber")
+				retryForApp(app.ID, encryption)
+			}
 		}
 	}
-	return nil
+	return failed
 }
 
 func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App, notification *Notification, tags nostr.Tags, appWalletPubKey, appWalletPrivKey string, encryption string) error {

@@ -63,7 +63,7 @@ func NewNip47Service(db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublis
 }
 
 func (svc *nip47Service) ConsumeEvent(ctx context.Context, event *events.Event, globalProperties map[string]interface{}) {
-	svc.nip47NotificationQueue.AddToQueue(event)
+	svc.nip47NotificationQueue.AddToQueue(&notifications.QueuedNotification{Event: event})
 }
 
 // The notifier is decoupled from the notification queue
@@ -77,17 +77,33 @@ func (svc *nip47Service) StartNotifier(ctx context.Context, pool *nostr.SimplePo
 			case <-ctx.Done():
 				// app exited
 				return
-			case event := <-svc.nip47NotificationQueue.Channel():
-				logger.Logger.WithField("event", event).Debug("Consuming event from notification queue")
-				err := nip47Notifier.ConsumeEvent(ctx, event)
-				if err != nil {
-					logger.Logger.WithError(err).WithField("event", event).Error("Failed to consume event from notification queue")
-					// wait and then re-add the item to the queue
-					time.Sleep(5 * time.Second)
-					svc.nip47NotificationQueue.AddToQueue(event)
+			case queued := <-svc.nip47NotificationQueue.Channel():
+				logger.Logger.WithField("event", queued.Event).Debug("Consuming event from notification queue")
+				for _, failed := range nip47Notifier.ConsumeEvent(ctx, queued) {
+					svc.retryNotification(failed)
 				}
 			}
 		}
+	}()
+}
+
+const maxNotificationAttempts = 3
+
+// re-queues a failed notification delivery with a linear backoff (5s, then 10s)
+// done async so that a failing delivery does not delay other notifications
+func (svc *nip47Service) retryNotification(failed *notifications.QueuedNotification) {
+	failed.Attempt++
+	if failed.Attempt >= maxNotificationAttempts {
+		logger.Logger.WithFields(logrus.Fields{
+			"event":      failed.Event,
+			"app_id":     failed.AppId,
+			"encryption": failed.Encryption,
+		}).Error("Giving up on notification after max attempts")
+		return
+	}
+	go func() {
+		time.Sleep(5 * time.Duration(failed.Attempt) * time.Second)
+		svc.nip47NotificationQueue.AddToQueue(failed)
 	}()
 }
 

@@ -3,6 +3,7 @@ package notifications
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"testing"
 	"time"
 
@@ -14,7 +15,9 @@ import (
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/nip47/models"
 	"github.com/getAlby/hub/nip47/permissions"
+	nostrmodels "github.com/getAlby/hub/nostr/models"
 	"github.com/getAlby/hub/tests"
 )
 
@@ -29,7 +32,7 @@ func NewMockConsumer(nip47NotificationQueue Nip47NotificationQueue) *mockConsume
 }
 
 func (svc *mockConsumer) ConsumeEvent(ctx context.Context, event *events.Event, globalProperties map[string]interface{}) {
-	svc.nip47NotificationQueue.AddToQueue(event)
+	svc.nip47NotificationQueue.AddToQueue(&QueuedNotification{Event: event})
 }
 
 func doTestSendNotificationPaymentReceived(t *testing.T, svc *tests.TestService, createAppFn tests.CreateAppFn, nip47Encryption string) {
@@ -74,7 +77,7 @@ func doTestSendNotificationPaymentReceived(t *testing.T, svc *tests.TestService,
 	svc.EventPublisher.Publish(testEvent)
 
 	receivedEvent := <-nip47NotificationQueue.Channel()
-	assert.Equal(t, testEvent, receivedEvent)
+	assert.Equal(t, testEvent, receivedEvent.Event)
 
 	pool := tests.NewMockSimplePool()
 
@@ -188,7 +191,7 @@ func doTestSendNotificationPaymentSent(t *testing.T, svc *tests.TestService, cre
 	svc.EventPublisher.Publish(testEvent)
 
 	receivedEvent := <-nip47NotificationQueue.Channel()
-	assert.Equal(t, testEvent, receivedEvent)
+	assert.Equal(t, testEvent, receivedEvent.Event)
 
 	pool := tests.NewMockSimplePool()
 
@@ -281,7 +284,7 @@ func doTestSendNotificationNoPermission(t *testing.T, svc *tests.TestService) {
 	svc.EventPublisher.Publish(testEvent)
 
 	receivedEvent := <-nip47NotificationQueue.Channel()
-	assert.Equal(t, testEvent, receivedEvent)
+	assert.Equal(t, testEvent, receivedEvent.Event)
 
 	pool := tests.NewMockSimplePool()
 
@@ -309,4 +312,64 @@ func TestSendNotification_SharedWalletPubkey_NoPermission(t *testing.T) {
 	_, _, err = tests.CreateAppWithSharedWalletPubkey(svc, nostr.GeneratePrivateKey(), constants.ENCRYPTION_TYPE_NIP44_V2)
 	assert.NoError(t, err)
 	doTestSendNotificationNoPermission(t, svc)
+}
+
+// rejects every event addressed to the given app pubkey
+type rejectingPool struct {
+	nostrmodels.SimplePool // for QuerySingle
+	rejectAppPubkey        string
+	PublishedEvents        []*nostr.Event
+}
+
+func (pool *rejectingPool) PublishMany(ctx context.Context, relayUrls []string, event nostr.Event) chan nostr.PublishResult {
+	pool.PublishedEvents = append(pool.PublishedEvents, &event)
+	result := nostr.PublishResult{RelayURL: "wss://fakerelay.com"}
+	if event.Tags.GetFirst([]string{"p", pool.rejectAppPubkey}) != nil {
+		result.Error = errors.New("rate limited")
+	}
+	channel := make(chan nostr.PublishResult, 1)
+	channel <- result
+	close(channel)
+	return channel
+}
+
+func TestSendNotification_RetriesOnlyFailedApp(t *testing.T) {
+	ctx := context.TODO()
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	okApp, _, err := tests.CreateAppWithPrivateKey(svc, nostr.GeneratePrivateKey(), constants.ENCRYPTION_TYPE_NIP44_V2)
+	require.NoError(t, err)
+	failingApp, _, err := tests.CreateAppWithPrivateKey(svc, nostr.GeneratePrivateKey(), constants.ENCRYPTION_TYPE_NIP44_V2)
+	require.NoError(t, err)
+	for _, app := range []*db.App{okApp, failingApp} {
+		require.NoError(t, svc.DB.Create(&db.AppPermission{AppId: app.ID, App: *app, Scope: constants.NOTIFICATIONS_SCOPE}).Error)
+	}
+
+	queued := &QueuedNotification{Event: &events.Event{
+		Event:      "nwc_payment_received",
+		Properties: &db.Transaction{PaymentHash: tests.MockLNClientTransaction.PaymentHash},
+	}}
+
+	pool := &rejectingPool{SimplePool: tests.NewMockSimplePool(), rejectAppPubkey: failingApp.AppPubkey}
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	notifier := NewNip47Notifier(pool, svc.DB, svc.Cfg, svc.Keys, permissionsSvc)
+
+	failed := notifier.ConsumeEvent(ctx, queued)
+	assert.Len(t, pool.PublishedEvents, 4) // 2 apps x 2 encryptions
+	require.Len(t, failed, 2)
+	for _, f := range failed {
+		assert.Equal(t, failingApp.ID, *f.AppId)
+	}
+	assert.Equal(t, constants.ENCRYPTION_TYPE_NIP04, failed[0].Encryption)
+	assert.Equal(t, constants.ENCRYPTION_TYPE_NIP44_V2, failed[1].Encryption)
+
+	// the relay accepts the event again: the retry only goes to the failed app and encryption
+	pool.rejectAppPubkey = okApp.AppPubkey // no longer rejects failingApp
+	pool.PublishedEvents = nil
+	assert.Empty(t, notifier.ConsumeEvent(ctx, failed[1]))
+	require.Len(t, pool.PublishedEvents, 1)
+	assert.Equal(t, failingApp.AppPubkey, pool.PublishedEvents[0].Tags.GetFirst([]string{"p"}).Value())
+	assert.Equal(t, models.NOTIFICATION_KIND, pool.PublishedEvents[0].Kind)
 }
