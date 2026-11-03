@@ -31,6 +31,7 @@ import nostrudel from "src/assets/suggested-apps/nostrudel.png";
 import nostter from "src/assets/suggested-apps/nostter.png";
 import nostur from "src/assets/suggested-apps/nostur.png";
 import payperq from "src/assets/suggested-apps/payperq.png";
+import podtunes from "src/assets/suggested-apps/podtunes.png";
 import primal from "src/assets/suggested-apps/primal.png";
 import pullthatupjamie from "src/assets/suggested-apps/pullthatupjamie.png";
 import runstr from "src/assets/suggested-apps/runstr.png";
@@ -1262,6 +1263,39 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["audio"],
+    },
+    {
+      id: "podtunes",
+      title: "podtunes",
+      description: "Value-for-value music player",
+      webLink: "https://podtunes.app",
+      zapStoreLink: "https://zapstore.dev/apps/app.podtunes",
+      logo: podtunes,
+      extendedDescription:
+        "Listen to independent music from Podcasting 2.0 feeds, boost artists with one tap and stream sats for every minute you listen",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <span className="font-medium text-foreground">podtunes.app</span> in
+            your browser or install the Android app from Zapstore
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In podtunes</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>Tap the Boost button on any release</li>
+              <li>Choose "Connect your wallet" {"->"} "Other wallet (NWC)"</li>
+              <li>Paste the connection secret from Alby Hub</li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["audio"],
+      addedDate: "2026-10-15",
     },
     {
       id: "wavespace",
