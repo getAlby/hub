@@ -51,7 +51,7 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 			Transaction: *models.ToNip47Transaction(transaction),
 		}
 
-		notifier.notifySubscribers(ctx, &Notification{
+		return notifier.notifySubscribers(ctx, &Notification{
 			Notification:     notification,
 			NotificationType: PAYMENT_RECEIVED_NOTIFICATION,
 		}, nostr.Tags{}, transaction.AppId)
@@ -67,7 +67,7 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 			Transaction: *models.ToNip47Transaction(transaction),
 		}
 
-		notifier.notifySubscribers(ctx, &Notification{
+		return notifier.notifySubscribers(ctx, &Notification{
 			Notification:     notification,
 			NotificationType: PAYMENT_SENT_NOTIFICATION,
 		}, nostr.Tags{}, transaction.AppId)
@@ -85,7 +85,7 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 			Transaction: *nip47Transaction,
 		}
 
-		notifier.notifySubscribers(ctx, &Notification{
+		return notifier.notifySubscribers(ctx, &Notification{
 			Notification:     notification,
 			NotificationType: HOLD_INVOICE_ACCEPTED_NOTIFICATION,
 		}, nostr.Tags{}, dbTransaction.AppId)
@@ -232,8 +232,8 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 			"notification": notification,
 			"appId":        app.ID,
 			"encryption":   encryption,
-		}).WithError(err).Error("Failed to publish notification")
-		return err
+		}).Error("Failed to publish notification")
+		return errors.New("failed to publish notification to any relay")
 	}
 	logger.Logger.WithFields(logrus.Fields{
 		"appId":      app.ID,
