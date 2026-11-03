@@ -22,6 +22,9 @@ on:
       APPLE_USERNAME:
         required: true
 
+permissions:
+  contents: read
+
 jobs:
   build:
     strategy:
@@ -62,6 +65,7 @@ jobs:
         name: Check out code
         with:
           submodules: recursive
+          persist-credentials: false
 
       - name: Install Linux dependencies
         if: runner.os == 'Linux'
