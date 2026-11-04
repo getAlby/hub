@@ -265,6 +265,12 @@ func (svc *swapsService) EnableAutoSwapOut(encryptionKey string) error {
 }
 
 func (svc *swapsService) SwapOut(amountSat uint64, destination string, autoSwap, usedXpubDerivation bool) (*SwapResponse, error) {
+	if destination != "" {
+		if err := svc.ValidateAddress(destination); err != nil {
+			return nil, fmt.Errorf("swap-out address validation failed: %w", err)
+		}
+	}
+
 	if err := svc.checkSwapProvider(); err != nil {
 		return nil, err
 	}
@@ -680,6 +686,12 @@ func (svc *swapsService) markSwapState(dbSwap *db.Swap, state string) {
 }
 
 func (svc *swapsService) RefundSwap(swapId, address string, enableRetries bool) error {
+	if address != "" {
+		if err := svc.ValidateAddress(address); err != nil {
+			return fmt.Errorf("refund address validation failed: %w", err)
+		}
+	}
+
 	var swap db.Swap
 	query := svc.db.Limit(1).Find(&swap, &db.Swap{
 		SwapId: swapId,
@@ -1616,9 +1628,14 @@ func (svc *swapsService) ValidateAddress(address string) error {
 		return err
 	}
 
-	_, err = btcutil.DecodeAddress(address, netParams)
+	decodedAddress, err := btcutil.DecodeAddress(address, netParams)
 	if err != nil {
 		return fmt.Errorf("invalid bitcoin address: %w", err)
+	}
+
+	// DecodeAddress also accepts raw public keys and segwit addresses of any network
+	if _, isPubKey := decodedAddress.(*btcutil.AddressPubKey); isPubKey || !decodedAddress.IsForNet(netParams) {
+		return fmt.Errorf("invalid bitcoin address: not a %s address", netParams.Name)
 	}
 
 	return nil
