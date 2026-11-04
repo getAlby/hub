@@ -3,6 +3,7 @@ package notifications
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"testing"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/nip47/permissions"
+	nostrmodels "github.com/getAlby/hub/nostr/models"
 	"github.com/getAlby/hub/tests"
 )
 
@@ -309,4 +311,53 @@ func TestSendNotification_SharedWalletPubkey_NoPermission(t *testing.T) {
 	_, _, err = tests.CreateAppWithSharedWalletPubkey(svc, nostr.GeneratePrivateKey(), constants.ENCRYPTION_TYPE_NIP44_V2)
 	assert.NoError(t, err)
 	doTestSendNotificationNoPermission(t, svc)
+}
+
+// rejects every event addressed to the given app pubkey
+type rejectingPool struct {
+	nostrmodels.SimplePool // for QuerySingle
+	rejectAppPubkey        string
+	PublishedEvents        []*nostr.Event
+}
+
+func (pool *rejectingPool) PublishMany(ctx context.Context, relayUrls []string, event nostr.Event) chan nostr.PublishResult {
+	pool.PublishedEvents = append(pool.PublishedEvents, &event)
+	result := nostr.PublishResult{RelayURL: "wss://fakerelay.com"}
+	if event.Tags.GetFirst([]string{"p", pool.rejectAppPubkey}) != nil {
+		result.Error = errors.New("rate limited")
+	}
+	channel := make(chan nostr.PublishResult, 1)
+	channel <- result
+	close(channel)
+	return channel
+}
+
+func TestSendNotification_ContinuesAfterPublishFailure(t *testing.T) {
+	ctx := context.TODO()
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	failingApp, _, err := tests.CreateAppWithPrivateKey(svc, nostr.GeneratePrivateKey(), constants.ENCRYPTION_TYPE_NIP44_V2)
+	require.NoError(t, err)
+	otherApp, _, err := tests.CreateAppWithPrivateKey(svc, nostr.GeneratePrivateKey(), constants.ENCRYPTION_TYPE_NIP44_V2)
+	require.NoError(t, err)
+	for _, app := range []*db.App{failingApp, otherApp} {
+		require.NoError(t, svc.DB.Create(&db.AppPermission{AppId: app.ID, App: *app, Scope: constants.NOTIFICATIONS_SCOPE}).Error)
+	}
+
+	pool := &rejectingPool{SimplePool: tests.NewMockSimplePool(), rejectAppPubkey: failingApp.AppPubkey}
+	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
+	notifier := NewNip47Notifier(pool, svc.DB, svc.Cfg, svc.Keys, permissionsSvc)
+
+	notifier.ConsumeEvent(ctx, &events.Event{
+		Event:      "nwc_payment_received",
+		Properties: &db.Transaction{PaymentHash: tests.MockLNClientTransaction.PaymentHash},
+	})
+
+	// both encryptions were attempted for both apps, the other app is still notified
+	require.Len(t, pool.PublishedEvents, 4)
+	for i, appPubkey := range []string{failingApp.AppPubkey, failingApp.AppPubkey, otherApp.AppPubkey, otherApp.AppPubkey} {
+		assert.Equal(t, appPubkey, pool.PublishedEvents[i].Tags.GetFirst([]string{"p"}).Value())
+	}
 }
