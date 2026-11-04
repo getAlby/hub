@@ -78,10 +78,10 @@ func (svc *nip47Service) StartNotifier(ctx context.Context, pool *nostr.SimplePo
 				// app exited
 				return
 			case event := <-svc.nip47NotificationQueue.Channel():
-				logger.Logger.WithField("event", event).Debug("Consuming event from notification queue")
+				logger.Logger.WithFields(notifications.EventLogFields(event)).Debug("Consuming event from notification queue")
 				err := nip47Notifier.ConsumeEvent(ctx, event)
 				if err != nil {
-					logger.Logger.WithError(err).WithField("event", event).Error("Failed to consume event from notification queue")
+					logger.Logger.WithError(err).WithFields(notifications.EventLogFields(event)).Error("Failed to consume event from notification queue")
 				}
 			}
 		}
