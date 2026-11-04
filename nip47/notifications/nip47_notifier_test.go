@@ -332,7 +332,7 @@ func (pool *rejectingPool) PublishMany(ctx context.Context, relayUrls []string, 
 	return channel
 }
 
-func TestSendNotification_StopsOnPublishFailure(t *testing.T) {
+func TestSendNotification_ContinuesAfterPublishFailure(t *testing.T) {
 	ctx := context.TODO()
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
@@ -350,13 +350,14 @@ func TestSendNotification_StopsOnPublishFailure(t *testing.T) {
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
 	notifier := NewNip47Notifier(pool, svc.DB, svc.Cfg, svc.Keys, permissionsSvc)
 
-	err = notifier.ConsumeEvent(ctx, &events.Event{
+	notifier.ConsumeEvent(ctx, &events.Event{
 		Event:      "nwc_payment_received",
 		Properties: &db.Transaction{PaymentHash: tests.MockLNClientTransaction.PaymentHash},
 	})
-	require.ErrorContains(t, err, "rate limited")
 
-	// only the first (NIP-04) publish to the failing app was attempted
-	require.Len(t, pool.PublishedEvents, 1)
-	assert.Equal(t, failingApp.AppPubkey, pool.PublishedEvents[0].Tags.GetFirst([]string{"p"}).Value())
+	// both encryptions were attempted for both apps, the other app is still notified
+	require.Len(t, pool.PublishedEvents, 4)
+	for i, appPubkey := range []string{failingApp.AppPubkey, failingApp.AppPubkey, otherApp.AppPubkey, otherApp.AppPubkey} {
+		assert.Equal(t, appPubkey, pool.PublishedEvents[i].Tags.GetFirst([]string{"p"}).Value())
+	}
 }
