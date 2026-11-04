@@ -2382,7 +2382,10 @@ func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amount uin
 	paymentHash := ""
 
 	for start := time.Now(); time.Since(start) < time.Second*60; {
-		event := <-ldkEventSubscription
+		event, ok := <-ldkEventSubscription
+		if !ok {
+			return nil, errors.New("LDK event subscription closed (node shutting down)")
+		}
 
 		eventPaymentSuccessful, isEventPaymentSuccessfulEvent := (*event).(ldk_node.EventPaymentSuccessful)
 		eventPaymentFailed, isEventPaymentFailedEvent := (*event).(ldk_node.EventPaymentFailed)

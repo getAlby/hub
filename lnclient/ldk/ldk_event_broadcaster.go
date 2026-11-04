@@ -26,6 +26,7 @@ type ldkEventBroadcastServer struct {
 	listeners      []chan *ldk_node.Event
 	addListener    chan chan *ldk_node.Event
 	removeListener chan (<-chan *ldk_node.Event)
+	done           <-chan struct{}
 }
 
 type LDKEventBroadcaster interface {
@@ -39,6 +40,7 @@ func NewLDKEventBroadcaster(ctx context.Context, source <-chan *ldk_node.Event) 
 		listeners:      make([]chan *ldk_node.Event, 0),
 		addListener:    make(chan chan *ldk_node.Event),
 		removeListener: make(chan (<-chan *ldk_node.Event)),
+		done:           ctx.Done(),
 	}
 	go service.serve(ctx)
 	return service
@@ -47,7 +49,12 @@ func NewLDKEventBroadcaster(ctx context.Context, source <-chan *ldk_node.Event) 
 func (s *ldkEventBroadcastServer) Subscribe() chan *ldk_node.Event {
 	// create a new listener channel and mark it to be added to the listeners array
 	newListener := make(chan *ldk_node.Event)
-	s.addListener <- newListener
+	select {
+	case s.addListener <- newListener:
+	case <-s.done:
+		// already shut down - return a closed channel like serve() does
+		close(newListener)
+	}
 	return newListener
 }
 
@@ -62,7 +69,10 @@ func (s *ldkEventBroadcastServer) CancelSubscription(channel chan *ldk_node.Even
 		close(channel)
 	}()
 	// mark the channel to be removed from the listeners array
-	s.removeListener <- channel
+	select {
+	case s.removeListener <- channel:
+	case <-s.done:
+	}
 }
 
 func (s *ldkEventBroadcastServer) serve(ctx context.Context) {
