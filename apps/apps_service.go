@@ -90,8 +90,9 @@ func (svc *appsService) CreateApp(name string, pubkey string, maxAmountSat uint6
 	} else {
 		pairingPublicKey = pubkey
 		// must be a valid key on the curve, otherwise requests from and
-		// notifications to the app can never be encrypted or decrypted
-		if !nostr.IsValidPublicKey(pairingPublicKey) {
+		// notifications to the app can never be encrypted or decrypted.
+		// IsValidPublicKey ignores trailing characters, so check the length too
+		if len(pairingPublicKey) != 64 || !nostr.IsValidPublicKey(pairingPublicKey) {
 			logger.Logger.WithField("pairingPublicKey", pairingPublicKey).Error("Invalid public key format")
 			return nil, "", fmt.Errorf("invalid public key format: %s", pairingPublicKey)
 		}

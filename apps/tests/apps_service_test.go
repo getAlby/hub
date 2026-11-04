@@ -71,6 +71,7 @@ func TestHandleCreateApp_InvalidPubkey(t *testing.T) {
 		strings.Repeat("aa", 31),        // too short
 		strings.Repeat("ff", 32),        // valid hex but not a point on the curve
 		strings.ToUpper(validPubkey(t)), // nostr pubkeys are lowercase
+		validPubkey(t) + "a",            // too long: the extra character must not be ignored
 	} {
 		app, _, err := appsService.CreateApp("Test", pubkey, 0, "monthly", nil, []string{constants.GET_INFO_SCOPE}, false, nil)
 		assert.Nil(t, app, pubkey)
