@@ -1,7 +1,6 @@
 package apps
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -90,9 +89,10 @@ func (svc *appsService) CreateApp(name string, pubkey string, maxAmountSat uint6
 		}
 	} else {
 		pairingPublicKey = pubkey
-		//validate public key
-		decoded, err := hex.DecodeString(pairingPublicKey)
-		if err != nil || len(decoded) != 32 {
+		// must be a valid key on the curve, otherwise requests from and
+		// notifications to the app can never be encrypted or decrypted.
+		// IsValidPublicKey ignores trailing characters, so check the length too
+		if len(pairingPublicKey) != 64 || !nostr.IsValidPublicKey(pairingPublicKey) {
 			logger.Logger.WithField("pairingPublicKey", pairingPublicKey).Error("Invalid public key format")
 			return nil, "", fmt.Errorf("invalid public key format: %s", pairingPublicKey)
 		}
