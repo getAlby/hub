@@ -66,9 +66,9 @@ func (svc *nip47Service) ConsumeEvent(ctx context.Context, event *events.Event, 
 	svc.nip47NotificationQueue.AddToQueue(event)
 }
 
-// The notifier is decoupled from the notification queue
-// so that if Alby Hub disconnects from the relay, it will wait to reconnect
-// to send notifications rather than dropping them
+// Consumes events from the notification queue and notifies subscribed apps.
+// Failed notifications are logged and dropped, not retried
+// (see https://github.com/getAlby/hub/issues/2678)
 func (svc *nip47Service) StartNotifier(ctx context.Context, pool *nostr.SimplePool) {
 	nip47Notifier := notifications.NewNip47Notifier(pool, svc.db, svc.cfg, svc.keys, svc.permissionsService)
 	go func() {
@@ -79,7 +79,6 @@ func (svc *nip47Service) StartNotifier(ctx context.Context, pool *nostr.SimplePo
 				return
 			case event := <-svc.nip47NotificationQueue.Channel():
 				logger.Logger.WithField("event", event).Debug("Consuming event from notification queue")
-				// notifications are not retried, to avoid retry loops
 				err := nip47Notifier.ConsumeEvent(ctx, event)
 				if err != nil {
 					logger.Logger.WithError(err).WithField("event", event).Error("Failed to consume event from notification queue")
