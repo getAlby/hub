@@ -3,6 +3,7 @@ package nip47
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"slices"
 	"testing"
 	"time"
@@ -17,6 +18,7 @@ import (
 	"github.com/getAlby/hub/nip47/cipher"
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/getAlby/hub/nip47/permissions"
+	nostrmodels "github.com/getAlby/hub/nostr/models"
 	"github.com/getAlby/hub/tests"
 )
 
@@ -665,4 +667,57 @@ func doTestHandleResponse_EncryptionTagDoesNotMatchPayload(t *testing.T, svc *te
 	// assert.Equal(t, models.GET_INFO_METHOD, unmarshalledResponse.ResultType)
 	assert.Equal(t, constants.ERROR_BAD_REQUEST, unmarshalledResponse.Error.Code)
 	assert.Contains(t, unmarshalledResponse.Error.Message, "failed to decrypt:")
+}
+
+// no relay accepts any published event
+type failingPool struct {
+	nostrmodels.SimplePool // for QuerySingle
+}
+
+func (pool *failingPool) PublishMany(ctx context.Context, relayUrls []string, event nostr.Event) chan nostr.PublishResult {
+	channel := make(chan nostr.PublishResult, 1)
+	channel <- nostr.PublishResult{RelayURL: "wss://fakerelay.com", Error: errors.New("connection closed before receiving an OK")}
+	close(channel)
+	return channel
+}
+
+func TestHandleResponse_PublishFailed(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	albyOAuthSvc := alby.NewAlbyOAuthService(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
+	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher, albyOAuthSvc)
+
+	reqPrivateKey := nostr.GeneratePrivateKey()
+	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
+	require.NoError(t, err)
+
+	app, cipher, err := tests.CreateAppWithPrivateKey(svc, reqPrivateKey, constants.ENCRYPTION_TYPE_NIP44_V2)
+	require.NoError(t, err)
+
+	payloadBytes, err := json.Marshal(map[string]interface{}{"method": models.GET_INFO_METHOD})
+	require.NoError(t, err)
+	msg, err := cipher.Encrypt(string(payloadBytes))
+	require.NoError(t, err)
+
+	reqEvent := &nostr.Event{
+		Kind:      models.REQUEST_KIND,
+		PubKey:    reqPubkey,
+		CreatedAt: nostr.Now(),
+		Tags:      nostr.Tags{[]string{"encryption", constants.ENCRYPTION_TYPE_NIP44_V2}},
+		Content:   msg,
+	}
+	require.NoError(t, reqEvent.Sign(reqPrivateKey))
+
+	nip47svc.HandleEvent(context.TODO(), &failingPool{SimplePool: tests.NewMockSimplePool()}, reqEvent, svc.LNClient)
+
+	requestEvent := db.RequestEvent{}
+	require.NoError(t, svc.DB.First(&requestEvent, &db.RequestEvent{NostrId: reqEvent.ID}).Error)
+	assert.Equal(t, app.ID, *requestEvent.AppId)
+	assert.Equal(t, db.REQUEST_EVENT_STATE_HANDLER_ERROR, requestEvent.State)
+
+	responseEvent := db.ResponseEvent{}
+	require.NoError(t, svc.DB.First(&responseEvent, &db.ResponseEvent{RequestId: requestEvent.ID}).Error)
+	assert.Equal(t, db.RESPONSE_EVENT_STATE_PUBLISH_FAILED, responseEvent.State)
 }
