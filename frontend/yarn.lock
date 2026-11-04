@@ -1000,10 +1000,10 @@
     tinyexec "^1.0.0"
     yargs "^18.0.0"
 
-"@commitlint/config-conventional@^21.2.0", "@commitlint/config-conventional@^21.2.3":
-  version "21.2.3"
-  resolved "https://registry.yarnpkg.com/@commitlint/config-conventional/-/config-conventional-21.2.3.tgz#ae8a53f6671245ad0d55698b17c711d0b7e705d8"
-  integrity sha512-EP2n5DN2GwRWNVrLX0Jx3mpQlW5PfFi9HnD9OJ8hN/H0xFqpCFyHeGDhg+0P8/21iMMcdkcQgbNqmVklebqYsQ==
+"@commitlint/config-conventional@^21.2.3", "@commitlint/config-conventional@^21.2.4":
+  version "21.2.4"
+  resolved "https://registry.yarnpkg.com/@commitlint/config-conventional/-/config-conventional-21.2.4.tgz#e2cce5e957f3891290efe629206c6c4718ef685b"
+  integrity sha512-IRldtwgNmR0SySR7wizFbhRmq45lPt6H3XCNTMyVN7jrPLgi8JlTRR6Eg1HLWUQt9P1Lh3k6eY25ilDa47EE6w==
   dependencies:
     "@commitlint/types" "^21.2.3"
     conventional-changelog-conventionalcommits "^10.0.0"
