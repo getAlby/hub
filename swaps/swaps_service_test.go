@@ -122,6 +122,9 @@ func TestValidateAddress(t *testing.T) {
 		{"node public key", "bitcoin", "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798", "not a mainnet address"},
 		{"BIP21 URI", "bitcoin", "bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?amount=0.001", "invalid bitcoin address"},
 		{"signet address on signet", "signet", "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx", ""},
+		{"regtest address on regtest", "regtest", "bcrt1qw508d6qejxtdg4y5r3zarvary0c5xw7kygt080", ""},
+		{"mainnet address on regtest", "regtest", "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", "not a regtest address"},
+		{"regtest address on mainnet", "bitcoin", "bcrt1qw508d6qejxtdg4y5r3zarvary0c5xw7kygt080", "not a mainnet address"},
 	}
 
 	for _, tt := range tests {
