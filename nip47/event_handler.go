@@ -338,8 +338,8 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, pool nostrmodels.Simpl
 			publishResponse(&models.Response{
 				ResultType: nip47Request.Method,
 				Error: &models.Error{
-					Code:    constants.ERROR_INTERNAL,
-					Message: err.Error(),
+					Code:    constants.ERROR_NOT_IMPLEMENTED,
+					Message: fmt.Sprintf("Unknown method: %s", nip47Request.Method),
 				},
 			}, nostr.Tags{})
 			return
