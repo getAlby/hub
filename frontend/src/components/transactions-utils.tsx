@@ -1,4 +1,5 @@
 import { toast } from "sonner";
+import { asStringRecord } from "src/lib/utils";
 import { ListTransactionsResponse, Transaction } from "src/types";
 import { request } from "src/utils/request";
 
@@ -24,7 +25,7 @@ export const convertToCSV = (transactions: Transaction[]) => {
   const userLabelKeys = Array.from(
     new Set(
       transactions.flatMap((tx) =>
-        tx.metadata?.user_labels ? Object.keys(tx.metadata.user_labels) : []
+        Object.keys(asStringRecord(tx.metadata?.user_labels))
       )
     )
   ).sort();
@@ -47,8 +48,8 @@ export const convertToCSV = (transactions: Transaction[]) => {
         return escapeCsvCell(stringValue);
       }),
       ...userLabelKeys.map((key) => {
-        const value = tx.metadata?.user_labels?.[key];
-        if (value === undefined || value === null) {
+        const value = asStringRecord(tx.metadata?.user_labels)[key];
+        if (value === undefined) {
           return "";
         }
         return escapeCsvCell(value);

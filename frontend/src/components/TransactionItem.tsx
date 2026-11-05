@@ -31,7 +31,7 @@ import {
 } from "src/components/ui/dialog";
 import { useApp } from "src/hooks/useApp";
 import { useSwap } from "src/hooks/useSwaps";
-import { cn, getAppDisplayName } from "src/lib/utils";
+import { asString, asStringRecord, cn, getAppDisplayName } from "src/lib/utils";
 import { Transaction } from "src/types";
 
 dayjs.extend(relativeTime);
@@ -62,20 +62,20 @@ function safeNeventEncode(id: string): string | undefined {
 
 function TransactionItem({ tx, transactionListKey }: Props) {
   const { data: app } = useApp(tx.appId);
-  const swapId = tx.metadata?.swap_id;
+  const swapId = asString(tx.metadata?.swap_id);
   const { data: swap } = useSwap(swapId);
   const swapAddress =
     swap?.type === "out" ? swap.destinationAddress : swap?.lockupAddress;
   const [showDetails, setShowDetails] = React.useState(false);
-  const labels = tx.metadata?.user_labels ?? {};
+  const labels = asStringRecord(tx.metadata?.user_labels);
   const labelEntries = Object.entries(labels);
   const type = tx.type;
   const updatedAt = dayjs(tx.updatedAt).local();
 
-  const pubkey = tx.metadata?.nostr?.pubkey;
+  const pubkey = asString(tx.metadata?.nostr?.pubkey);
   const npub = pubkey ? safeNpubEncode(pubkey) : undefined;
 
-  const payerName = tx.metadata?.payer_data?.name;
+  const payerName = asString(tx.metadata?.payer_data?.name);
   const from =
     type === "incoming"
       ? payerName
@@ -87,7 +87,7 @@ function TransactionItem({ tx, transactionListKey }: Props) {
             : undefined
       : undefined;
 
-  const recipientIdentifier = tx.metadata?.recipient_data?.identifier;
+  const recipientIdentifier = asString(tx.metadata?.recipient_data?.identifier);
   const to =
     type === "outgoing"
       ? npub
@@ -99,13 +99,18 @@ function TransactionItem({ tx, transactionListKey }: Props) {
             : undefined
       : undefined;
 
-  const eventId = tx.metadata?.nostr?.tags?.find((t) => t[0] === "e")?.[1];
+  const nostrTags: unknown = tx.metadata?.nostr?.tags;
+  const eventTag = Array.isArray(nostrTags)
+    ? nostrTags.find((t) => Array.isArray(t) && t[0] === "e")
+    : undefined;
+  const eventId = asString(eventTag?.[1]);
   const nevent = eventId ? safeNeventEncode(eventId) : undefined;
 
-  const bolt12Offer = tx.metadata?.offer;
+  const comment = asString(tx.metadata?.comment);
+  const bolt12OfferId = asString(tx.metadata?.offer?.id);
+  const bolt12PayerNote = asString(tx.metadata?.offer?.payer_note);
 
-  const description =
-    tx.description || tx.metadata?.comment || bolt12Offer?.payer_note;
+  const description = tx.description || comment || bolt12PayerNote;
 
   const typeStateText =
     type == "incoming"
@@ -305,19 +310,19 @@ function TransactionItem({ tx, transactionListKey }: Props) {
               {tx.description}
             </TransactionDetailRow>
           )}
-          {tx.metadata?.comment && (
+          {comment && (
             <TransactionDetailRow label="Comment">
-              {tx.metadata.comment}
+              {comment}
             </TransactionDetailRow>
           )}
-          {bolt12Offer?.payer_note && (
+          {bolt12PayerNote && (
             <TransactionDetailRow label="Payer Note">
-              {bolt12Offer.payer_note}
+              {bolt12PayerNote}
             </TransactionDetailRow>
           )}
           {/* for Alby lightning addresses the content of the zap request is
             automatically extracted and already displayed above as description */}
-          {tx.metadata?.nostr && nevent && npub && (
+          {nevent && npub && (
             <TransactionDetailRow
               label={
                 <ExternalLink
@@ -359,12 +364,12 @@ function TransactionItem({ tx, transactionListKey }: Props) {
             {showDetails && (
               <div className="flex flex-col gap-6 mt-6">
                 {tx.boostagram && <PodcastingInfo boost={tx.boostagram} />}
-                {bolt12Offer && (
+                {bolt12OfferId && (
                   <TransactionDetailRow
                     label="BOLT-12 Offer Id"
-                    copyable={bolt12Offer.id}
+                    copyable={bolt12OfferId}
                   >
-                    {bolt12Offer.id}
+                    {bolt12OfferId}
                   </TransactionDetailRow>
                 )}
                 {tx.preimage && (
