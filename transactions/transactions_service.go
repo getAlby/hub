@@ -361,9 +361,102 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 		paymentAmountMsat = *amountMsat
 	}
 
+	var reconciledTransaction *Transaction
+	paymentReconciled := false
+
 	err = func() error {
 		balanceValidationLock.Lock()
 		defer balanceValidationLock.Unlock()
+
+		// Financial idempotency: a missing or failed application DB row is not
+		// permission to pay again. Check the node's authoritative payment
+		// state for this hash before deciding to initiate a new payment.
+		// Unresolvable state fails closed: no payment is initiated while a
+		// previous payment for this hash may exist and is unresolved.
+		if !selfPayment {
+			backendStatus, lookupErr := lookupBackendPaymentStatus(lnClient, paymentRequest.PaymentHash)
+			if lookupErr != nil {
+				return lookupErr
+			}
+			if backendStatus != nil {
+				switch backendStatus.Status {
+				case lnclient.PAYMENT_STATUS_PENDING:
+					logger.Logger.WithField("payment_hash", paymentRequest.PaymentHash).Info("Payment is still in progress on the backend")
+					return errors.New("there is already a payment pending for this invoice")
+				case lnclient.PAYMENT_STATUS_COMPLETE:
+					if backendStatus.AmountMsat != paymentAmountMsat {
+						logger.Logger.WithFields(logrus.Fields{
+							"payment_hash":        paymentRequest.PaymentHash,
+							"backend_amount_msat": backendStatus.AmountMsat,
+							"invoice_amount_msat": paymentAmountMsat,
+						}).Error("Backend settled payment amount does not match this invoice")
+						return errors.New("payment state on the node is inconsistent with this invoice amount")
+					}
+					var alreadySettledRow db.Transaction
+					if svc.db.Limit(1).Find(&alreadySettledRow, &db.Transaction{
+						Type:           constants.TRANSACTION_TYPE_OUTGOING,
+						PaymentHash:    paymentRequest.PaymentHash,
+						PaymentRequest: payReq,
+						State:          constants.TRANSACTION_STATE_SETTLED,
+					}).RowsAffected > 0 {
+						return errors.New("this invoice has already been paid")
+					}
+
+					// Reconcile the LIVE pending attempt when one exists (it holds
+					// a fee reserve that only settling can release); a failed
+					// historical attempt stays FAILED as a record of that try.
+					var existingAttempt db.Transaction
+					attemptFound := svc.db.Limit(1).Order("id desc").Find(&existingAttempt, &db.Transaction{
+						Type:           constants.TRANSACTION_TYPE_OUTGOING,
+						PaymentHash:    paymentRequest.PaymentHash,
+						PaymentRequest: payReq,
+						State:          constants.TRANSACTION_STATE_PENDING,
+					}).RowsAffected > 0
+					if !attemptFound {
+						attemptFound = svc.db.Limit(1).Order("id desc").Find(&existingAttempt, &db.Transaction{
+							Type:           constants.TRANSACTION_TYPE_OUTGOING,
+							PaymentHash:    paymentRequest.PaymentHash,
+							PaymentRequest: payReq,
+							State:          constants.TRANSACTION_STATE_FAILED,
+						}).RowsAffected > 0
+					}
+
+					var reconcileErr error
+					if attemptFound {
+						reconciledTransaction, reconcileErr = svc.markTransactionSettled(&existingAttempt, backendStatus.Preimage, backendStatus.FeeMsat, false)
+					} else {
+						var expiresAt *time.Time
+						if paymentRequest.Expiry > 0 {
+							expiresAtValue := time.Now().Add(time.Duration(paymentRequest.Expiry) * time.Second)
+							expiresAt = &expiresAtValue
+						}
+						newTransaction := db.Transaction{
+							AppId:           appId,
+							RequestEventId:  requestEventId,
+							Type:            constants.TRANSACTION_TYPE_OUTGOING,
+							State:           constants.TRANSACTION_STATE_PENDING,
+							FeeReserveMsat:  CalculateFeeReserveMsat(paymentAmountMsat),
+							AmountMsat:      paymentAmountMsat,
+							PaymentRequest:  payReq,
+							PaymentHash:     paymentRequest.PaymentHash,
+							Description:     paymentRequest.Description,
+							DescriptionHash: paymentRequest.DescriptionHash,
+							ExpiresAt:       expiresAt,
+							SelfPayment:     selfPayment,
+							Metadata:        datatypes.JSON(metadataBytes),
+						}
+						reconciledTransaction, reconcileErr = svc.createSettledTransactionFromNotification(&newTransaction, backendStatus.Preimage, backendStatus.FeeMsat, false)
+					}
+					if reconcileErr != nil {
+						return reconcileErr
+					}
+					logger.Logger.WithField("payment_hash", paymentRequest.PaymentHash).Info("Reconciled settled payment from backend state without paying again")
+					paymentReconciled = true
+					return nil
+				}
+			}
+		}
+
 		return svc.db.Transaction(func(tx *gorm.DB) error {
 			var existingSettledTransaction db.Transaction
 			if tx.Limit(1).Find(&existingSettledTransaction, &db.Transaction{
@@ -428,6 +521,10 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 		return nil, err
 	}
 
+	if paymentReconciled {
+		return reconciledTransaction, nil
+	}
+
 	logger.Logger.WithFields(logrus.Fields{
 		"app_id":           appId,
 		"request_event_id": requestEventId,
@@ -467,6 +564,39 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 	}
 
 	return settledTransaction, nil
+}
+
+// lookupBackendPaymentStatus returns the node's authoritative state for an
+// outgoing payment hash, when the LNClient implements the optional
+// lnclient.PaymentStatusLookup capability.
+//   - (nil, nil): backend has no lookup capability — caller keeps legacy behavior.
+//   - (status, nil): resolved state. FAILED and UNKNOWN (a successful lookup
+//     with no record: confirmed absence) permit a new attempt via the legacy
+//     guards; COMPLETE and PENDING are acted on by the caller.
+//   - (nil, err): state could not be resolved (RPC error, timeout, unreachable
+//     node, malformed or inconsistent response). An unresolved state is NOT
+//     permission to pay — the caller must refuse, because a missing
+//     application row cannot distinguish "never sent" from "sent, response
+//     lost".
+func lookupBackendPaymentStatus(lnClient lnclient.LNClient, paymentHash string) (*lnclient.PaymentStatusResponse, error) {
+	lookup, ok := lnClient.(lnclient.PaymentStatusLookup)
+	if !ok {
+		return nil, nil
+	}
+	status, err := lookup.LookupPaymentStatus(paymentHash)
+	if err != nil {
+		logger.Logger.WithError(err).WithField("payment_hash", paymentHash).Error("Failed to resolve payment status on backend")
+		return nil, fmt.Errorf("could not verify payment state on the node, refusing to initiate a payment: %w", err)
+	}
+	if status == nil {
+		return nil, fmt.Errorf("could not verify payment state on the node, refusing to initiate a payment: empty status response")
+	}
+	switch status.Status {
+	case lnclient.PAYMENT_STATUS_COMPLETE, lnclient.PAYMENT_STATUS_PENDING,
+		lnclient.PAYMENT_STATUS_FAILED, lnclient.PAYMENT_STATUS_UNKNOWN:
+		return status, nil
+	}
+	return nil, fmt.Errorf("could not verify payment state on the node, refusing to initiate a payment: unrecognized status %q", status.Status)
 }
 
 func (svc *transactionsService) SendKeysend(amountMsat uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {

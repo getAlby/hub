@@ -468,6 +468,17 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 	// (e.g. lnClient.CheckConnection()) Rather than it being a side-effect
 	// in the LNClient init function
 
+	// Financial safety capability gate: CLN hubs rely on the node's payment
+	// state to prevent re-paying an invoice whose previous payment is
+	// unresolved. If a CLN client ever arrives without this capability,
+	// refuse to launch rather than fall back to the DB-only dedup that
+	// double-paid in production.
+	if lnBackend == config.CLNBackendType {
+		if _, ok := lnClient.(lnclient.PaymentStatusLookup); !ok {
+			return errors.New("CLN backend does not expose payment status lookup; refusing to start (payments could be re-issued while a previous payment is unresolved)")
+		}
+	}
+
 	svc.lnClient = lnClient
 	info, err := lnClient.GetInfo(ctx)
 	if err != nil {
