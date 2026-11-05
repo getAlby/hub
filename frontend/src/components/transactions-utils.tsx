@@ -37,6 +37,10 @@ export const convertToCSV = (transactions: Transaction[]) => {
 
   // Convert each transaction to CSV row
   const csvRows = transactions.map((tx) => {
+    // a Map avoids picking up inherited keys (e.g. "constructor") as values
+    const labels = new Map(
+      Object.entries(asStringRecord(tx.metadata?.user_labels))
+    );
     return [
       ...headers.map((header) => {
         const value = tx[header as keyof typeof tx];
@@ -48,7 +52,7 @@ export const convertToCSV = (transactions: Transaction[]) => {
         return escapeCsvCell(stringValue);
       }),
       ...userLabelKeys.map((key) => {
-        const value = asStringRecord(tx.metadata?.user_labels)[key];
+        const value = labels.get(key);
         if (value === undefined) {
           return "";
         }
