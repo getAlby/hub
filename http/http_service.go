@@ -218,27 +218,31 @@ func (httpSvc *HttpService) infoHandler(c echo.Context) error {
 		})
 	}
 
-	authHeader := c.Request().Header.Get("Authorization")
-	if authHeader != "" {
-		parts := strings.Split(authHeader, " ")
-		if parts[0] == "Bearer" {
-			tokenString := parts[1]
-			token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-				secret, err := httpSvc.cfg.GetJWTSecret()
-				if err != nil {
-					return nil, err
-				}
-
-				return []byte(secret), nil
-			})
+	if tokenString, ok := bearerToken(c.Request().Header.Get("Authorization")); ok {
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			secret, err := httpSvc.cfg.GetJWTSecret()
 			if err != nil {
-				logger.Logger.WithError(err).Error("failed to parse token")
+				return nil, err
 			}
-			responseBody.Unlocked = err == nil && token != nil && token.Valid
+
+			return []byte(secret), nil
+		})
+		if err != nil {
+			logger.Logger.WithError(err).Error("failed to parse token")
 		}
+		responseBody.Unlocked = err == nil && token != nil && token.Valid
 	}
 
 	return c.JSON(http.StatusOK, responseBody)
+}
+
+// bearerToken returns the token from an "Authorization: Bearer <token>" header.
+func bearerToken(authHeader string) (string, bool) {
+	tokenString, found := strings.CutPrefix(authHeader, "Bearer ")
+	if !found || tokenString == "" {
+		return "", false
+	}
+	return tokenString, true
 }
 
 func (httpSvc *HttpService) jitChannelsInfoHandler(c echo.Context) error {
