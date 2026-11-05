@@ -1333,7 +1333,7 @@ func (svc *transactionsService) SettleHoldInvoice(ctx context.Context, preimage 
 
 	if result.RowsAffected == 0 {
 		logger.Logger.WithField("payment_hash", paymentHash).Error("Failed to find accepted hold invoice")
-		return nil, errors.New("failed to find accepted hold invoice")
+		return nil, NewNotFoundError()
 	}
 
 	if !dbTransaction.SelfPayment {
