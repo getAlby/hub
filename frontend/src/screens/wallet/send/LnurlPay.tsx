@@ -45,11 +45,17 @@ export default function LnurlPay() {
         throw new Error("no lightning address set");
       }
       setLoading(true);
-      const invoice = await lnAddress.requestInvoice({
-        satoshi: parseInt(amountSat),
-        comment,
-      });
-      setInvoice(invoice);
+      // Reuse the previous invoice when retrying: if the earlier attempt is
+      // still in flight or actually succeeded, the backend rejects paying the
+      // same invoice again, whereas a fresh invoice could be paid twice.
+      let invoiceToPay = invoice;
+      if (!invoiceToPay) {
+        invoiceToPay = await lnAddress.requestInvoice({
+          satoshi: parseInt(amountSat),
+          comment,
+        });
+        setInvoice(invoiceToPay);
+      }
       const metadata: TransactionMetadata = {
         ...(comment && { comment }),
         ...(identifier && { recipient_data: { identifier } }),
@@ -59,7 +65,7 @@ export default function LnurlPay() {
         fromAppId: appId,
       };
       const payInvoiceResponse = await request<PayInvoiceResponse>(
-        `/api/payments/${invoice.paymentRequest}`,
+        `/api/payments/${invoiceToPay.paymentRequest}`,
         {
           method: "POST",
           body: JSON.stringify(payload),
@@ -74,7 +80,7 @@ export default function LnurlPay() {
       navigate(`/wallet/send/success`, {
         state: {
           preimage: payInvoiceResponse.preimage,
-          invoice,
+          invoice: invoiceToPay,
           to: lnAddress.address,
           pageTitle: "Send to Lightning Address",
         },
@@ -137,7 +143,10 @@ export default function LnurlPay() {
           <CurrencyInputField
             id="amount"
             valueSat={amountSat}
-            onValueSatChange={setAmountSat}
+            onValueSatChange={(value) => {
+              setAmountSat(value);
+              setInvoice(undefined);
+            }}
             minSat={1}
             maxSat={balances.lightning.totalSpendableSat}
             required
@@ -159,6 +168,7 @@ export default function LnurlPay() {
                 placeholder="Optional"
                 onChange={(e) => {
                   setComment(e.target.value);
+                  setInvoice(undefined);
                 }}
               />
             </div>
