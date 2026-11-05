@@ -148,6 +148,7 @@ export default function LnurlPay() {
               setInvoice(undefined);
             }}
             minSat={1}
+            disabled={isLoading}
             maxSat={balances.lightning.totalSpendableSat}
             required
             autoFocus
@@ -166,6 +167,7 @@ export default function LnurlPay() {
                 type="text"
                 value={comment}
                 placeholder="Optional"
+                disabled={isLoading}
                 onChange={(e) => {
                   setComment(e.target.value);
                   setInvoice(undefined);
