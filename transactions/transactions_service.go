@@ -1331,6 +1331,11 @@ func (svc *transactionsService) SettleHoldInvoice(ctx context.Context, preimage 
 		AppId:       &appId,
 	})
 
+	if result.Error != nil {
+		logger.Logger.WithField("payment_hash", paymentHash).WithError(result.Error).Error("Failed to query hold invoice")
+		return nil, result.Error
+	}
+
 	if result.RowsAffected == 0 {
 		logger.Logger.WithField("payment_hash", paymentHash).Error("Failed to find accepted hold invoice")
 		return nil, NewNotFoundError()
