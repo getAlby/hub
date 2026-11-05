@@ -257,6 +257,6 @@ func (svc *appsService) HasLightningAddress(app *db.App) bool {
 		return false
 	}
 
-	lud16, exists := metadata["lud16"]
-	return exists && lud16 != nil
+	_, ok := metadata["lud16"].(string)
+	return ok
 }
