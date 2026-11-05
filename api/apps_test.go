@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"testing"
 
 	"github.com/getAlby/hub/config"
@@ -87,4 +88,33 @@ func TestCreateApp_LightningAddress(t *testing.T) {
 
 		testSvc.Remove()
 	}
+}
+
+func TestDeleteApp_NonStringLightningAddress(t *testing.T) {
+	testSvc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer testSvc.Remove()
+
+	// no expectations: the Alby API must not be called for a non-string lud16
+	albyOAuthSvc := mocks.NewMockAlbyOAuthService(t)
+	theAPI := &api{
+		appsSvc:      testSvc.AppsService,
+		cfg:          testSvc.Cfg,
+		albyOAuthSvc: albyOAuthSvc,
+	}
+
+	metadata := map[string]interface{}{
+		constants.METADATA_APPSTORE_APP_ID_KEY: constants.SUBWALLET_APPSTORE_APP_ID,
+		"lud16":                                map[string]interface{}{"a": 1},
+	}
+	app, _, err := testSvc.AppsService.CreateApp("test", "", 0, "monthly", nil, []string{constants.GET_INFO_SCOPE}, false, metadata)
+	require.NoError(t, err)
+
+	assert.False(t, testSvc.AppsService.HasLightningAddress(app))
+
+	err = theAPI.DeleteLightningAddress(context.Background(), app.ID)
+	assert.EqualError(t, err, "no lightning address set")
+
+	require.NoError(t, theAPI.DeleteApp(app))
+	assert.Nil(t, testSvc.AppsService.GetAppById(app.ID))
 }

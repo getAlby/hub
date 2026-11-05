@@ -408,11 +408,11 @@ func (api *api) DeleteLightningAddress(ctx context.Context, appId uint) error {
 		return err
 	}
 
-	if metadata["lud16"] == nil {
+	lud16, ok := metadata["lud16"].(string)
+	if !ok {
 		return errors.New("no lightning address set")
 	}
 
-	lud16 := metadata["lud16"].(string)
 	if !strings.Contains(lud16, "@") {
 		return errors.New("invalid lightning address")
 	}
