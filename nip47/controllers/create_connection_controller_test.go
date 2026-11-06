@@ -226,6 +226,56 @@ func TestHandleCreateConnectionEvent_NoMethods(t *testing.T) {
 	assert.Nil(t, publishedResponse.Result)
 }
 
+func TestHandleCreateConnectionEvent_MaxAmountBelowOneSat(t *testing.T) {
+	ctx := context.TODO()
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	pairingSecretKey := nostr.GeneratePrivateKey()
+	pairingPublicKey, err := nostr.GetPublicKey(pairingSecretKey)
+	require.NoError(t, err)
+
+	nip47CreateConnectionJson := fmt.Sprintf(`
+{
+	"method": "create_connection",
+	"params": {
+		"pubkey": "%s",
+		"name": "Test 123",
+		"request_methods": ["get_info", "pay_invoice"],
+		"max_amount": 500
+	}
+}
+`, pairingPublicKey)
+
+	nip47Request := &models.Request{}
+	err = json.Unmarshal([]byte(nip47CreateConnectionJson), nip47Request)
+	assert.NoError(t, err)
+
+	dbRequestEvent := &db.RequestEvent{}
+	err = svc.DB.Create(&dbRequestEvent).Error
+	assert.NoError(t, err)
+
+	var publishedResponse *models.Response
+
+	publishResponse := func(response *models.Response, tags nostr.Tags) {
+		publishedResponse = response
+	}
+
+	NewTestNip47Controller(svc).
+		HandleCreateConnectionEvent(ctx, nip47Request, dbRequestEvent.ID, publishResponse)
+
+	assert.NotNil(t, publishedResponse.Error)
+	assert.Equal(t, constants.ERROR_BAD_REQUEST, publishedResponse.Error.Code)
+	assert.Equal(t, "max_amount must be at least 1000 msats", publishedResponse.Error.Message)
+	assert.Equal(t, models.CREATE_CONNECTION_METHOD, publishedResponse.ResultType)
+	assert.Nil(t, publishedResponse.Result)
+
+	var appCount int64
+	require.NoError(t, svc.DB.Model(&db.App{}).Count(&appCount).Error)
+	assert.Equal(t, int64(0), appCount)
+}
+
 func TestHandleCreateConnectionEvent_UnsupportedMethod(t *testing.T) {
 	ctx := context.TODO()
 	svc, err := tests.CreateTestService(t)
