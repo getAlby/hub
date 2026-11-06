@@ -201,7 +201,8 @@ export type HealthAlarmKind =
   | "node_not_ready"
   | "channels_offline"
   | "nostr_relay_offline"
-  | "vss_no_subscription";
+  | "vss_no_subscription"
+  | "chain_sync_stale";
 
 export type HealthAlarm = {
   kind: HealthAlarmKind;

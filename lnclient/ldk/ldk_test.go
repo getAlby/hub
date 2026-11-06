@@ -398,3 +398,45 @@ func TestLatestChannelBackupIsMissingChannels(t *testing.T) {
 		assert.False(t, latestChannelBackupIsMissingChannels(backupPath, []string{"a"}))
 	})
 }
+
+func TestIsChainSyncStale(t *testing.T) {
+	now := time.Now()
+	ago := func(d time.Duration) *uint64 {
+		timestamp := uint64(now.Add(-d).Unix())
+		return &timestamp
+	}
+
+	testCases := []struct {
+		name     string
+		status   ldk_node.NodeStatus
+		expected bool
+	}{
+		{"never synced", ldk_node.NodeStatus{}, false},
+		{"recently synced", ldk_node.NodeStatus{
+			LatestFeeRateCacheUpdateTimestamp:  ago(5 * time.Minute),
+			LatestOnchainWalletSyncTimestamp:   ago(time.Hour),
+			LatestLightningWalletSyncTimestamp: ago(time.Hour),
+		}, false},
+		{"fee rate stale", ldk_node.NodeStatus{
+			LatestFeeRateCacheUpdateTimestamp:  ago(31 * time.Minute),
+			LatestOnchainWalletSyncTimestamp:   ago(time.Hour),
+			LatestLightningWalletSyncTimestamp: ago(time.Hour),
+		}, true},
+		{"onchain wallet sync stale", ldk_node.NodeStatus{
+			LatestFeeRateCacheUpdateTimestamp:  ago(5 * time.Minute),
+			LatestOnchainWalletSyncTimestamp:   ago(4 * time.Hour),
+			LatestLightningWalletSyncTimestamp: ago(time.Hour),
+		}, true},
+		{"lightning wallet sync stale", ldk_node.NodeStatus{
+			LatestFeeRateCacheUpdateTimestamp:  ago(5 * time.Minute),
+			LatestOnchainWalletSyncTimestamp:   ago(time.Hour),
+			LatestLightningWalletSyncTimestamp: ago(4 * time.Hour),
+		}, true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, isChainSyncStale(tc.status, now))
+		})
+	}
+}
