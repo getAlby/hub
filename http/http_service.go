@@ -1479,7 +1479,7 @@ func (httpSvc *HttpService) lookupSwapHandler(c echo.Context) error {
 	swap, err := httpSvc.api.LookupSwap(c.Param("swapId"))
 	if err != nil {
 		return c.JSON(http.StatusNotFound, ErrorResponse{
-			Message: "App not found",
+			Message: fmt.Sprintf("Failed to lookup swap: %v", err),
 		})
 	}
 
