@@ -13,6 +13,9 @@ import (
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/logger"
+	testsdb "github.com/getAlby/hub/tests/db"
 	"github.com/lightningnetwork/lnd/lnwire"
 	"github.com/lightningnetwork/lnd/zpay32"
 	"github.com/stretchr/testify/assert"
@@ -159,4 +162,27 @@ func TestRefundSwapRejectsInvalidAddress(t *testing.T) {
 
 	err := svc.RefundSwap("dummy-swap-id", "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx", false)
 	assert.ErrorContains(t, err, "refund address validation failed")
+}
+
+func TestGetSwap(t *testing.T) {
+	logger.Init("4")
+	gormDB, err := testsdb.NewDB(t)
+	require.NoError(t, err)
+	defer testsdb.CloseDB(gormDB)
+
+	require.NoError(t, gormDB.Create(&db.Swap{
+		SwapId: "existing-swap",
+		Type:   "in",
+		State:  "PENDING",
+	}).Error)
+
+	svc := &swapsService{db: gormDB}
+
+	swap, err := svc.GetSwap("existing-swap")
+	require.NoError(t, err)
+	assert.Equal(t, "existing-swap", swap.SwapId)
+
+	swap, err = svc.GetSwap("unknown-swap")
+	assert.ErrorIs(t, err, ErrSwapNotFound)
+	assert.Nil(t, swap)
 }
