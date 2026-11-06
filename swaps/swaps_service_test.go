@@ -183,6 +183,6 @@ func TestGetSwap(t *testing.T) {
 	assert.Equal(t, "existing-swap", swap.SwapId)
 
 	swap, err = svc.GetSwap("unknown-swap")
-	assert.EqualError(t, err, "swap not found")
+	assert.ErrorIs(t, err, ErrSwapNotFound)
 	assert.Nil(t, swap)
 }

@@ -23,6 +23,7 @@ import (
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/service"
+	"github.com/getAlby/hub/swaps"
 
 	"github.com/getAlby/hub/api"
 	"github.com/getAlby/hub/frontend"
@@ -1478,8 +1479,13 @@ func (httpSvc *HttpService) listSwapsHandler(c echo.Context) error {
 func (httpSvc *HttpService) lookupSwapHandler(c echo.Context) error {
 	swap, err := httpSvc.api.LookupSwap(c.Param("swapId"))
 	if err != nil {
-		return c.JSON(http.StatusNotFound, ErrorResponse{
-			Message: fmt.Sprintf("Failed to lookup swap: %v", err),
+		if errors.Is(err, swaps.ErrSwapNotFound) {
+			return c.JSON(http.StatusNotFound, ErrorResponse{
+				Message: "Swap not found",
+			})
+		}
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: "Failed to lookup swap",
 		})
 	}
 

@@ -37,6 +37,8 @@ import (
 
 type Swap = db.Swap
 
+var ErrSwapNotFound = errors.New("swap not found")
+
 type swapsService struct {
 	autoSwapOutCancelFn      context.CancelFunc
 	db                       *gorm.DB
@@ -925,7 +927,7 @@ func (svc *swapsService) GetSwap(swapId string) (*Swap, error) {
 	}
 
 	if result.RowsAffected == 0 {
-		return nil, errors.New("swap not found")
+		return nil, ErrSwapNotFound
 	}
 
 	return &swap, nil
