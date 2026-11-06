@@ -669,6 +669,56 @@ func doTestHandleResponse_EncryptionTagDoesNotMatchPayload(t *testing.T, svc *te
 	assert.Contains(t, unmarshalledResponse.Error.Message, "failed to decrypt:")
 }
 
+func TestHandleResponse_MalformedRequest(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	albyOAuthSvc := alby.NewAlbyOAuthService(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
+	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher, albyOAuthSvc)
+
+	reqPrivateKey := nostr.GeneratePrivateKey()
+	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
+	assert.NoError(t, err)
+
+	_, cipher, err := tests.CreateAppWithPrivateKey(svc, reqPrivateKey, constants.ENCRYPTION_TYPE_NIP44_V2)
+	assert.NoError(t, err)
+
+	// encrypts fine, but isn't a valid NIP-47 request
+	msg, err := cipher.Encrypt("not json")
+	assert.NoError(t, err)
+
+	reqEvent := &nostr.Event{
+		Kind:      models.REQUEST_KIND,
+		PubKey:    reqPubkey,
+		CreatedAt: nostr.Now(),
+		Tags:      nostr.Tags{[]string{"encryption", constants.ENCRYPTION_TYPE_NIP44_V2}},
+		Content:   msg,
+	}
+	err = reqEvent.Sign(reqPrivateKey)
+	assert.NoError(t, err)
+
+	pool := tests.NewMockSimplePool()
+
+	nip47svc.HandleEvent(context.TODO(), pool, reqEvent, svc.LNClient)
+
+	require.Len(t, pool.PublishedEvents, 1)
+
+	decrypted, err := cipher.Decrypt(pool.PublishedEvents[0].Content)
+	assert.NoError(t, err)
+
+	unmarshalledResponse := models.Response{}
+	err = json.Unmarshal([]byte(decrypted), &unmarshalledResponse)
+	assert.NoError(t, err)
+	assert.Nil(t, unmarshalledResponse.Result)
+	assert.Equal(t, constants.ERROR_BAD_REQUEST, unmarshalledResponse.Error.Code)
+
+	requestEvent := db.RequestEvent{}
+	err = svc.DB.First(&requestEvent, "nostr_id = ?", reqEvent.ID).Error
+	assert.NoError(t, err)
+	assert.Equal(t, db.REQUEST_EVENT_STATE_HANDLER_ERROR, requestEvent.State)
+}
+
 // no relay accepts any published event
 type failingPool struct {
 	nostrmodels.SimplePool // for QuerySingle

@@ -273,6 +273,22 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, pool nostrmodels.Simpl
 			}).WithError(err).Error("Failed to save state to nostr event")
 		}
 
+		// reply so the client doesn't wait for a response that never comes
+		resp, err := svc.CreateResponse(event, &models.Response{
+			Error: &models.Error{
+				Code:    constants.ERROR_BAD_REQUEST,
+				Message: "failed to decode request: invalid JSON",
+			},
+		}, nostr.Tags{}, nip47Cipher, appWalletPrivKey)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"requestEventNostrId": event.ID,
+				"eventKind":           event.Kind,
+			}).WithError(err).Error("Failed to create response")
+			return
+		}
+		svc.publishResponseEvent(ctx, pool, &requestEvent, resp, &app)
+
 		return
 	}
 
