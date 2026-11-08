@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -37,6 +38,10 @@ func TestSendPaymentSync_NoApp(t *testing.T) {
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, transaction.State)
 	assert.Zero(t, transaction.FeeReserveMsat)
 	assert.Equal(t, "123preimage", *transaction.Preimage)
+
+	paymentRequest, err := decodepay.Decodepay(tests.MockLNClientTransaction.Invoice)
+	require.NoError(t, err)
+	assert.Equal(t, int64(paymentRequest.CreatedAt+paymentRequest.Expiry), transaction.ExpiresAt.Unix())
 
 	type dummyMetadata struct {
 		A int `json:"a"`
