@@ -2305,7 +2305,15 @@ func (c *CLNService) SendKeysend(amount uint64, destination string, customRecord
 	if resp.AmountSentMsat != nil && resp.AmountMsat != nil {
 		feeMsat = resp.AmountSentMsat.Msat - resp.AmountMsat.Msat
 	}
-	return &lnclient.PayKeysendResponse{FeeMsat: feeMsat}, nil
+	return &lnclient.PayKeysendResponse{
+		FeeMsat:     feeMsat,
+		Preimage:    hex.EncodeToString(resp.PaymentPreimage),
+		PaymentHash: hex.EncodeToString(resp.PaymentHash),
+	}, nil
+}
+
+func (c *CLNService) GeneratesKeysendPreimage() bool {
+	return true
 }
 
 func (c *CLNService) SendPaymentProbes(ctx context.Context, invoice string) error {

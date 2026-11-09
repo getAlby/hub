@@ -102,6 +102,96 @@ func TestSendKeysend_CustomPreimage(t *testing.T) {
 	assert.Equal(t, customPreimage, *transaction.Preimage)
 }
 
+type mockGeneratorLn struct {
+	tests.MockLn
+	lastPassedPreimage   string
+	generatedPreimage    string
+	generatedPaymentHash string
+}
+
+func (m *mockGeneratorLn) GeneratesKeysendPreimage() bool {
+	return true
+}
+
+func (m *mockGeneratorLn) SendKeysend(amountMsat uint64, destination string, customRecords []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
+	m.lastPassedPreimage = preimage
+	if preimage != "" {
+		return nil, errors.New("preimage not supported for keysends")
+	}
+	return &lnclient.PayKeysendResponse{
+		FeeMsat:     2,
+		Preimage:    m.generatedPreimage,
+		PaymentHash: m.generatedPaymentHash,
+	}, nil
+}
+
+func TestSendKeysend_GeneratorBackend_OmittedPreimage(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	mockClient := &mockGeneratorLn{
+		MockLn:               *svc.LNClient.(*tests.MockLn),
+		generatedPreimage:    "1111111111111111111111111111111111111111111111111111111111111111",
+		generatedPaymentHash: "2222222222222222222222222222222222222222222222222222222222222222",
+	}
+
+	mockEventConsumer := tests.NewMockEventConsumer()
+	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+	transaction, err := transactionsService.SendKeysend(uint64(1000), "fake destination", nil, "", mockClient, nil, nil)
+	assert.NoError(t, err)
+	require.NotNil(t, transaction)
+
+	// Verify backend received empty preimage and did not receive a manufactured dummy
+	assert.Equal(t, "", mockClient.lastPassedPreimage)
+
+	// Verify the settled transaction reflects the backend's generated preimage and hash
+	assert.Equal(t, mockClient.generatedPreimage, *transaction.Preimage)
+	assert.Equal(t, mockClient.generatedPaymentHash, transaction.PaymentHash)
+	assert.Equal(t, uint64(2), transaction.FeeMsat)
+	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, transaction.State)
+
+	// Verify database record has been updated with backend's payment hash and preimage
+	var dbTx db.Transaction
+	require.NoError(t, svc.DB.Where("id = ?", transaction.ID).First(&dbTx).Error)
+	assert.Equal(t, mockClient.generatedPaymentHash, dbTx.PaymentHash)
+	assert.Equal(t, mockClient.generatedPreimage, *dbTx.Preimage)
+	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, dbTx.State)
+
+	consumedEvents := mockEventConsumer.WaitForConsumedEvents(1)
+	assert.Equal(t, 1, len(consumedEvents))
+	assert.Equal(t, "nwc_payment_sent", consumedEvents[0].Event)
+	settledTxEvent := consumedEvents[0].Properties.(*db.Transaction)
+	assert.Equal(t, mockClient.generatedPaymentHash, settledTxEvent.PaymentHash)
+	assert.Equal(t, mockClient.generatedPreimage, *settledTxEvent.Preimage)
+}
+
+func TestSendKeysend_GeneratorBackend_ExplicitPreimage(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	mockClient := &mockGeneratorLn{
+		MockLn: *svc.LNClient.(*tests.MockLn),
+	}
+
+	customPreimage := "018465013e2337234a7e5530a21c4a8cf70d84231f4a8ff0b1e2cce3cb2bd03b"
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+	transaction, err := transactionsService.SendKeysend(uint64(1000), "fake destination", nil, customPreimage, mockClient, nil, nil)
+
+	assert.Error(t, err)
+	assert.Equal(t, "preimage not supported for keysends", err.Error())
+	assert.Nil(t, transaction)
+	assert.Equal(t, customPreimage, mockClient.lastPassedPreimage)
+
+	failedTransaction := db.Transaction{}
+	require.NoError(t, svc.DB.Where("type = ? AND state = ?", constants.TRANSACTION_TYPE_OUTGOING, constants.TRANSACTION_STATE_FAILED).First(&failedTransaction).Error)
+	assert.Equal(t, "preimage not supported for keysends", failedTransaction.FailureReason)
+	assert.Zero(t, failedTransaction.FeeReserveMsat)
+}
+
 func TestSendKeysend_App_NoPermission(t *testing.T) {
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
