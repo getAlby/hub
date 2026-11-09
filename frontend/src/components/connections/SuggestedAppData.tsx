@@ -31,6 +31,7 @@ import nostrcheckserver from "src/assets/suggested-apps/nostrcheck-server.png";
 import nostrudel from "src/assets/suggested-apps/nostrudel.png";
 import nostter from "src/assets/suggested-apps/nostter.png";
 import nostur from "src/assets/suggested-apps/nostur.png";
+import openreceive from "src/assets/suggested-apps/openreceive.png";
 import payperq from "src/assets/suggested-apps/payperq.png";
 import primal from "src/assets/suggested-apps/primal.png";
 import pullthatupjamie from "src/assets/suggested-apps/pullthatupjamie.png";
@@ -1891,6 +1892,51 @@ export const appStoreApps: AppStoreApp[] = (
               </li>
               <li>
                 10. Start accepting payments directly to your Alby Hub wallet!
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["merchant-tools"],
+    },
+    {
+      id: "openreceive",
+      readonly: true,
+      title: "OpenReceive",
+      description:
+        "Self-hosted Bitcoin and stablecoin checkout for your own app",
+      webLink: "https://openreceive.org",
+      logo: openreceive,
+      extendedDescription:
+        "Open-source checkout libraries and store plugins that run on your own server and connect to your Hub with a receive-only connection. Customers pay Lightning invoices straight to your Hub. Optional swaps let them pay with USDT, USDC, SOL or ETH, and you still receive BTC over Lightning.",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Add OpenReceive to your app or store with one of the{" "}
+            <ExternalLink
+              to="https://openreceive.org/guides"
+              className="font-medium text-foreground underline"
+            >
+              OpenReceive guides
+            </ExternalLink>
+            . It is MIT-licensed software you run yourself: no account, no API
+            key, and it never holds your funds.
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">On your server</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Paste the connection secret (nostr+walletconnect://....) where
+                your OpenReceive guide asks for it: the{" "}
+                <span className="font-medium text-foreground">NWC_URI</span>{" "}
+                environment variable, or your store plugin's settings
+              </li>
+              <li>
+                Keep it on the server only, never in browser or mobile app code
               </li>
             </ul>
           </div>
