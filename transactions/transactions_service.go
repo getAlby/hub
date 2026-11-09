@@ -470,6 +470,7 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 }
 
 func (svc *transactionsService) SendKeysend(amountMsat uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
+	customPreimage := preimage != ""
 	if preimage == "" {
 		preImageBytes, err := makePreimageHex()
 		if err != nil {
@@ -575,7 +576,13 @@ func (svc *transactionsService) SendKeysend(amountMsat uint64, destination strin
 			}
 		}
 	} else {
-		payKeysendResponse, err = lnClient.SendKeysend(amountMsat, destination, customRecords, preimage)
+		backendPreimage := preimage
+		if generator, ok := lnClient.(lnclient.KeysendPreimageGenerator); ok && generator.GeneratesKeysendPreimage() {
+			if !customPreimage {
+				backendPreimage = ""
+			}
+		}
+		payKeysendResponse, err = lnClient.SendKeysend(amountMsat, destination, customRecords, backendPreimage)
 	}
 
 	if err != nil {
@@ -592,6 +599,13 @@ func (svc *transactionsService) SendKeysend(amountMsat uint64, destination strin
 		}
 
 		return nil, err
+	}
+
+	if payKeysendResponse.Preimage != "" {
+		preimage = payKeysendResponse.Preimage
+	}
+	if payKeysendResponse.PaymentHash != "" && payKeysendResponse.PaymentHash != dbTransaction.PaymentHash {
+		dbTransaction.PaymentHash = payKeysendResponse.PaymentHash
 	}
 
 	// the payment definitely succeeded
@@ -1499,6 +1513,7 @@ func (svc *transactionsService) markTransactionSettled(dbTransaction *db.Transac
 		err = tx.Model(dbTransaction).Updates(map[string]interface{}{
 			"State":          constants.TRANSACTION_STATE_SETTLED,
 			"Preimage":       &preimage,
+			"PaymentHash":    dbTransaction.PaymentHash,
 			"FeeMsat":        feeMsat,
 			"FeeReserveMsat": 0,
 			"SettledAt":      &settledAt,

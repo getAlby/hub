@@ -196,7 +196,13 @@ type PayOfferResponse = struct {
 }
 
 type PayKeysendResponse struct {
-	FeeMsat uint64
+	FeeMsat     uint64
+	Preimage    string
+	PaymentHash string
+}
+
+type KeysendPreimageGenerator interface {
+	GeneratesKeysendPreimage() bool
 }
 
 type BalancesResponse struct {
