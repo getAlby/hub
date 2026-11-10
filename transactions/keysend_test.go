@@ -102,6 +102,29 @@ func TestSendKeysend_CustomPreimage(t *testing.T) {
 	assert.Equal(t, customPreimage, *transaction.Preimage)
 }
 
+func TestSendKeysend_InvalidPreimage(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+
+	for name, preimage := range map[string]string{
+		"invalid hex":  "not hex",
+		"wrong length": "018465013e2337234a7e5530a21c4a8c",
+	} {
+		t.Run(name, func(t *testing.T) {
+			transaction, err := transactionsService.SendKeysend(uint64(1000), "fake destination", nil, preimage, svc.LNClient, nil, nil)
+			assert.Error(t, err)
+			assert.Nil(t, transaction)
+		})
+	}
+
+	var count int64
+	require.NoError(t, svc.DB.Model(&db.Transaction{}).Count(&count).Error)
+	assert.Zero(t, count)
+}
+
 func TestSendKeysend_App_NoPermission(t *testing.T) {
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)

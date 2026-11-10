@@ -479,7 +479,14 @@ func (svc *transactionsService) SendKeysend(amountMsat uint64, destination strin
 	}
 
 	preImageBytes, err := hex.DecodeString(preimage)
-	if err != nil || len(preImageBytes) != 32 {
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"preimage": preimage,
+		}).WithError(err).Error("Invalid preimage")
+		return nil, err
+	}
+	if len(preImageBytes) != 32 {
+		err = fmt.Errorf("preimage must be 32 bytes, got %d", len(preImageBytes))
 		logger.Logger.WithFields(logrus.Fields{
 			"preimage": preimage,
 		}).WithError(err).Error("Invalid preimage")
