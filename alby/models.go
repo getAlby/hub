@@ -19,12 +19,12 @@ type AlbyOAuthService interface {
 	GetLSPChannelOffer(ctx context.Context) (*LSPChannelOffer, error)
 	GetLSPInfo(ctx context.Context, lsp, network string) (*LSPInfo, error)
 	CreateLSPOrder(ctx context.Context, lsp, network string, lspChannelRequest *LSPChannelRequest) (*LSPChannelResponse, error)
-	GetAuthUrl() string
+	GetAuthUrl(state string, verifier string) string
 	GetUserIdentifier() (string, error)
 	GetLightningAddress() (string, error)
 	IsConnected(ctx context.Context) bool
 	LinkAccount(ctx context.Context, lnClient lnclient.LNClient, budgetSat uint64, renewal string) error
-	CallbackHandler(ctx context.Context, code string) error
+	CallbackHandler(ctx context.Context, code string, verifier string) error
 	GetMe(ctx context.Context) (*AlbyMe, error)
 	UnlinkAccount(ctx context.Context) error
 	RequestAutoChannel(ctx context.Context, lnClient lnclient.LNClient, isPublic bool) (*AutoChannelResponse, error)
@@ -33,6 +33,10 @@ type AlbyOAuthService interface {
 	CreateLightningAddress(ctx context.Context, address string, appId uint) (*CreateLightningAddressResponse, error)
 	DeleteLightningAddress(ctx context.Context, address string) error
 	GetStories(ctx context.Context) ([]Story, error)
+}
+
+type AlbyAuthUrlResponse struct {
+	Url string `json:"url"`
 }
 
 type CreateLightningAddressResponse struct {

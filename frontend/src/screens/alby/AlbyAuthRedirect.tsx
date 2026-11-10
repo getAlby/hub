@@ -3,26 +3,29 @@ import { useLocation } from "react-router";
 import AuthCodeForm from "src/components/AuthCodeForm";
 
 import Loading from "src/components/Loading";
+import { useAlbyAuthUrl } from "src/hooks/useAlbyAuthUrl";
 import { useInfo } from "src/hooks/useInfo";
 
 export default function AlbyAuthRedirect() {
   const { data: info } = useInfo();
+  const { data: albyAuthUrl } = useAlbyAuthUrl();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const forceLogin = !!queryParams.get("force_login");
-  const url = info?.albyAuthUrl
-    ? (() => {
-        const _url = new URL(info.albyAuthUrl);
-        if (forceLogin) {
-          _url.searchParams.append("force_login", "true");
-        }
-        if (info.albyUserIdentifier) {
-          _url.searchParams.append("identifier", info.albyUserIdentifier);
-        }
+  const url =
+    info && albyAuthUrl
+      ? (() => {
+          const _url = new URL(albyAuthUrl.url);
+          if (forceLogin) {
+            _url.searchParams.append("force_login", "true");
+          }
+          if (info.albyUserIdentifier) {
+            _url.searchParams.append("identifier", info.albyUserIdentifier);
+          }
 
-        return _url.toString();
-      })()
-    : undefined;
+          return _url.toString();
+        })()
+      : undefined;
 
   React.useEffect(() => {
     if (!info || !url) {

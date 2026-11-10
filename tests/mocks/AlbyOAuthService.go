@@ -41,16 +41,16 @@ func (_m *MockAlbyOAuthService) EXPECT() *MockAlbyOAuthService_Expecter {
 }
 
 // CallbackHandler provides a mock function for the type MockAlbyOAuthService
-func (_mock *MockAlbyOAuthService) CallbackHandler(ctx context.Context, code string) error {
-	ret := _mock.Called(ctx, code)
+func (_mock *MockAlbyOAuthService) CallbackHandler(ctx context.Context, code string, verifier string) error {
+	ret := _mock.Called(ctx, code, verifier)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CallbackHandler")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = returnFunc(ctx, code)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = returnFunc(ctx, code, verifier)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -65,11 +65,12 @@ type MockAlbyOAuthService_CallbackHandler_Call struct {
 // CallbackHandler is a helper method to define mock.On call
 //   - ctx context.Context
 //   - code string
-func (_e *MockAlbyOAuthService_Expecter) CallbackHandler(ctx interface{}, code interface{}) *MockAlbyOAuthService_CallbackHandler_Call {
-	return &MockAlbyOAuthService_CallbackHandler_Call{Call: _e.mock.On("CallbackHandler", ctx, code)}
+//   - verifier string
+func (_e *MockAlbyOAuthService_Expecter) CallbackHandler(ctx interface{}, code interface{}, verifier interface{}) *MockAlbyOAuthService_CallbackHandler_Call {
+	return &MockAlbyOAuthService_CallbackHandler_Call{Call: _e.mock.On("CallbackHandler", ctx, code, verifier)}
 }
 
-func (_c *MockAlbyOAuthService_CallbackHandler_Call) Run(run func(ctx context.Context, code string)) *MockAlbyOAuthService_CallbackHandler_Call {
+func (_c *MockAlbyOAuthService_CallbackHandler_Call) Run(run func(ctx context.Context, code string, verifier string)) *MockAlbyOAuthService_CallbackHandler_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -79,9 +80,14 @@ func (_c *MockAlbyOAuthService_CallbackHandler_Call) Run(run func(ctx context.Co
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -92,7 +98,7 @@ func (_c *MockAlbyOAuthService_CallbackHandler_Call) Return(err error) *MockAlby
 	return _c
 }
 
-func (_c *MockAlbyOAuthService_CallbackHandler_Call) RunAndReturn(run func(ctx context.Context, code string) error) *MockAlbyOAuthService_CallbackHandler_Call {
+func (_c *MockAlbyOAuthService_CallbackHandler_Call) RunAndReturn(run func(ctx context.Context, code string, verifier string) error) *MockAlbyOAuthService_CallbackHandler_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -361,16 +367,16 @@ func (_c *MockAlbyOAuthService_DeleteLightningAddress_Call) RunAndReturn(run fun
 }
 
 // GetAuthUrl provides a mock function for the type MockAlbyOAuthService
-func (_mock *MockAlbyOAuthService) GetAuthUrl() string {
-	ret := _mock.Called()
+func (_mock *MockAlbyOAuthService) GetAuthUrl(state string, verifier string) string {
+	ret := _mock.Called(state, verifier)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetAuthUrl")
 	}
 
 	var r0 string
-	if returnFunc, ok := ret.Get(0).(func() string); ok {
-		r0 = returnFunc()
+	if returnFunc, ok := ret.Get(0).(func(string, string) string); ok {
+		r0 = returnFunc(state, verifier)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
@@ -383,13 +389,26 @@ type MockAlbyOAuthService_GetAuthUrl_Call struct {
 }
 
 // GetAuthUrl is a helper method to define mock.On call
-func (_e *MockAlbyOAuthService_Expecter) GetAuthUrl() *MockAlbyOAuthService_GetAuthUrl_Call {
-	return &MockAlbyOAuthService_GetAuthUrl_Call{Call: _e.mock.On("GetAuthUrl")}
+//   - state string
+//   - verifier string
+func (_e *MockAlbyOAuthService_Expecter) GetAuthUrl(state interface{}, verifier interface{}) *MockAlbyOAuthService_GetAuthUrl_Call {
+	return &MockAlbyOAuthService_GetAuthUrl_Call{Call: _e.mock.On("GetAuthUrl", state, verifier)}
 }
 
-func (_c *MockAlbyOAuthService_GetAuthUrl_Call) Run(run func()) *MockAlbyOAuthService_GetAuthUrl_Call {
+func (_c *MockAlbyOAuthService_GetAuthUrl_Call) Run(run func(state string, verifier string)) *MockAlbyOAuthService_GetAuthUrl_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run()
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }
@@ -399,7 +418,7 @@ func (_c *MockAlbyOAuthService_GetAuthUrl_Call) Return(s string) *MockAlbyOAuthS
 	return _c
 }
 
-func (_c *MockAlbyOAuthService_GetAuthUrl_Call) RunAndReturn(run func() string) *MockAlbyOAuthService_GetAuthUrl_Call {
+func (_c *MockAlbyOAuthService_GetAuthUrl_Call) RunAndReturn(run func(state string, verifier string) string) *MockAlbyOAuthService_GetAuthUrl_Call {
 	_c.Call.Return(run)
 	return _c
 }
