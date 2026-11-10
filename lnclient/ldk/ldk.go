@@ -1439,6 +1439,9 @@ func (ls *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string, 
 	ls.lastWalletSyncRequest = time.Now()
 
 	// FIXME: remove once LDK-node returns an error if it can't broadcast the transaction
+	if strings.TrimSpace(ls.cfg.GetEnv().MempoolApi) == "" {
+		return txId, nil
+	}
 
 	tryCheckTransactionWasBroadcasted := func() error {
 		url := ls.cfg.GetEnv().MempoolApi + "/tx/" + txId
@@ -1481,7 +1484,8 @@ func (ls *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string, 
 
 		return txId, nil
 	}
-	return "", lnclient.ErrOnchainBroadcastUnverified
+	logger.Logger.WithField("txId", txId).Warn("Could not verify onchain transaction in mempool, but broadcast succeeded")
+	return txId, nil
 }
 
 func (ls *LDKService) ResetRouter(key string) error {
