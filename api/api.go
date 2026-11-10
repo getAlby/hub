@@ -1529,7 +1529,6 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.Running = lnClient != nil
 	info.NodeMigrationFileCreated = api.nodeMigrationFileCreated.Load()
 	info.BackendType = backendType
-	info.AlbyAuthUrl = api.albyOAuthSvc.GetAuthUrl()
 	info.OAuthRedirect = !api.cfg.GetEnv().IsDefaultClientId()
 	info.Version = version.Tag
 	info.EnableAdvancedSetup = api.cfg.GetEnv().EnableAdvancedSetup

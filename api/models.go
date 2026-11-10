@@ -318,7 +318,6 @@ type InfoResponse struct {
 	OAuthRedirect               bool                `json:"oauthRedirect"`
 	Running                     bool                `json:"running"`
 	Unlocked                    bool                `json:"unlocked"`
-	AlbyAuthUrl                 string              `json:"albyAuthUrl"`
 	NextBackupReminder          string              `json:"nextBackupReminder"`
 	AlbyUserIdentifier          string              `json:"albyUserIdentifier"`
 	AlbyAccountConnected        bool                `json:"albyAccountConnected"`

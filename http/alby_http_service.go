@@ -1,6 +1,9 @@
 package http
 
 import (
+	"crypto/subtle"
+	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net/http"
@@ -10,6 +13,7 @@ import (
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/service"
 	"github.com/labstack/echo/v4"
+	"golang.org/x/oauth2"
 )
 
 type AlbyHttpService struct {
@@ -29,6 +33,7 @@ func NewAlbyHttpService(svc service.Service, albySvc alby.AlbyService, albyOAuth
 }
 
 func (albyHttpSvc *AlbyHttpService) RegisterSharedRoutes(readOnlyApiGroup *echo.Group, fullAccessApiGroup *echo.Group, e *echo.Echo) {
+	e.GET("/api/alby/auth-url", albyHttpSvc.albyAuthUrlHandler)
 	e.GET("/api/alby/callback", albyHttpSvc.albyCallbackHandler)
 	e.GET("/api/alby/info", albyHttpSvc.albyInfoHandler)
 	e.GET("/api/alby/rates/:currency", albyHttpSvc.albyBitcoinRateHandler)
@@ -121,16 +126,50 @@ func (albyHttpSvc *AlbyHttpService) albyStoriesHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, stories)
 }
 
+const (
+	albyOAuthStateCookieName    = "alby_oauth_state"
+	albyOAuthVerifierCookieName = "alby_oauth_verifier"
+	albyOAuthCookieMaxAge       = 60 * 60
+	albyOAuthVerifierBytes      = 32
+)
+
+func (albyHttpSvc *AlbyHttpService) albyAuthUrlHandler(c echo.Context) error {
+	state, verifier, err := resolveOAuthSession(c)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to generate OAuth state")
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to generate OAuth state: %s", err.Error()),
+		})
+	}
+
+	setOAuthCookie(c, albyOAuthStateCookieName, state, albyOAuthCookieMaxAge)
+	setOAuthCookie(c, albyOAuthVerifierCookieName, verifier, albyOAuthCookieMaxAge)
+
+	return c.JSON(http.StatusOK, &alby.AlbyAuthUrlResponse{
+		Url: albyHttpSvc.albyOAuthSvc.GetAuthUrl(state, verifier),
+	})
+}
+
 func (albyHttpSvc *AlbyHttpService) albyCallbackHandler(c echo.Context) error {
 	code := c.QueryParam("code")
 
-	err := albyHttpSvc.albyOAuthSvc.CallbackHandler(c.Request().Context(), code)
+	verifier, ok := checkOAuthSession(c)
+	if !ok {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "Invalid OAuth state. Please try connecting your Alby Account again.",
+		})
+	}
+
+	err := albyHttpSvc.albyOAuthSvc.CallbackHandler(c.Request().Context(), code, verifier)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to handle Alby OAuth callback")
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to handle Alby OAuth callback: %s", err.Error()),
 		})
 	}
+
+	setOAuthCookie(c, albyOAuthStateCookieName, "", -1)
+	setOAuthCookie(c, albyOAuthVerifierCookieName, "", -1)
 
 	if albyHttpSvc.appConfig.IsDefaultClientId() {
 		// do not redirect if using default OAuth client
@@ -175,4 +214,68 @@ func (albyHttpSvc *AlbyHttpService) albyLinkAccountHandler(c echo.Context) error
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+// resolveOAuthSession reuses the state and verifier from an earlier auth URL
+// request so that refetching the auth URL does not invalidate a URL that was
+// already opened
+func resolveOAuthSession(c echo.Context) (string, string, error) {
+	stateCookie, stateErr := c.Cookie(albyOAuthStateCookieName)
+	verifierCookie, verifierErr := c.Cookie(albyOAuthVerifierCookieName)
+	if stateErr == nil && verifierErr == nil &&
+		isValidOAuthState(stateCookie.Value) && isValidOAuthVerifier(verifierCookie.Value) {
+		return stateCookie.Value, verifierCookie.Value, nil
+	}
+
+	state, err := alby.GenerateOAuthState()
+	if err != nil {
+		return "", "", err
+	}
+	return state, oauth2.GenerateVerifier(), nil
+}
+
+func setOAuthCookie(c echo.Context, name string, value string, maxAge int) {
+	c.SetCookie(&http.Cookie{
+		Name:     name,
+		Value:    value,
+		Path:     "/api/alby",
+		MaxAge:   maxAge,
+		HttpOnly: true,
+		Secure:   c.Scheme() == "https",
+		SameSite: http.SameSiteLaxMode,
+	})
+}
+
+// checkOAuthSession returns the verifier for the token exchange if the
+// callback state matches the state issued to this browser
+func checkOAuthSession(c echo.Context) (string, bool) {
+	state := c.QueryParam("state")
+	if !isValidOAuthState(state) {
+		return "", false
+	}
+
+	stateCookie, err := c.Cookie(albyOAuthStateCookieName)
+	if err != nil {
+		return "", false
+	}
+	if subtle.ConstantTimeCompare([]byte(state), []byte(stateCookie.Value)) != 1 {
+		return "", false
+	}
+
+	verifierCookie, err := c.Cookie(albyOAuthVerifierCookieName)
+	if err != nil || !isValidOAuthVerifier(verifierCookie.Value) {
+		return "", false
+	}
+
+	return verifierCookie.Value, true
+}
+
+func isValidOAuthState(state string) bool {
+	decoded, err := hex.DecodeString(state)
+	return err == nil && len(decoded) == alby.OAuthStateBytes
+}
+
+func isValidOAuthVerifier(verifier string) bool {
+	decoded, err := base64.RawURLEncoding.DecodeString(verifier)
+	return err == nil && len(decoded) == albyOAuthVerifierBytes
 }

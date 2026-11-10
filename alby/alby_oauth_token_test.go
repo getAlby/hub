@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strconv"
 	"sync/atomic"
 	"testing"
@@ -140,10 +141,43 @@ func TestCallbackHandlerFailsWhenTokenSaveFails(t *testing.T) {
 	svc := &albyOAuthService{cfg: cfg, oauthConf: &oauth2.Config{
 		ClientID: "test-client", Endpoint: oauth2.Endpoint{TokenURL: server.URL},
 	}}
-	err := svc.CallbackHandler(context.Background(), "test-code")
+	err := svc.CallbackHandler(context.Background(), "test-code", oauth2.GenerateVerifier())
 	require.ErrorContains(t, err, "failed to save refresh token")
 	require.Equal(t, tokenSaveAttempts, cfg.failedWrites)
 	require.Empty(t, cfg.values[accessTokenKey])
+}
+
+func TestCallbackHandlerSendsVerifier(t *testing.T) {
+	logger.Init("4")
+	verifier := oauth2.GenerateVerifier()
+	var receivedVerifier string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.NoError(t, r.ParseForm())
+		receivedVerifier = r.PostForm.Get("code_verifier")
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte(`{"error":"invalid_grant"}`))
+	}))
+	defer server.Close()
+	svc := &albyOAuthService{oauthConf: &oauth2.Config{
+		ClientID: "test-client", Endpoint: oauth2.Endpoint{TokenURL: server.URL},
+	}}
+
+	err := svc.CallbackHandler(context.Background(), "test-code", verifier)
+	require.Error(t, err)
+	require.Equal(t, verifier, receivedVerifier)
+}
+
+func TestGetAuthUrlIncludesChallenge(t *testing.T) {
+	verifier := oauth2.GenerateVerifier()
+	svc := &albyOAuthService{oauthConf: &oauth2.Config{
+		ClientID: "test-client", Endpoint: oauth2.Endpoint{AuthURL: "https://getalby.com/oauth"},
+	}}
+
+	authUrl, err := url.Parse(svc.GetAuthUrl("test-state", verifier))
+	require.NoError(t, err)
+	require.Equal(t, "test-state", authUrl.Query().Get("state"))
+	require.Equal(t, oauth2.S256ChallengeFromVerifier(verifier), authUrl.Query().Get("code_challenge"))
+	require.Equal(t, "S256", authUrl.Query().Get("code_challenge_method"))
 }
 
 func TestFetchUserTokenFailsWhenTokenSaveFails(t *testing.T) {

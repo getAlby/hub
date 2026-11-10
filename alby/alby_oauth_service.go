@@ -3,6 +3,8 @@ package alby
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -99,8 +101,8 @@ func (svc *albyOAuthService) RemoveOAuthAccessToken() error {
 	return err
 }
 
-func (svc *albyOAuthService) CallbackHandler(ctx context.Context, code string) error {
-	token, err := svc.oauthConf.Exchange(ctx, code)
+func (svc *albyOAuthService) CallbackHandler(ctx context.Context, code string, verifier string) error {
+	token, err := svc.oauthConf.Exchange(ctx, code, oauth2.VerifierOption(verifier))
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to exchange token")
 		return err
@@ -517,8 +519,18 @@ func (svc *albyOAuthService) GetMe(ctx context.Context) (*AlbyMe, error) {
 	return me, nil
 }
 
-func (svc *albyOAuthService) GetAuthUrl() string {
-	return svc.oauthConf.AuthCodeURL("unused")
+func (svc *albyOAuthService) GetAuthUrl(state string, verifier string) string {
+	return svc.oauthConf.AuthCodeURL(state, oauth2.S256ChallengeOption(verifier))
+}
+
+const OAuthStateBytes = 32
+
+func GenerateOAuthState() (string, error) {
+	stateBytes := make([]byte, OAuthStateBytes)
+	if _, err := rand.Read(stateBytes); err != nil {
+		return "", fmt.Errorf("failed to read random bytes: %w", err)
+	}
+	return hex.EncodeToString(stateBytes), nil
 }
 
 func (svc *albyOAuthService) UnlinkAccount(ctx context.Context) error {
