@@ -222,7 +222,7 @@ func (httpSvc *HttpService) infoHandler(c echo.Context) error {
 	authHeader := c.Request().Header.Get("Authorization")
 	if authHeader != "" {
 		parts := strings.Split(authHeader, " ")
-		if parts[0] == "Bearer" {
+		if len(parts) == 2 && parts[0] == "Bearer" {
 			tokenString := parts[1]
 			token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 				secret, err := httpSvc.cfg.GetJWTSecret()
