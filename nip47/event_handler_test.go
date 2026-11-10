@@ -325,6 +325,54 @@ func doTestHandleResponse_NoPermission(t *testing.T, svc *tests.TestService, cre
 	assert.Equal(t, "This app does not have the get_balance scope", unmarshalledResponse.Error.Message)
 }
 
+func TestHandleResponse_UnknownMethod(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	albyOAuthSvc := alby.NewAlbyOAuthService(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
+	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher, albyOAuthSvc)
+
+	reqPrivateKey := nostr.GeneratePrivateKey()
+	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
+	require.NoError(t, err)
+
+	_, cipher, err := tests.CreateAppWithPrivateKey(svc, reqPrivateKey, constants.ENCRYPTION_TYPE_NIP44_V2)
+	require.NoError(t, err)
+
+	payloadBytes, err := json.Marshal(map[string]interface{}{
+		"method": "unknown_method",
+	})
+	require.NoError(t, err)
+
+	msg, err := cipher.Encrypt(string(payloadBytes))
+	require.NoError(t, err)
+
+	reqEvent := &nostr.Event{
+		Kind:      models.REQUEST_KIND,
+		PubKey:    reqPubkey,
+		CreatedAt: nostr.Now(),
+		Tags:      nostr.Tags{[]string{"encryption", constants.ENCRYPTION_TYPE_NIP44_V2}},
+		Content:   msg,
+	}
+	err = reqEvent.Sign(reqPrivateKey)
+	require.NoError(t, err)
+
+	pool := tests.NewMockSimplePool()
+	nip47svc.HandleEvent(context.TODO(), pool, reqEvent, svc.LNClient)
+
+	require.NotEmpty(t, pool.PublishedEvents)
+	decrypted, err := cipher.Decrypt(pool.PublishedEvents[0].Content)
+	require.NoError(t, err)
+
+	response := models.Response{}
+	err = json.Unmarshal([]byte(decrypted), &response)
+	require.NoError(t, err)
+	require.NotNil(t, response.Error)
+	assert.Equal(t, "unknown_method", response.ResultType)
+	assert.Equal(t, constants.ERROR_NOT_IMPLEMENTED, response.Error.Code)
+}
+
 func TestHandleResponse_Nip04_OldRequestForPayment(t *testing.T) {
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)

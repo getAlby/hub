@@ -335,10 +335,14 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, pool nostrmodels.Simpl
 	if !slices.Contains(permissions.GetAlwaysGrantedMethods(), nip47Request.Method) {
 		scope, err := permissions.RequestMethodToScope(nip47Request.Method)
 		if err != nil {
+			code := constants.ERROR_INTERNAL
+			if errors.Is(err, permissions.ErrUnsupportedMethod) {
+				code = constants.ERROR_NOT_IMPLEMENTED
+			}
 			publishResponse(&models.Response{
 				ResultType: nip47Request.Method,
 				Error: &models.Error{
-					Code:    constants.ERROR_INTERNAL,
+					Code:    code,
 					Message: err.Error(),
 				},
 			}, nostr.Tags{})
