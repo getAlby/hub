@@ -168,8 +168,8 @@ github.com/fxamacker/cbor/v2 v2.7.0 h1:iM5WgngdRBanHcxugY4JySA0nk1wZorNOpTgCMedv
 github.com/fxamacker/cbor/v2 v2.7.0/go.mod h1:pxXPTn3joSm21Gbwsv0w9OSA2y1HFR9qXEeXQVeNoDQ=
 github.com/gabriel-vasile/mimetype v1.4.16 h1:5izNFuvA37st1dDRAcA7TtmngBmRgiIPDmTtiEvjx1E=
 github.com/gabriel-vasile/mimetype v1.4.16/go.mod h1:3oFFwxX8kTklZwzIl2aQEDZT0lKY8xH92ST88bAwba4=
-github.com/getAlby/go-nostr v0.0.0-20261104074428-45060cc10054 h1:cWThPhGqugukEIMa1vZKZ4TRjzlxneKZ7JyHt4GFrbg=
-github.com/getAlby/go-nostr v0.0.0-20261104074428-45060cc10054/go.mod h1:UtZi+MvE7ayGS85zEr5RH2s96T2ok5Gotgp3n65sULU=
+github.com/getAlby/go-nostr v0.0.0-20261110062342-5d9af3cfa9c8 h1:q2i1ehphO0IP6JOoA5wLFwfMQM7TJRVFnagshUobgH8=
+github.com/getAlby/go-nostr v0.0.0-20261110062342-5d9af3cfa9c8/go.mod h1:UtZi+MvE7ayGS85zEr5RH2s96T2ok5Gotgp3n65sULU=
 github.com/getAlby/ldk-node-go v0.0.0-20261021094837-02f88de84f63 h1:gxfbdmCRAqT8NjX7i45YBnA9iKODP1ALuQ0PK9GzkvI=
 github.com/getAlby/ldk-node-go v0.0.0-20261021094837-02f88de84f63/go.mod h1:8BRjtKcz8E0RyYTPEbMS8VIdgredcGSLne8vHDtcRLg=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
