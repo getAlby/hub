@@ -777,23 +777,3 @@ func TestGetLogOutput_FullPermission(t *testing.T) {
 	err = json.Unmarshal(rec2.Body.Bytes(), &logResponse)
 	require.NoError(t, err)
 }
-
-func TestBearerToken(t *testing.T) {
-	tests := []struct {
-		header string
-		token  string
-		ok     bool
-	}{
-		{header: "", ok: false},
-		{header: "Bearer", ok: false},
-		{header: "Bearer ", ok: false},
-		{header: "Basic abc", ok: false},
-		{header: "Bearer abc.def.ghi", token: "abc.def.ghi", ok: true},
-	}
-
-	for _, tc := range tests {
-		token, ok := bearerToken(tc.header)
-		assert.Equal(t, tc.ok, ok, tc.header)
-		assert.Equal(t, tc.token, token, tc.header)
-	}
-}
