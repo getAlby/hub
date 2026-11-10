@@ -1,6 +1,7 @@
 package permissions
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 	"time"
@@ -151,6 +152,8 @@ func RequestMethodsToScopes(requestMethods []string) ([]string, error) {
 	return scopes, nil
 }
 
+var ErrUnsupportedMethod = errors.New("unsupported request method")
+
 func RequestMethodToScope(requestMethod string) (string, error) {
 	switch requestMethod {
 	case models.PAY_INVOICE_METHOD, models.PAY_KEYSEND_METHOD, models.MULTI_PAY_INVOICE_METHOD, models.MULTI_PAY_KEYSEND_METHOD:
@@ -175,7 +178,7 @@ func RequestMethodToScope(requestMethod string) (string, error) {
 		return constants.SUPERUSER_SCOPE, nil
 	}
 	logger.Logger.WithField("request_method", requestMethod).Error("Unsupported request method")
-	return "", fmt.Errorf("unsupported request method: %s", requestMethod)
+	return "", fmt.Errorf("%w: %s", ErrUnsupportedMethod, requestMethod)
 }
 
 func AllScopes() []string {
