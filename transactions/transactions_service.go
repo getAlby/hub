@@ -16,6 +16,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/btcsuite/btcd/btcec/v2"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 	"gorm.io/datatypes"
@@ -470,6 +471,13 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 }
 
 func (svc *transactionsService) SendKeysend(amountMsat uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
+	if err := validateKeysendDestination(destination); err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"destination": destination,
+		}).WithError(err).Error("Invalid keysend destination")
+		return nil, err
+	}
+
 	if preimage == "" {
 		preImageBytes, err := makePreimageHex()
 		if err != nil {
@@ -1229,6 +1237,21 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amountM
 // max of 1% or 10000 millisats (10 sats)
 func CalculateFeeReserveMsat(amountMsat uint64) uint64 {
 	return uint64(math.Max(math.Ceil(float64(amountMsat)*0.01), 10000))
+}
+
+// validateKeysendDestination checks that destination is a hex-encoded 33-byte compressed secp256k1 node pubkey
+func validateKeysendDestination(destination string) error {
+	destinationBytes, err := hex.DecodeString(destination)
+	if err != nil {
+		return fmt.Errorf("invalid destination pubkey: %w", err)
+	}
+	if len(destinationBytes) != btcec.PubKeyBytesLenCompressed {
+		return fmt.Errorf("destination pubkey must be %d bytes, got %d", btcec.PubKeyBytesLenCompressed, len(destinationBytes))
+	}
+	if _, err := btcec.ParsePubKey(destinationBytes); err != nil {
+		return fmt.Errorf("invalid destination pubkey: %w", err)
+	}
+	return nil
 }
 
 func makePreimageHex() ([]byte, error) {
