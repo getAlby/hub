@@ -37,6 +37,8 @@ import (
 
 type Swap = db.Swap
 
+var ErrSwapNotFound = errors.New("swap not found")
+
 type swapsService struct {
 	autoSwapOutCancelFn      context.CancelFunc
 	db                       *gorm.DB
@@ -915,13 +917,17 @@ func (svc *swapsService) RefundSwap(swapId, address string, enableRetries bool) 
 
 func (svc *swapsService) GetSwap(swapId string) (*Swap, error) {
 	var swap db.Swap
-	err := svc.db.Limit(1).Find(&swap, &db.Swap{
+	result := svc.db.Limit(1).Find(&swap, &db.Swap{
 		SwapId: swapId,
-	}).Error
+	})
 
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to get swap")
-		return nil, err
+	if result.Error != nil {
+		logger.Logger.WithError(result.Error).Error("Failed to get swap")
+		return nil, result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return nil, ErrSwapNotFound
 	}
 
 	return &swap, nil
