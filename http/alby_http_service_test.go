@@ -141,7 +141,7 @@ func setupAlbyHttpService(t *testing.T) (*echo.Echo, *mocks.MockAlbyOAuthService
 	appConfig := &config.AppConfig{AlbyClientId: "J2PbXS1yOf"}
 	albyHttpSvc := NewAlbyHttpService(mocks.NewMockService(t), mocks.NewMockAlbyService(t), mockAlbyOAuthSvc, appConfig)
 	apiGroup := e.Group("/api")
-	albyHttpSvc.RegisterSharedRoutes(apiGroup, apiGroup, e)
+	albyHttpSvc.RegisterSharedRoutes(apiGroup, apiGroup, e, nil)
 	return e, mockAlbyOAuthSvc
 }
 

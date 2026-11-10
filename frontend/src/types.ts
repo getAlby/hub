@@ -155,6 +155,7 @@ export interface AppPermissions {
 export interface InfoResponse {
   backendType: BackendType;
   setupCompleted: boolean;
+  setupCodeRequired: boolean;
   oauthRedirect: boolean;
   albyAccountConnected: boolean;
   ldkVssEnabled: boolean;

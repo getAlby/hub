@@ -95,8 +95,10 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.Use(middleware.RequestID())
 
 	e.GET("/api/info", httpSvc.infoHandler)
-	e.POST("/api/setup", httpSvc.setupHandler)
-	e.POST("/api/restore", httpSvc.restoreBackupHandler)
+	setupMiddlewares := httpSvc.createSetupMiddlewares()
+	e.POST("/api/setup", httpSvc.setupHandler, setupMiddlewares...)
+	e.POST("/api/setup/verify-code", httpSvc.verifySetupCodeHandler, setupMiddlewares...)
+	e.POST("/api/restore", httpSvc.restoreBackupHandler, setupMiddlewares...)
 
 	// A single global rate limiter (one bucket for all callers, not per-IP)
 	// shared by every endpoint that verifies the unlock password, to bound how
@@ -208,7 +210,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	fullAccessApiGroup.DELETE("/autoswap", httpSvc.disableAutoSwapOutHandler)
 	fullAccessApiGroup.POST("/node/alias", httpSvc.setNodeAliasHandler)
 
-	httpSvc.albyHttpSvc.RegisterSharedRoutes(readOnlyApiGroup, fullAccessApiGroup, e)
+	httpSvc.albyHttpSvc.RegisterSharedRoutes(readOnlyApiGroup, fullAccessApiGroup, e, setupMiddlewares)
 }
 
 func (httpSvc *HttpService) infoHandler(c echo.Context) error {

@@ -1,4 +1,5 @@
 import { getAuthToken } from "src/lib/auth";
+import useSetupStore from "src/state/SetupStore";
 import { ErrorResponse } from "src/types";
 
 export const request = async <T>(
@@ -21,6 +22,17 @@ export const request = async <T>(
     };
   }
 
+  const setupCode = useSetupStore.getState().setupCode;
+  if (setupCode) {
+    if (!args[1]) {
+      args[1] = {};
+    }
+    args[1].headers = {
+      ...args[1].headers,
+      "X-Setup-Code": setupCode,
+    };
+  }
+
   try {
     const fetchResponse = await fetch(...args);
 
@@ -34,6 +46,14 @@ export const request = async <T>(
     }
 
     if (!fetchResponse.ok) {
+      if (
+        setupCode &&
+        fetchResponse.status === 401 &&
+        (body as ErrorResponse)?.message === "Invalid setup code"
+      ) {
+        // ask the user to enter the setup code again
+        useSetupStore.getState().setSetupCode("");
+      }
       throw new Error(
         fetchResponse.status +
           " " +

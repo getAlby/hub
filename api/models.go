@@ -315,6 +315,7 @@ type InfoResponseRelay struct {
 type InfoResponse struct {
 	BackendType                 string              `json:"backendType"`
 	SetupCompleted              bool                `json:"setupCompleted"`
+	SetupCodeRequired           bool                `json:"setupCodeRequired"`
 	OAuthRedirect               bool                `json:"oauthRedirect"`
 	Running                     bool                `json:"running"`
 	Unlocked                    bool                `json:"unlocked"`
