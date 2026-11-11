@@ -113,6 +113,25 @@ func TestCalculateMaxSwapOutSendAmountSat(t *testing.T) {
 	assert.Equal(t, uint64(0), calculateMaxSwapOutSendAmountSat(100_000, 100, 500, 300))
 }
 
+func TestCheckSwapProviderFees(t *testing.T) {
+	// small swaps are limited by the fixed 10_000 sat allowance
+	assert.NoError(t, checkSwapProviderFees(25_000, 125, 2_650))
+	assert.NoError(t, checkSwapProviderFees(25_000, 125, 9_875))
+	assert.Error(t, checkSwapProviderFees(25_000, 125, 9_876))
+
+	// large swaps are limited by 5% of the amount
+	assert.NoError(t, checkSwapProviderFees(1_000_000, 1_000, 49_000))
+	assert.Error(t, checkSwapProviderFees(1_000_000, 1_000, 49_001))
+}
+
+func TestCalculateMaxSwapInSendAmountSat(t *testing.T) {
+	// 100_000 invoice + 0.5% boltz + 1% alby fee (1_500) + 500 miner fee, plus 10 sat tolerance
+	assert.Equal(t, uint64(102_010), calculateMaxSwapInSendAmountSat(100_000, 0.5, 500))
+
+	// percentage fees are rounded up: 1% of 12_345 = 123.45
+	assert.Equal(t, uint64(12_345+124+500+10), calculateMaxSwapInSendAmountSat(12_345, 0, 500))
+}
+
 func TestValidateAddress(t *testing.T) {
 	tests := []struct {
 		name        string
