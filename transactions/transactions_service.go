@@ -1530,6 +1530,12 @@ func (svc *transactionsService) markTransactionSettled(dbTransaction *db.Transac
 			return nil
 		}
 
+		if dbTransaction.Hold {
+			if err := svc.checkHoldInvoiceNotCanceled(tx, dbTransaction); err != nil {
+				return err
+			}
+		}
+
 		settledAt := time.Now()
 		err = tx.Model(dbTransaction).Updates(map[string]interface{}{
 			"State":          constants.TRANSACTION_STATE_SETTLED,
@@ -1561,6 +1567,24 @@ func (svc *transactionsService) markTransactionSettled(dbTransaction *db.Transac
 	svc.publishEvents(eventsToPublish)
 
 	return settledTransaction, nil
+}
+
+func (svc *transactionsService) checkHoldInvoiceNotCanceled(tx *gorm.DB, dbTransaction *db.Transaction) error {
+	var currentTransaction db.Transaction
+	result := tx.Limit(1).Find(&currentTransaction, &db.Transaction{
+		ID: dbTransaction.ID,
+	})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return NewNotFoundError()
+	}
+	if currentTransaction.State == constants.TRANSACTION_STATE_FAILED {
+		logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Info("hold invoice was already canceled")
+		return lnclient.NewHoldInvoiceCanceledError()
+	}
+	return nil
 }
 
 // createSettledTransactionFromNotification inserts a transaction directly in
