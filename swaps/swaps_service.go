@@ -1496,11 +1496,20 @@ func (svc *swapsService) claimSwapOut(swap *db.Swap, network *boltz.Network, our
 		return
 	}
 
+	claimTxId := claimTransaction.Hash()
+
 	// TODO: Replace with LNClient broadcast method to avoid trusting boltz
-	claimTxId, err := svc.boltzApi.BroadcastTransaction(boltz.CurrencyBtc, txHex)
+	_, err = svc.boltzApi.BroadcastTransaction(boltz.CurrencyBtc, txHex)
 	if err != nil {
-		logger.Logger.WithError(err).WithField("swapId", swap.SwapId).Error("Could not broadcast claim transaction, will retry")
-		return
+		// an earlier broadcast may have succeeded without us receiving the response
+		if !svc.checkTransactionExists(claimTxId) {
+			logger.Logger.WithError(err).WithField("swapId", swap.SwapId).Error("Could not broadcast claim transaction, will retry")
+			return
+		}
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"swapId":    swap.SwapId,
+			"claimTxId": claimTxId,
+		}).Info("Claim transaction already broadcast")
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
@@ -1552,6 +1561,20 @@ func (svc *swapsService) fetchSwapOutLockup(swap *db.Swap, network *boltz.Networ
 	}
 
 	return lockupTransaction, vout, nil
+}
+
+// checkTransactionExists returns true if the configured chain source knows the
+// transaction, either in the mempool or on-chain.
+func (svc *swapsService) checkTransactionExists(txId string) bool {
+	chainLookup, err := chain.NewAddressLookup(svc.ctx, svc.cfg)
+	if err != nil {
+		logger.Logger.WithError(err).Warn("Failed to connect to chain source")
+		return false
+	}
+	defer chainLookup.Close()
+
+	_, err = chainLookup.GetTransactionHex(svc.ctx, txId)
+	return err == nil
 }
 
 // subscribeToSwapUpdates subscribes to updates for a swap, retrying with
