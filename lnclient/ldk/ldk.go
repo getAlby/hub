@@ -88,6 +88,9 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	if mnemonic == "" || workDir == "" {
 		return nil, errors.New("one or more required LDK configuration are missing")
 	}
+	if cfg.GetEnv().LDKBitcoindRpcHost != "" {
+		return nil, errors.New("the bitcoind chain source is no longer supported: remove LDK_BITCOIND_RPC_HOST and set LDK_ESPLORA_SERVER or LDK_ELECTRUM_SERVER instead")
+	}
 
 	setStartupState("Configuring node")
 
@@ -214,23 +217,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	}
 
 	var chainSource string
-	if cfg.GetEnv().LDKBitcoindRpcHost != "" {
-		logger.Logger.WithFields(logrus.Fields{
-			"rpc_host": cfg.GetEnv().LDKBitcoindRpcHost,
-			"rpc_port": cfg.GetEnv().LDKBitcoindRpcPort,
-		}).Info("Using LDK node bitcoin RPC chain source")
-		port, err := strconv.ParseUint(cfg.GetEnv().LDKBitcoindRpcPort, 10, 16)
-		if err != nil {
-			return nil, err
-		}
-		builder.SetChainSourceBitcoindRpc(cfg.GetEnv().LDKBitcoindRpcHost, uint16(port), cfg.GetEnv().LDKBitcoindRpcUser, cfg.GetEnv().LDKBitcoindRpcPassword)
-		// bitcoind has no address index, so address lookups still need an esplora or electrum server
-		logger.Logger.WithFields(logrus.Fields{
-			"esplora_url":  cfg.GetEnv().LDKEsploraServer,
-			"electrum_url": cfg.GetEnv().LDKElectrumServer,
-		}).Warn("Bitcoind chain source does not support address lookups, using alternate server for address lookups. Set LDK_ESPLORA_SERVER or LDK_ELECTRUM_SERVER to use your own")
-		chainSource = "bitcoind"
-	} else if cfg.GetEnv().LDKEsploraServer != "" {
+	if cfg.GetEnv().LDKEsploraServer != "" {
 		logger.Logger.WithFields(logrus.Fields{
 			"esplora_url": cfg.GetEnv().LDKEsploraServer,
 		}).Info("Using LDK node esplora chain source")
@@ -2760,17 +2747,13 @@ func (ls *LDKService) ConsumeEvent(ctx context.Context, event *events.Event, glo
 }
 
 func (ls *LDKService) GetChainDataSource() (string, string) {
-	if endpoint := ls.cfg.GetEnv().LDKBitcoindRpcHost; endpoint != "" {
-		rpcPort := ls.cfg.GetEnv().LDKBitcoindRpcPort
-		return "bitcoind", sanitizeChainEndpoint(endpoint, rpcPort)
-	}
 	if endpoint := ls.cfg.GetEnv().LDKEsploraServer; endpoint != "" {
-		return "esplora", sanitizeChainEndpoint(endpoint, "")
+		return "esplora", sanitizeChainEndpoint(endpoint)
 	}
 
 	// Fallback to Electrum
 	endpoint := ls.cfg.GetEnv().LDKElectrumServer
-	return "electrum", sanitizeChainEndpoint(endpoint, "")
+	return "electrum", sanitizeChainEndpoint(endpoint)
 }
 
 func (ls *LDKService) GetLiquiditySourceLsps2() string {
@@ -2953,31 +2936,16 @@ func computeLsps2MinPaymentSizeMsat(params ldk_node.Lsps2OpeningFeeParams) (uint
 	return 0, false
 }
 
-func sanitizeChainEndpoint(endpoint string, port string) string {
+func sanitizeChainEndpoint(endpoint string) string {
 	u, err := url.Parse(endpoint)
 	if err != nil || u.Host == "" {
 		u, err = url.Parse("//" + endpoint)
 	}
-	if err != nil {
+	if err != nil || u.Hostname() == "" {
 		return endpoint
 	}
 
 	u.User = nil
-	host := u.Hostname()
-	if host == "" {
-		return endpoint
-	}
-
-	existingPort := u.Port()
-	if existingPort == "" {
-		existingPort = port
-	}
-
-	if existingPort != "" {
-		u.Host = net.JoinHostPort(host, existingPort)
-	} else {
-		u.Host = host
-	}
 
 	sanitized := u.String()
 	if u.Scheme == "" {

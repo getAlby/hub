@@ -172,15 +172,10 @@ The following configuration options can be set as environment variables or in a 
 
 There is a boltz regtest fork with mempool service and alby-specific instructions [here](https://github.com/rolznz/boltz-regtest/tree/alby-hub?tab=readme-ov-file#your-first-swap)
 
-Make sure to update your RPC password below (`docker exec boltz-bitcoind cat /app/bitcoin/regtest/.cookie | cut -d: -f2`), and change your work directory each time you restart boltz (it is ephemeral):
+Make sure to change your work directory each time you restart boltz (it is ephemeral):
 
     WORK_DIR=.data/boltz-regtest-1
-    LDK_BITCOIND_RPC_HOST="127.0.0.1"
-    LDK_BITCOIND_RPC_PORT="18443"
-    LDK_BITCOIND_RPC_USER="__cookie__"
-    LDK_BITCOIND_RPC_PASSWORD="f7460d81974b000b63e46c0e880243cf28bbaf93938b6e38494628f1f1700f23"
-    # or use esplora
-    #LDK_ESPLORA_SERVER=http://localhost:4002/api
+    LDK_ESPLORA_SERVER=http://localhost:4002/api
     NETWORK="regtest"
     LDK_LISTENING_ADDRESSES="0.0.0.0:19735"
     BOLTZ_API=http://localhost:9001
@@ -255,7 +250,8 @@ _To configure via env, the following parameters must be provided:_
 
 - `LDK_ELECTRUM_SERVER`: By default the optimized Alby electrum server is used. You can configure your own electrum server (e.g. `ssl://host:50002` or `tcp://host:50001`).
 - `LDK_ESPLORA_SERVER`: Use an esplora server as the chain source instead of electrum (note: the public blockstream one is slow and can cause onchain syncing and issues with opening channels)
-- The configured electrum or esplora server is also used for onchain address lookups. Bitcoind has no address index, so when using `LDK_BITCOIND_RPC_HOST` these lookups go to `LDK_ESPLORA_SERVER` if configured, otherwise to `LDK_ELECTRUM_SERVER`.
+- The configured electrum or esplora server is also used for onchain address lookups.
+- Connecting directly to bitcoind (`LDK_BITCOIND_RPC_HOST`) is no longer supported: the node will not start while it is set. To use your own node, run an electrum or esplora server on top of it and set `LDK_ELECTRUM_SERVER` or `LDK_ESPLORA_SERVER`.
 - `LDK_VSS_URL`: Use VSS (encrypted remote storage) rather than local sqlite store for lightning and bitcoin data. Currently this feature only works for brand new Alby Hub instances that are connected to Alby Accounts with an active subscription plan.
 - `LDK_LISTENING_ADDRESSES`: configure listening addresses, required for public channels, and ideally reachable if you would like others to be able to initiate peering with your node.
 - `LDK_ANNOUNCEMENT_ADDRESSES`: configure announcement addresses (only required if you use a VPN)
@@ -290,13 +286,6 @@ _To configure via env, the following parameters must be provided:_
 - `NETWORK=testnet`
 - `LDK_ESPLORA_SERVER=https://mempool.space/testnet/api`
 - `LDK_GOSSIP_SOURCE=https://rapidsync.lightningdevkit.org/testnet/snapshot` (NOTE: by default ALby Hub does not use RGS)
-
-###### Connect to your own bitcoind
-
-- `LDK_BITCOIND_RPC_HOST=127.0.0.1`
-- `LDK_BITCOIND_RPC_PORT=8332`
-- `LDK_BITCOIND_RPC_USER=yourusername`
-- `LDK_BITCOIND_RPC_PASSWORD=yourpassword`
 
 ### Phoenixd
 

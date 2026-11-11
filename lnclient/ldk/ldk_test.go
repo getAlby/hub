@@ -1,6 +1,7 @@
 package ldk
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"os"
@@ -14,6 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/tests"
@@ -251,44 +253,27 @@ func TestFetchLsps2OpeningFeeParamsConcurrentCallersWaitForInFlightFetch(t *test
 	assert.Equal(t, uint64(100_000_000), *max)
 }
 
-func TestSanitizeChainEndpointForBitcoind(t *testing.T) {
-	tests := []struct {
-		name     string
-		endpoint string
-		rpcPort  string
-		expected string
-	}{
-		{
-			name:     "adds configured port to host",
-			endpoint: "127.0.0.1",
-			rpcPort:  "8332",
-			expected: "127.0.0.1:8332",
-		},
-		{
-			name:     "preserves endpoint port",
-			endpoint: "127.0.0.1:18443",
-			rpcPort:  "8332",
-			expected: "127.0.0.1:18443",
-		},
-		{
-			name:     "formats ipv6 host",
-			endpoint: "[2001:db8::1]",
-			rpcPort:  "8332",
-			expected: "[2001:db8::1]:8332",
-		},
-		{
-			name:     "strips credentials from url-shaped input",
-			endpoint: "user:pass@[2001:db8::1]:18443",
-			rpcPort:  "8332",
-			expected: "[2001:db8::1]:18443",
-		},
-	}
+// testConfig overrides only the config methods used by these tests
+// (tests/mocks cannot be used here as it imports this package)
+type testConfig struct {
+	config.Config
+	env *config.AppConfig
+}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.expected, sanitizeChainEndpoint(tt.endpoint, tt.rpcPort))
-		})
-	}
+func (c *testConfig) GetEnv() *config.AppConfig { return c.env }
+
+// a hub still configured for the removed bitcoind chain source must not be
+// silently switched to an esplora or electrum server
+func TestNewLDKService_RefusesBitcoindChainSource(t *testing.T) {
+	cfg := &testConfig{env: &config.AppConfig{
+		LDKBitcoindRpcHost: "127.0.0.1",
+		LDKElectrumServer:  "ssl://electrum.getalbypro.com:50002",
+	}}
+
+	lnClient, err := NewLDKService(context.Background(), cfg, nil, "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about", t.TempDir(), "", func(string) {}, nil)
+
+	require.EqualError(t, err, "the bitcoind chain source is no longer supported: remove LDK_BITCOIND_RPC_HOST and set LDK_ESPLORA_SERVER or LDK_ELECTRUM_SERVER instead")
+	assert.Nil(t, lnClient)
 }
 
 func TestSanitizeChainEndpointForURLs(t *testing.T) {
@@ -312,11 +297,16 @@ func TestSanitizeChainEndpointForURLs(t *testing.T) {
 			endpoint: "https://user:pass@esplora.example.com/api",
 			expected: "https://esplora.example.com/api",
 		},
+		{
+			name:     "strips credentials from a bare ipv6 endpoint",
+			endpoint: "user:pass@[2001:db8::1]:50001",
+			expected: "[2001:db8::1]:50001",
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.expected, sanitizeChainEndpoint(tt.endpoint, ""))
+			assert.Equal(t, tt.expected, sanitizeChainEndpoint(tt.endpoint))
 		})
 	}
 }

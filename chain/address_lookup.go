@@ -18,7 +18,6 @@ type AddressLookup interface {
 
 // NewAddressLookup returns an AddressLookup backed by the same chain source LDK
 // uses: esplora if LDK_ESPLORA_SERVER is set, otherwise electrum.
-// Bitcoind has no address index, so bitcoind users also fall back to electrum.
 func NewAddressLookup(ctx context.Context, cfg config.Config) (AddressLookup, error) {
 	env := cfg.GetEnv()
 	if env.LDKEsploraServer != "" {
