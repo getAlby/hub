@@ -6,11 +6,13 @@ import (
 	"github.com/getAlby/hub/config"
 )
 
-// AddressLookup checks onchain address usage against the configured chain source.
+// AddressLookup queries onchain data from the configured chain source.
 type AddressLookup interface {
 	// AddressHasTransactions returns true if the address has any confirmed or
 	// unconfirmed transaction history.
 	AddressHasTransactions(ctx context.Context, address string) (bool, error)
+	// GetTransactionHex returns the raw hex of a confirmed or unconfirmed transaction.
+	GetTransactionHex(ctx context.Context, txId string) (string, error)
 	Close()
 }
 
