@@ -13,7 +13,7 @@ require (
 	github.com/btcsuite/btcd/btcutil v1.2.0
 	github.com/elnosh/gonuts v0.4.2
 	github.com/getAlby/go-nostr v0.0.0-20261110062342-5d9af3cfa9c8
-	github.com/getAlby/ldk-node-go v0.0.0-20261021094837-02f88de84f63
+	github.com/getAlby/ldk-node-go v0.0.0-20261111074958-0ea158f0c7f4
 	github.com/go-gormigrate/gormigrate/v2 v2.1.7
 	github.com/google/uuid v1.6.0
 	github.com/labstack/echo/v4 v4.16.2
