@@ -44,6 +44,29 @@ func TestCheckCache_NoEncryptionKey(t *testing.T) {
 	require.Equal(t, "value", value)
 }
 
+func TestGet_ReturnsQueryError(t *testing.T) {
+	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
+
+	// use a separate in-memory DB so closing it doesn't affect the other tests
+	db, err := gorm.Open(sqlite.Open("file:config_get_error?mode=memory"), &gorm.Config{})
+	require.NoError(t, err)
+	err = migrations.Migrate(db)
+	require.NoError(t, err)
+
+	cfg, err := NewConfig(&AppConfig{
+		Workdir: ".test",
+	}, db)
+	require.NoError(t, err)
+
+	sqlDB, err := db.DB()
+	require.NoError(t, err)
+	require.NoError(t, sqlDB.Close())
+
+	_, err = cfg.Get("uncached-key", "")
+	require.Error(t, err)
+	assert.ErrorContains(t, err, "database is closed")
+}
+
 func TestCheckUnlockPasswordCache(t *testing.T) {
 	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
 	unlockPassword := "123"
