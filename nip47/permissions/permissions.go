@@ -118,13 +118,13 @@ func scopesToRequestMethods(scopes []string) []string {
 func scopeToRequestMethods(scope string) []string {
 	switch scope {
 	case constants.PAY_INVOICE_SCOPE:
-		return []string{models.PAY_INVOICE_METHOD, models.PAY_KEYSEND_METHOD, models.MULTI_PAY_INVOICE_METHOD, models.MULTI_PAY_KEYSEND_METHOD}
+		return []string{models.PAY_INVOICE_METHOD, models.PAY_KEYSEND_METHOD, models.MULTI_PAY_INVOICE_METHOD, models.MULTI_PAY_KEYSEND_METHOD, models.PAY_METHOD}
 	case constants.GET_BALANCE_SCOPE:
 		return []string{models.GET_BALANCE_METHOD}
 	case constants.GET_INFO_SCOPE:
 		return []string{models.GET_INFO_METHOD}
 	case constants.MAKE_INVOICE_SCOPE:
-		return []string{models.MAKE_INVOICE_METHOD, models.MAKE_HOLD_INVOICE_METHOD, models.SETTLE_HOLD_INVOICE_METHOD, models.CANCEL_HOLD_INVOICE_METHOD}
+		return []string{models.MAKE_INVOICE_METHOD, models.MAKE_HOLD_INVOICE_METHOD, models.SETTLE_HOLD_INVOICE_METHOD, models.CANCEL_HOLD_INVOICE_METHOD, models.RECEIVE_METHOD}
 	case constants.LOOKUP_INVOICE_SCOPE:
 		return []string{models.LOOKUP_INVOICE_METHOD}
 	case constants.LIST_TRANSACTIONS_SCOPE:
@@ -156,7 +156,7 @@ var ErrUnsupportedMethod = errors.New("unsupported request method")
 
 func RequestMethodToScope(requestMethod string) (string, error) {
 	switch requestMethod {
-	case models.PAY_INVOICE_METHOD, models.PAY_KEYSEND_METHOD, models.MULTI_PAY_INVOICE_METHOD, models.MULTI_PAY_KEYSEND_METHOD:
+	case models.PAY_INVOICE_METHOD, models.PAY_KEYSEND_METHOD, models.MULTI_PAY_INVOICE_METHOD, models.MULTI_PAY_KEYSEND_METHOD, models.PAY_METHOD:
 		return constants.PAY_INVOICE_SCOPE, nil
 	case models.GET_BALANCE_METHOD:
 		return constants.GET_BALANCE_SCOPE, nil
@@ -172,7 +172,7 @@ func RequestMethodToScope(requestMethod string) (string, error) {
 		return constants.LIST_TRANSACTIONS_SCOPE, nil
 	case models.SIGN_MESSAGE_METHOD:
 		return constants.SIGN_MESSAGE_SCOPE, nil
-	case models.MAKE_HOLD_INVOICE_METHOD, models.SETTLE_HOLD_INVOICE_METHOD, models.CANCEL_HOLD_INVOICE_METHOD:
+	case models.MAKE_HOLD_INVOICE_METHOD, models.SETTLE_HOLD_INVOICE_METHOD, models.CANCEL_HOLD_INVOICE_METHOD, models.RECEIVE_METHOD:
 		return constants.MAKE_INVOICE_SCOPE, nil
 	case models.CREATE_CONNECTION_METHOD:
 		return constants.SUPERUSER_SCOPE, nil
