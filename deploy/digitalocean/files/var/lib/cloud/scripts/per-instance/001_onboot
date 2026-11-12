@@ -1,0 +1,8 @@
+#!/bin/sh
+
+set -eu
+
+mkdir -p /opt/albyhub/data
+
+cd /opt/albyhub
+docker compose up -d --quiet-pull
