@@ -84,7 +84,7 @@ function AlbyConnectionCard() {
       </CardHeader>
       <Separator />
       <CardContent className="group">
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 items-center relative">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-center relative">
           <div className="flex flex-col gap-4">
             <div className="flex flex-row gap-4">
               <UserAvatar className="h-14 w-14" />

@@ -52,7 +52,7 @@ function ConnectedApps() {
     );
 
   return (
-    <>
+    <div className="flex flex-col gap-4">
       <div className="flex flex-col flex-1">
         <div className="flex justify-between items-center">
           <div className="flex-1">
@@ -76,12 +76,10 @@ function ConnectedApps() {
       </div>
 
       {info.albyAccountConnected && (
-        <div className="mt-6">
+        <div>
           <AlbyConnectionCard />
         </div>
       )}
-
-      <div className="mt-6" />
 
       {!otherApps.length && (
         <EmptyState
@@ -97,7 +95,7 @@ function ConnectedApps() {
       {otherApps.length > 0 && (
         <div
           ref={appsListRef}
-          className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-stretch"
+          className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch"
         >
           {otherApps.map((app, index) => (
             <AppCard key={index} app={app} />
@@ -111,7 +109,7 @@ function ConnectedApps() {
         page={page}
         handlePageChange={handlePageChange}
       />
-    </>
+    </div>
   );
 }
 

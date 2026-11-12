@@ -20,7 +20,7 @@ export function AppDetailConnectedApps({
       {showTitle && (
         <h2 className="font-medium text-lg mt-6">Your Connections</h2>
       )}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {connectedApps.map((app) => (
           <AppCard key={app.id} app={app} />
         ))}
