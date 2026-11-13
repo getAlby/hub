@@ -623,16 +623,8 @@ func (svc *swapsService) SwapIn(amountSat uint64, autoSwap bool, internalPayment
 	logger.Logger.WithField("swapId", swap.Id).Info("Swap created")
 
 	if internalPayment {
+		// TODO: save the returned transaction ID to the swap (https://github.com/getAlby/hub/issues/2720)
 		_, err = svc.lnClient.RedeemOnchainFunds(svc.ctx, swap.Address, swap.ExpectedAmount, feeRate, false)
-		if errors.Is(err, lnclient.ErrOnchainBroadcastUnverified) {
-			// the lockup may still have been broadcast, so keep the swap pending
-			// and let the swap listener track it rather than marking it as failed
-			logger.Logger.WithError(err).WithFields(logrus.Fields{
-				"swapId":    swap.Id,
-				"amountSat": swap.ExpectedAmount,
-			}).Warn("Could not verify internal swap in lockup broadcast")
-			err = nil
-		}
 		if err != nil {
 			logger.Logger.WithError(err).WithFields(logrus.Fields{
 				"swapId":    swap.Id,

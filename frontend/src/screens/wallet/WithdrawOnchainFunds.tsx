@@ -9,6 +9,7 @@ import { FixedFloatButton } from "src/components/FixedFloatButton";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
 import { MempoolAlert } from "src/components/MempoolAlert";
+import { OnchainTransactionCheckFailedAlert } from "src/components/OnchainTransactionCheckFailedAlert";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import {
   AlertDialog,
@@ -28,9 +29,11 @@ import { Separator } from "src/components/ui/separator";
 import { ONCHAIN_DUST_SATS } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
+import { useMempoolApi } from "src/hooks/useMempoolApi";
 
 import { copyToClipboard } from "src/lib/clipboard";
 import {
+  MempoolTransaction,
   RedeemOnchainFundsRequest,
   RedeemOnchainFundsResponse,
 } from "src/types";
@@ -46,6 +49,11 @@ export default function WithdrawOnchainFunds() {
   const [sendAll, setSendAll] = React.useState(false);
   const [transactionId, setTransactionId] = React.useState("");
   const [confirmDialogOpen, setConfirmDialogOpen] = React.useState(false);
+  const { data: mempoolTx, error: mempoolError } =
+    useMempoolApi<MempoolTransaction>(
+      transactionId ? `/tx/${transactionId}` : undefined,
+      3000
+    );
 
   const copy = (text: string) => {
     copyToClipboard(text);
@@ -101,13 +109,19 @@ export default function WithdrawOnchainFunds() {
   }, [amountSat, feeRate, onchainAddress, sendAll]);
 
   if (transactionId) {
+    // the broadcast is only known to have worked once the transaction is found on mempool
+    const title = mempoolTx
+      ? "Withdrawal Transaction Broadcasted"
+      : "Withdrawal Transaction Status Unknown";
     return (
       <div className="grid gap-5">
         <AppHeader
-          pageTitle="Withdrawal Transaction Broadcasted"
-          title="Withdrawal Transaction Broadcasted"
+          pageTitle={title}
+          title={title}
           description={
-            "You will receive the funds at the destination after the transaction is confirmed"
+            mempoolTx
+              ? "You will receive the funds at the destination after the transaction is confirmed"
+              : "Alby Hub has not found this transaction on mempool yet"
           }
         />
         <p className="text-foreground">Withdrawal Transaction Id</p>
@@ -127,6 +141,11 @@ export default function WithdrawOnchainFunds() {
           View on Mempool
           <ExternalLinkIcon className="size-4 ml-2" />
         </ExternalLink>
+        {!mempoolTx && mempoolError && (
+          <div className="max-w-lg">
+            <OnchainTransactionCheckFailedAlert />
+          </div>
+        )}
         <p>Your on-chain balance in Alby Hub may take some time to update.</p>
       </div>
     );
