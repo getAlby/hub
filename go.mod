@@ -26,7 +26,7 @@ require (
 	github.com/wailsapp/wails/v2 v2.17.1
 	gitlab.com/ark-bitcoin/bark-ffi-bindings/golang v0.26.1
 	golang.org/x/crypto v0.58.0
-	golang.org/x/oauth2 v0.37.0
+	golang.org/x/oauth2 v0.38.0
 	google.golang.org/grpc v1.83.1
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/macaroon.v2 v2.1.0
