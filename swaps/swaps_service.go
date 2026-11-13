@@ -277,6 +277,12 @@ func (svc *swapsService) SwapOut(amountSat uint64, destination string, autoSwap,
 		return nil, err
 	}
 
+	// claiming needs the lockup transaction from the chain source, so do not
+	// start a swap that could not be claimed
+	if err := svc.checkChainLookup(); err != nil {
+		return nil, fmt.Errorf("swap out is not available: %w", err)
+	}
+
 	if destination == "" {
 		var err error
 		destination, err = svc.lnClient.GetNewOnchainAddress(svc.ctx)
@@ -1561,6 +1567,17 @@ func (svc *swapsService) fetchSwapOutLockup(swap *db.Swap, network *boltz.Networ
 	}
 
 	return lockupTransaction, vout, nil
+}
+
+// checkChainLookup returns an error if the configured chain source cannot be
+// used to look up addresses and transactions.
+func (svc *swapsService) checkChainLookup() error {
+	chainLookup, err := chain.NewAddressLookup(svc.ctx, svc.cfg)
+	if err != nil {
+		return err
+	}
+	chainLookup.Close()
+	return nil
 }
 
 // checkTransactionExists returns true if the configured chain source knows the
