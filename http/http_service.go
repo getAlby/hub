@@ -95,14 +95,9 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.Use(middleware.RequestID())
 
 	e.GET("/api/info", httpSvc.infoHandler)
-	setupMiddlewares := httpSvc.createSetupMiddlewares()
-	e.POST("/api/setup", httpSvc.setupHandler, setupMiddlewares...)
-	e.POST("/api/setup/verify-code", httpSvc.verifySetupCodeHandler, setupMiddlewares...)
-	e.POST("/api/restore", httpSvc.restoreBackupHandler, setupMiddlewares...)
-
 	// A single global rate limiter (one bucket for all callers, not per-IP)
-	// shared by every endpoint that verifies the unlock password, to bound how
-	// fast the password can be guessed.
+	// shared by every endpoint that verifies the unlock password or setup code,
+	// to bound how fast they can be guessed.
 	unlockRateLimiter := middleware.RateLimiterWithConfig(middleware.RateLimiterConfig{
 		Store: middleware.NewRateLimiterMemoryStoreWithConfig(
 			// burst of 2 so unlocking and then immediately acting is not blocked
@@ -115,6 +110,11 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.POST("/api/start", httpSvc.startHandler, unlockRateLimiter)
 	e.POST("/api/unlock", httpSvc.unlockHandler, unlockRateLimiter)
 	e.POST("/api/backup", httpSvc.createBackupHandler, unlockRateLimiter)
+
+	setupMiddlewares := []echo.MiddlewareFunc{unlockRateLimiter, httpSvc.requireSetupCode}
+	e.POST("/api/setup", httpSvc.setupHandler, setupMiddlewares...)
+	e.POST("/api/setup/verify-code", httpSvc.verifySetupCodeHandler, setupMiddlewares...)
+	e.POST("/api/restore", httpSvc.restoreBackupHandler, setupMiddlewares...)
 	e.GET("/logout", httpSvc.logoutHandler)
 
 	frontend.RegisterHandlers(e)

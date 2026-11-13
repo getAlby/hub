@@ -63,7 +63,7 @@ func TestSetupRoutes_RateLimited(t *testing.T) {
 	e := createSetupCodeTestEcho(t, mockConfig)
 
 	statusCodes := []int{}
-	for range 4 {
+	for range 3 {
 		req := httptest.NewRequest(http.MethodPost, "/api/setup", nil)
 		rec := httptest.NewRecorder()
 		e.ServeHTTP(rec, req)
@@ -71,7 +71,6 @@ func TestSetupRoutes_RateLimited(t *testing.T) {
 	}
 
 	assert.Equal(t, []int{
-		http.StatusUnauthorized,
 		http.StatusUnauthorized,
 		http.StatusUnauthorized,
 		http.StatusTooManyRequests,

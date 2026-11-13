@@ -53,7 +53,7 @@ sudo ldconfig
 PORT=80
 URL="http://$HOSTNAME.local"
 
-# generate a one-time code that is required to set up Alby Hub
+# generate a code that is required to set up Alby Hub
 SETUP_CODE=$(LC_ALL=C tr -dc 'a-z0-9' < /dev/urandom | head -c 16)
 
 ### Create systemd service
@@ -87,5 +87,5 @@ sudo systemctl start albyhub
 echo ""
 echo ""
 echo "✅ Installation finished! Please visit $URL?c=$SETUP_CODE to configure your new Alby Hub."
-echo "Your one-time setup code is: $SETUP_CODE"
+echo "Your setup code is: $SETUP_CODE"
 echo ""

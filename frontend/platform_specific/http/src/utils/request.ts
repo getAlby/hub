@@ -46,14 +46,6 @@ export const request = async <T>(
     }
 
     if (!fetchResponse.ok) {
-      if (
-        setupCode &&
-        fetchResponse.status === 401 &&
-        (body as ErrorResponse)?.message === "Invalid setup code"
-      ) {
-        // ask the user to enter the setup code again
-        useSetupStore.getState().setSetupCode("");
-      }
       throw new Error(
         fetchResponse.status +
           " " +

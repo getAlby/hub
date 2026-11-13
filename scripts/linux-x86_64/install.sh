@@ -129,7 +129,7 @@ rm server-linux-x86_64.tar.bz2
 # prepare the data directory. this is pesistent and will hold all important data
 mkdir -p "$INSTALL_DIR/data"
 
-# generate a one-time code that is required to set up Alby Hub
+# generate a code that is required to set up Alby Hub
 SETUP_CODE=$(LC_ALL=C tr -dc 'a-z0-9' < /dev/urandom | head -c 16)
 SERVER_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
 SERVER_IP="${SERVER_IP:-<server-ip>}"
@@ -178,7 +178,7 @@ if [ "$SETUP_SYSTEMD" = "n" ]; then
   echo ""
   echo "Run $INSTALL_DIR/start.sh to start Alby Hub"
   echo "✅ DONE. Open Alby Hub to get started: http://$SERVER_IP:8080?c=$SETUP_CODE"
-  echo "Your one-time setup code is: $SETUP_CODE"
+  echo "Your setup code is: $SETUP_CODE"
   exit 0
 fi
 
@@ -210,6 +210,6 @@ echo "Run 'sudo systemctl start/stop albyhub' to start/stop AlbyHub"
 echo ""
 echo ""
 echo " ✅ DONE. Open Alby Hub to get started: http://$SERVER_IP:8029?c=$SETUP_CODE"
-echo "Your one-time setup code is: $SETUP_CODE"
+echo "Your setup code is: $SETUP_CODE"
 echo "Alby Hub listens on port 8029 on all network interfaces, e.g. http://<server-ip>:8029"
 echo "⚠️  Alby Hub is intended for secure local networks. Make sure port 8029 is not reachable from the public internet (use a firewall)."
