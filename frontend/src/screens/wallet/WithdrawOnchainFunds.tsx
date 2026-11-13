@@ -109,13 +109,19 @@ export default function WithdrawOnchainFunds() {
   }, [amountSat, feeRate, onchainAddress, sendAll]);
 
   if (transactionId) {
+    // the broadcast is only known to have worked once the transaction is found on mempool
+    const title = mempoolTx
+      ? "Withdrawal Transaction Broadcasted"
+      : "Withdrawal Transaction Status Unknown";
     return (
       <div className="grid gap-5">
         <AppHeader
-          pageTitle="Withdrawal Transaction Broadcasted"
-          title="Withdrawal Transaction Broadcasted"
+          pageTitle={title}
+          title={title}
           description={
-            "You will receive the funds at the destination after the transaction is confirmed"
+            mempoolTx
+              ? "You will receive the funds at the destination after the transaction is confirmed"
+              : "Alby Hub has not found this transaction on mempool yet"
           }
         />
         <p className="text-foreground">Withdrawal Transaction Id</p>

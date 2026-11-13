@@ -149,7 +149,7 @@ function OnchainForm({
         },
         replace: true,
       });
-      toast("Successfully broadcasted transaction");
+      toast("Transaction created");
     } catch (e) {
       toast.error("Failed to send payment", {
         description: "" + e,

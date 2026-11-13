@@ -44,7 +44,9 @@ export default function OnchainSuccess() {
             <CardTitle className="text-center">
               {mempoolTx?.status.confirmed
                 ? "Payment Successful"
-                : "Awaiting Confirmation"}
+                : mempoolTx
+                  ? "Awaiting Confirmation"
+                  : "Payment Status Unknown"}
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-6">
