@@ -1,7 +1,6 @@
 package swaps
 
 import (
-	"context"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
@@ -173,26 +172,6 @@ func TestSwapOutRejectsInvalidDestination(t *testing.T) {
 
 	_, err := svc.SwapOut(100_000, "bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?amount=0.001", false, false)
 	assert.ErrorContains(t, err, "invalid bitcoin address")
-}
-
-func TestSwapOutRejectsBitcoindChainSource(t *testing.T) {
-	// the claim needs the lockup transaction from the chain source, which
-	// bitcoind cannot provide. Without the check the swap would only fail
-	// later, here at the unreachable swap API
-	svc := &swapsService{
-		ctx: context.Background(),
-		cfg: &testConfig{env: &config.AppConfig{
-			BoltzApi:           "http://127.0.0.1:1",
-			LDKBitcoindRpcHost: "127.0.0.1",
-			LDKElectrumServer:  "ssl://electrum.example.com:50002",
-		}, network: "bitcoin"},
-		boltzApi: &boltz.Api{URL: "http://127.0.0.1:1"},
-	}
-
-	swap, err := svc.SwapOut(100_000, "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", false, false)
-
-	require.EqualError(t, err, "swap out is not available: address and transaction lookups are not supported with the bitcoind chain source: use an esplora or electrum server as the chain source instead")
-	assert.Nil(t, swap)
 }
 
 func TestRefundSwapRejectsInvalidAddress(t *testing.T) {

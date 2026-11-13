@@ -225,7 +225,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		}
 		builder.SetChainSourceBitcoindRpc(cfg.GetEnv().LDKBitcoindRpcHost, uint16(port), cfg.GetEnv().LDKBitcoindRpcUser, cfg.GetEnv().LDKBitcoindRpcPassword)
 		// bitcoind has no address index, and lookups are never sent to another server
-		logger.Logger.Warn("Bitcoind chain source does not support address and transaction lookups: swap outs and receive address rotation are not available")
+		logger.Logger.Warn("Bitcoind chain source does not support address lookups: auto swap to an xpub is not available")
 		chainSource = "bitcoind"
 	} else if cfg.GetEnv().LDKEsploraServer != "" {
 		logger.Logger.WithFields(logrus.Fields{

@@ -19,18 +19,21 @@ type testConfig struct {
 func (c *testConfig) GetEnv() *config.AppConfig { return c.env }
 func (c *testConfig) GetNetwork() string        { return "bitcoin" }
 
-// lookups for a bitcoind user must not be sent to another server
-func TestNewAddressLookup_BitcoindDoesNotFallBack(t *testing.T) {
+// lookups for a bitcoind user must go to their own node, not another server
+func TestNewAddressLookup_Bitcoind(t *testing.T) {
 	cfg := &testConfig{env: &config.AppConfig{
 		LDKBitcoindRpcHost: "127.0.0.1",
+		LDKBitcoindRpcPort: "8332",
 		LDKEsploraServer:   "https://esplora.example.com/api",
 		LDKElectrumServer:  "ssl://electrum.example.com:50002",
 	}}
 
 	lookup, err := NewAddressLookup(context.Background(), cfg)
 
-	require.EqualError(t, err, "address and transaction lookups are not supported with the bitcoind chain source: use an esplora or electrum server as the chain source instead")
-	assert.Nil(t, lookup)
+	require.NoError(t, err)
+	defer lookup.Close()
+	require.IsType(t, &bitcoindLookup{}, lookup)
+	assert.Equal(t, "http://127.0.0.1:8332", lookup.(*bitcoindLookup).url)
 }
 
 func TestNewAddressLookup_Esplora(t *testing.T) {
