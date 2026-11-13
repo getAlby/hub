@@ -1518,6 +1518,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 		return nil, err
 	}
 	info.SetupCompleted = setupCompleted
+	info.SetupCodeRequired = !setupCompleted && api.cfg.GetEnv().SetupCode != ""
 	info.Currency = api.cfg.GetCurrency()
 	info.BitcoinDisplayFormat = api.cfg.GetBitcoinDisplayFormat()
 	info.StartupState = api.svc.GetStartupState()

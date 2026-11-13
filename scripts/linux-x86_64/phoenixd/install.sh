@@ -45,13 +45,18 @@ echo "Make sure to backup your phoenixd data in $INSTALL_DIR/phoenixd/data"
 PHOENIX_DATADIR="$INSTALL_DIR/phoenixd/data" $INSTALL_DIR/phoenixd/phoenixd --agree-to-terms-of-service --http-bind-ip=0.0.0.0
 EOF
 
+# generate a code that is required to set up Alby Hub
+SETUP_CODE=$(LC_ALL=C tr -dc 'a-z0-9' < /dev/urandom | head -c 16)
+SERVER_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
+SERVER_IP="${SERVER_IP:-<server-ip>}"
+
 tee "$INSTALL_DIR/albyhub/start.sh" > /dev/null << EOF
 #!/bin/sh
 
 echo "Starting Alby Hub"
 phoenix_config_file=$INSTALL_DIR/phoenixd/data/phoenix.conf
 PHOENIXD_AUTHORIZATION=\$(awk -F'=' '/^http-password/{print \$2}' "\$phoenix_config_file")
-WORK_DIR="$INSTALL_DIR/albyhub/data" LN_BACKEND_TYPE=PHOENIX PHOENIXD_ADDRESS="http://localhost:9740" PHOENIXD_AUTHORIZATION=\$PHOENIXD_AUTHORIZATION LDK_GOSSIP_SOURCE="" $INSTALL_DIR/albyhub/bin/albyhub
+WORK_DIR="$INSTALL_DIR/albyhub/data" SETUP_CODE="$SETUP_CODE" LN_BACKEND_TYPE=PHOENIX PHOENIXD_ADDRESS="http://localhost:9740" PHOENIXD_AUTHORIZATION=\$PHOENIXD_AUTHORIZATION LDK_GOSSIP_SOURCE="" $INSTALL_DIR/albyhub/bin/albyhub
 EOF
 
 tee "$INSTALL_DIR/start.sh" > /dev/null << EOF
@@ -80,7 +85,8 @@ case "$REPLY" in
   [Yy]*) ;;
   *)
     echo "Run $INSTALL_DIR/start.sh to start phoenixd and Alby Hub"
-    echo "DONE"
+    echo "DONE. Open Alby Hub to get started: http://$SERVER_IP:8080?c=$SETUP_CODE"
+    echo "Your setup code is: $SETUP_CODE"
     exit
     ;;
 esac
@@ -130,6 +136,7 @@ sudo systemctl start albyhub
 echo "Run 'sudo systemctl start/stop albyhub' to start/stop AlbyHub"
 echo "Run 'sudo systemctl start/stop phoenixd' to start/stop phoenixd"
 echo ""
-echo "✅ DONE."
+echo "✅ DONE. Open Alby Hub to get started: http://$SERVER_IP:8080?c=$SETUP_CODE"
+echo "Your setup code is: $SETUP_CODE"
 echo "Alby Hub listens on port 8080 on all network interfaces, e.g. http://<server-ip>:8080"
 echo "⚠️  Alby Hub is intended for secure local networks. Make sure port 8080 is not reachable from the public internet (use a firewall)."

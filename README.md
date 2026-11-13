@@ -163,6 +163,7 @@ The following configuration options can be set as environment variables or in a 
 - `PORT`: The port on which the app should listen on (default: 8080)
 - `WORK_DIR`: Directory to store NWC data files. Default: $XDG_DATA_HOME/albyhub
 - `LOG_LEVEL`: Log level for the main application. Higher is more verbose. Default: 4 (info)
+- `SETUP_CODE`: Require this code to set up Alby Hub. Open Alby Hub with `?c=<code>` appended to the URL, or enter the code when prompted.
 - `AUTO_UNLOCK_PASSWORD`: Provide unlock password to auto-unlock Alby Hub on startup (e.g. after a machine restart). Unlock password still be required to access the interface.
 - `BOLTZ_API`: A Boltz-compatible API which provides swaps functionality. If not set, the swap provider is chosen by Alby (mainnet only; swaps are disabled on other networks)
 - `NETWORK`: On-chain network used for the node. Default: "bitcoin"
@@ -554,7 +555,7 @@ LDK logs:
 
 Alby provides container images for each release. Please make sure to use a persistent volume. The lightning state and application state is persisted to disk.
 
-The examples below publish the port on `127.0.0.1` only, so Alby Hub is reachable from the Docker host but not from other machines. To reach it from other devices on your local network, use `-p 8080:8080` instead and make sure your firewall blocks the port from the internet.
+The examples below publish the port on `127.0.0.1` only, so Alby Hub is reachable from the Docker host but not from other machines. To reach it from other devices on your local network, use `-p 8080:8080` instead and make sure your firewall blocks the port from the internet. When doing so, also set a random setup code (e.g. `-e SETUP_CODE=<random-code>`) and open `http://<server-ip>:8080?c=<random-code>` to set up Alby Hub.
 
 #### From Alby's Container Registry
 

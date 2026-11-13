@@ -29,6 +29,7 @@ import (
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/service/keys"
 	"github.com/getAlby/hub/transactions"
+	"github.com/getAlby/hub/version"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 	"gorm.io/datatypes"
@@ -111,6 +112,10 @@ func NewSwapsService(ctx context.Context, db *gorm.DB, cfg config.Config, keys k
 		URL: apiURL,
 		Client: http.Client{
 			Timeout: 5 * time.Second,
+			Transport: &userAgentTransport{
+				base:      http.DefaultTransport,
+				userAgent: "AlbyHub/" + version.Tag,
+			},
 		},
 	}
 	boltzWs := boltzApi.NewWebsocket()
