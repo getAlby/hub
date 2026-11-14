@@ -89,7 +89,8 @@ export type AppStoreApp = {
   // Receive-only apps (e.g. merchant payment receivers) default to read-only
   // permissions in the new connection flow.
   readonly?: boolean;
-  addedDate?: string;
+  // Date the app was added to the app store (YYYY-MM-DD)
+  addedDate: string;
 };
 
 export const appStoreCategories = {
@@ -178,6 +179,7 @@ export const appStoreApps: AppStoreApp[] = (
           </div>
         </>
       ),
+      addedDate: "2024-09-12",
     },
     {
       id: "buzzpay",
@@ -189,6 +191,7 @@ export const appStoreApps: AppStoreApp[] = (
       logo: buzzpay,
       categories: ["merchant-tools"],
       webLink: "https://pos.albylabs.com",
+      addedDate: "2024-09-03",
     },
     {
       id: "castamatic",
@@ -251,6 +254,7 @@ export const appStoreApps: AppStoreApp[] = (
           </div>
         </>
       ),
+      addedDate: "2026-05-24",
     },
     {
       id: "2fiat",
@@ -316,6 +320,7 @@ export const appStoreApps: AppStoreApp[] = (
           </div>
         </>
       ),
+      addedDate: "2025-12-15",
     },
     {
       id: "alby-cli-skill",
@@ -327,6 +332,7 @@ export const appStoreApps: AppStoreApp[] = (
       logo: albyCli,
       categories: ["ai"],
       webLink: "https://github.com/getAlby/alby-cli-skill",
+      addedDate: "2026-02-28",
     },
     {
       id: "payperq",
@@ -388,6 +394,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["ai"],
+      addedDate: "2026-02-27",
     },
     {
       id: "sats4ai",
@@ -398,6 +405,7 @@ export const appStoreApps: AppStoreApp[] = (
       logo: sats4ai,
       categories: ["ai"],
       webLink: "https://sats4ai.com",
+      addedDate: "2026-04-21",
     },
     {
       id: "simpleboost",
@@ -408,6 +416,7 @@ export const appStoreApps: AppStoreApp[] = (
       logo: simpleboost,
       categories: ["merchant-tools"],
       webLink: "https://getalby.github.io/simple-boost/",
+      addedDate: "2025-01-07",
     },
     {
       id: "lightning-messageboard",
@@ -418,6 +427,7 @@ export const appStoreApps: AppStoreApp[] = (
       logo: lightningMessageboard,
       categories: ["merchant-tools"],
       webLink: "https://github.com/getAlby/lightning-messageboard",
+      addedDate: "2025-03-16",
     },
     {
       id: "lnvps",
@@ -472,6 +482,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["misc"],
+      addedDate: "2026-02-27",
     },
     {
       id: "alby-extension",
@@ -521,6 +532,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["wallet-interfaces"],
+      addedDate: "2024-03-05",
     },
     {
       id: "alby-cli",
@@ -572,6 +584,7 @@ export const appStoreApps: AppStoreApp[] = (
           </div>
         </>
       ),
+      addedDate: "2026-02-10",
     },
     {
       id: "alby-sandbox",
@@ -619,6 +632,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["misc"],
+      addedDate: "2026-02-27",
     },
     {
       id: "damus",
@@ -656,6 +670,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["social-media"],
+      addedDate: "2024-03-05",
     },
     {
       id: "amethyst",
@@ -699,6 +714,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["social-media"],
+      addedDate: "2024-03-05",
     },
     {
       id: "primal",
@@ -746,6 +762,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["social-media"],
+      addedDate: "2024-03-05",
     },
     {
       id: "runstr",
@@ -798,6 +815,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["misc"],
+      addedDate: "2025-12-16",
     },
     {
       id: "sat-sorter",
@@ -852,6 +870,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["misc"],
+      addedDate: "2026-01-23",
     },
     {
       id: "zap-stream",
@@ -898,6 +917,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["social-media"],
+      addedDate: "2024-03-05",
     },
     {
       id: "bitrequest",
@@ -960,6 +980,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["merchant-tools"],
+      addedDate: "2026-03-19",
     },
     {
       id: "btcpay",
@@ -1021,6 +1042,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["merchant-tools"],
+      addedDate: "2025-01-15",
     },
     {
       id: "lnbits",
@@ -1084,6 +1106,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["misc", "payment-tools"],
+      addedDate: "2025-01-15",
     },
     {
       id: "coracle",
@@ -1141,6 +1164,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["social-media"],
+      addedDate: "2025-01-15",
     },
     {
       id: "nostter",
@@ -1194,6 +1218,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["social-media"],
+      addedDate: "2025-01-15",
     },
     {
       id: "wavlake",
@@ -1227,6 +1252,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["audio"],
+      addedDate: "2024-03-05",
     },
     {
       id: "fountain",
@@ -1264,6 +1290,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["audio"],
+      addedDate: "2026-01-07",
     },
     {
       id: "hopp",
@@ -1344,6 +1371,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["payment-tools"],
+      addedDate: "2025-07-30",
     },
     {
       id: "snort",
@@ -1389,6 +1417,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["social-media"],
+      addedDate: "2024-03-05",
     },
     {
       id: "habla-news",
@@ -1438,6 +1467,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["blogging"],
+      addedDate: "2024-03-05",
     },
     {
       id: "iris",
@@ -1481,6 +1511,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["social-media"],
+      addedDate: "2025-08-27",
     },
     {
       id: "clams",
@@ -1518,6 +1549,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["payment-tools"],
+      addedDate: "2025-01-07",
     },
     {
       id: "nostrcheck-server",
@@ -1569,6 +1601,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["nostr-tools"],
+      addedDate: "2025-01-14",
     },
     {
       id: "nostrudel",
@@ -1617,6 +1650,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["social-media"],
+      addedDate: "2024-03-05",
     },
     {
       id: "yakihonne",
@@ -1664,6 +1698,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["social-media", "blogging"],
+      addedDate: "2024-03-05",
     },
     {
       id: "zapplanner",
@@ -1674,6 +1709,7 @@ export const appStoreApps: AppStoreApp[] = (
       logo: zapplanner,
       internal: true,
       categories: ["payment-tools"],
+      addedDate: "2024-03-05",
     },
     {
       id: "zapplepay",
@@ -1715,6 +1751,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["nostr-tools"],
+      addedDate: "2024-03-05",
     },
     {
       id: "lume",
@@ -1763,6 +1800,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["social-media"],
+      addedDate: "2024-03-05",
     },
     {
       id: "nadanada",
@@ -1898,6 +1936,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["merchant-tools"],
+      addedDate: "2025-06-27",
     },
     {
       id: "openreceive",
@@ -1943,6 +1982,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["merchant-tools"],
+      addedDate: "2026-11-10",
     },
     {
       id: "zappy-bird",
@@ -1990,6 +2030,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["games"],
+      addedDate: "2024-03-05",
     },
     {
       id: "tictactoe",
@@ -2002,6 +2043,7 @@ export const appStoreApps: AppStoreApp[] = (
       internal: true,
       logo: tictactoe,
       categories: ["games"],
+      addedDate: "2025-08-19",
     },
     {
       id: "nostur",
@@ -2046,6 +2088,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["social-media"],
+      addedDate: "2024-03-05",
     },
     {
       id: "wherostr",
@@ -2094,6 +2137,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["social-media"],
+      addedDate: "2024-03-05",
     },
     {
       id: "stackernews",
@@ -2146,6 +2190,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["social-media"],
+      addedDate: "2024-08-08",
     },
     {
       id: "pullthatupjamie-ai",
@@ -2187,6 +2232,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["misc"],
+      addedDate: "2025-01-17",
     },
     {
       id: "zapstore",
@@ -2222,6 +2268,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["misc"],
+      addedDate: "2025-01-17",
     },
     {
       id: "zeus",
@@ -2278,6 +2325,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["wallet-interfaces"],
+      addedDate: "2025-03-18",
     },
     {
       id: "bitrefill",
@@ -2318,6 +2366,7 @@ export const appStoreApps: AppStoreApp[] = (
           </div>
         </>
       ),
+      addedDate: "2025-03-18",
     },
     {
       id: "bringin",
@@ -2366,6 +2415,7 @@ export const appStoreApps: AppStoreApp[] = (
           </div>
         </>
       ),
+      addedDate: "2025-09-16",
     },
     {
       id: "jumble",
@@ -2412,6 +2462,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["social-media"],
+      addedDate: "2025-12-16",
     },
     {
       id: "takemysats",
@@ -2458,6 +2509,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["merchant-tools"],
+      addedDate: "2025-12-16",
     },
     {
       id: "tunnelsats",
@@ -2519,6 +2571,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["misc"],
+      addedDate: "2026-01-07",
     },
     {
       // Keep the legacy app store ID so existing LendaSwap connections still match this entry.

@@ -12,9 +12,8 @@ import {
 } from "src/components/ui/card";
 
 export function NewArrivalsWidget() {
-  const latestApps = appStoreApps
-    .filter((app) => !!app.addedDate)
-    .sort((a, b) => b.addedDate!.localeCompare(a.addedDate!))
+  const latestApps = [...appStoreApps]
+    .sort((a, b) => b.addedDate.localeCompare(a.addedDate))
     .slice(0, 3);
 
   if (!latestApps.length) {
