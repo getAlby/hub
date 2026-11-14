@@ -28,6 +28,7 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { Separator } from "src/components/ui/separator";
 import { Textarea } from "src/components/ui/textarea";
+import { asString } from "src/lib/utils";
 import { PayInvoiceResponse } from "src/types";
 import { request } from "src/utils/request";
 
@@ -93,11 +94,13 @@ export function LightningMessageboardWidget() {
           const newMessages = transactions.transactions.map((transaction) => ({
             created_at: transaction.created_at,
             message: transaction.description,
-            name: (
-              transaction.metadata as
-                | { payer_data?: { name?: string } }
-                | undefined
-            )?.payer_data?.name as string | undefined,
+            name: asString(
+              (
+                transaction.metadata as
+                  | { payer_data?: { name?: unknown } }
+                  | undefined
+              )?.payer_data?.name
+            ),
             amountSat: Math.floor(transaction.amount / 1000),
           }));
 

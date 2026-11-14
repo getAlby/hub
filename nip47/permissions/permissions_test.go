@@ -162,3 +162,12 @@ func TestGetPermittedMethods_PayInvoiceScopeGivesAllPaymentMethods(t *testing.T)
 	assert.Contains(t, result, models.MULTI_PAY_INVOICE_METHOD)
 	assert.Contains(t, result, models.MULTI_PAY_KEYSEND_METHOD)
 }
+
+func TestRequestMethodToScope_UnsupportedMethod(t *testing.T) {
+	_, err := RequestMethodToScope("unknown_method")
+	assert.ErrorIs(t, err, ErrUnsupportedMethod)
+
+	scope, err := RequestMethodToScope(models.PAY_INVOICE_METHOD)
+	require.NoError(t, err)
+	assert.Equal(t, constants.PAY_INVOICE_SCOPE, scope)
+}

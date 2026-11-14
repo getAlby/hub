@@ -7,10 +7,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/BoltzExchange/boltz-client/v2/pkg/boltz"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/ecdsa"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
+	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/logger"
+	testsdb "github.com/getAlby/hub/tests/db"
 	"github.com/lightningnetwork/lnd/lnwire"
 	"github.com/lightningnetwork/lnd/zpay32"
 	"github.com/stretchr/testify/assert"
@@ -106,4 +111,97 @@ func TestCalculateMaxSwapOutSendAmountSat(t *testing.T) {
 
 	// invalid fee rates of 100% or more are never accepted
 	assert.Equal(t, uint64(0), calculateMaxSwapOutSendAmountSat(100_000, 100, 500, 300))
+}
+
+func TestCheckSwapProviderFees(t *testing.T) {
+	// small swaps are limited by the fixed 10_000 sat allowance
+	assert.NoError(t, checkSwapProviderFees(25_000, 125, 2_650))
+	assert.NoError(t, checkSwapProviderFees(25_000, 125, 9_875))
+	assert.Error(t, checkSwapProviderFees(25_000, 125, 9_876))
+
+	// large swaps are limited by 5% of the amount
+	assert.NoError(t, checkSwapProviderFees(1_000_000, 1_000, 49_000))
+	assert.Error(t, checkSwapProviderFees(1_000_000, 1_000, 49_001))
+}
+
+func TestCalculateMaxSwapInSendAmountSat(t *testing.T) {
+	// 100_000 invoice + 0.5% boltz + 1% alby fee (1_500) + 500 miner fee, plus 10 sat tolerance
+	assert.Equal(t, uint64(102_010), calculateMaxSwapInSendAmountSat(100_000, 0.5, 500))
+
+	// percentage fees are rounded up: 1% of 12_345 = 123.45
+	assert.Equal(t, uint64(12_345+124+500+10), calculateMaxSwapInSendAmountSat(12_345, 0, 500))
+}
+
+func TestValidateAddress(t *testing.T) {
+	tests := []struct {
+		name        string
+		network     string
+		address     string
+		expectedErr string
+	}{
+		{"mainnet address on mainnet", "bitcoin", "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", ""},
+		{"testnet address on mainnet", "bitcoin", "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx", "not a mainnet address"},
+		{"node public key", "bitcoin", "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798", "not a mainnet address"},
+		{"BIP21 URI", "bitcoin", "bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?amount=0.001", "invalid bitcoin address"},
+		{"signet address on signet", "signet", "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx", ""},
+		{"regtest address on regtest", "regtest", "bcrt1qw508d6qejxtdg4y5r3zarvary0c5xw7kygt080", ""},
+		{"mainnet address on regtest", "regtest", "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", "not a regtest address"},
+		{"regtest address on mainnet", "bitcoin", "bcrt1qw508d6qejxtdg4y5r3zarvary0c5xw7kygt080", "not a mainnet address"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			svc := &swapsService{cfg: &testConfig{network: tt.network}}
+			err := svc.ValidateAddress(tt.address)
+			if tt.expectedErr == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.ErrorContains(t, err, tt.expectedErr)
+			}
+		})
+	}
+}
+
+func TestSwapOutRejectsInvalidDestination(t *testing.T) {
+	// BOLTZ_API skips the swap provider check, and without validation the
+	// swap would fail later at the unreachable swap API instead
+	svc := &swapsService{
+		cfg:      &testConfig{env: &config.AppConfig{BoltzApi: "http://127.0.0.1:1"}, network: "bitcoin"},
+		boltzApi: &boltz.Api{URL: "http://127.0.0.1:1"},
+	}
+
+	_, err := svc.SwapOut(100_000, "bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?amount=0.001", false, false)
+	assert.ErrorContains(t, err, "invalid bitcoin address")
+}
+
+func TestRefundSwapRejectsInvalidAddress(t *testing.T) {
+	svc := &swapsService{
+		cfg: &testConfig{network: "bitcoin"},
+	}
+
+	err := svc.RefundSwap("dummy-swap-id", "tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx", false)
+	assert.ErrorContains(t, err, "refund address validation failed")
+}
+
+func TestGetSwap(t *testing.T) {
+	logger.Init("4")
+	gormDB, err := testsdb.NewDB(t)
+	require.NoError(t, err)
+	defer testsdb.CloseDB(gormDB)
+
+	require.NoError(t, gormDB.Create(&db.Swap{
+		SwapId: "existing-swap",
+		Type:   "in",
+		State:  "PENDING",
+	}).Error)
+
+	svc := &swapsService{db: gormDB}
+
+	swap, err := svc.GetSwap("existing-swap")
+	require.NoError(t, err)
+	assert.Equal(t, "existing-swap", swap.SwapId)
+
+	swap, err = svc.GetSwap("unknown-swap")
+	assert.ErrorIs(t, err, ErrSwapNotFound)
+	assert.Nil(t, swap)
 }

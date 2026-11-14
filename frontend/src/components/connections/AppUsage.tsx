@@ -27,10 +27,11 @@ import { useCreateLightningAddress } from "src/hooks/useCreateLightningAddress";
 import { useDeleteLightningAddress } from "src/hooks/useDeleteLightningAddress";
 import { useTransactions } from "src/hooks/useTransactions";
 import { copyToClipboard } from "src/lib/clipboard";
-import { cn, getBudgetRenewalLabel } from "src/lib/utils";
+import { asString, cn, getBudgetRenewalLabel } from "src/lib/utils";
 import { App, Transaction } from "src/types";
 
 export function AppUsage({ app }: { app: App }) {
+  const lud16 = asString(app.metadata?.lud16);
   const [page, setPage] = React.useState(1);
   const { data: transactionsResponse } = useTransactions(
     app.id,
@@ -120,7 +121,7 @@ export function AppUsage({ app }: { app: App }) {
               <CardHeader>
                 <CardTitle>Lightning Address</CardTitle>
 
-                {!app.metadata.lud16 && (
+                {!lud16 && (
                   <CardDescription>
                     <p className="text-muted-foreground">
                       Create a lightning address for this particular app
@@ -130,7 +131,7 @@ export function AppUsage({ app }: { app: App }) {
                 )}
               </CardHeader>
               <CardContent>
-                {!app.metadata.lud16 && (
+                {!lud16 && (
                   <div className="flex items-center gap-2">
                     <InputWithAdornment
                       type="text"
@@ -167,17 +168,15 @@ export function AppUsage({ app }: { app: App }) {
                     )}
                   </div>
                 )}
-                {app.metadata.lud16 && (
+                {lud16 && (
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <p className="font-semibold break-all min-w-0 flex-1">
-                      {app.metadata.lud16}
+                      {lud16}
                     </p>
                     <div className="flex items-center gap-2 shrink-0">
                       <Button
                         size="sm"
-                        onClick={() =>
-                          copyToClipboard(app.metadata?.lud16 || "")
-                        }
+                        onClick={() => copyToClipboard(lud16)}
                         variant="outline"
                       >
                         <CopyIcon />

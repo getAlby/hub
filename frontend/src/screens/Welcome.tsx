@@ -4,9 +4,12 @@ import Container from "src/components/Container";
 import { Button } from "src/components/ui/button";
 import { localStorageKeys } from "src/constants";
 import { useInfo } from "src/hooks/useInfo";
+import { SetupCode } from "src/screens/setup/SetupCode";
+import useSetupStore from "src/state/SetupStore";
 
 export function Welcome() {
   const { data: info } = useInfo();
+  const setupCode = useSetupStore((store) => store.setupCode);
   const navigate = useNavigate();
 
   React.useEffect(() => {
@@ -34,6 +37,10 @@ export function Welcome() {
       navigateTo = "/alby/auth";
     }
     navigate(navigateTo);
+  }
+
+  if (info?.setupCodeRequired && !setupCode) {
+    return <SetupCode />;
   }
 
   return (

@@ -59,6 +59,7 @@ type AppConfig struct {
 	GoProfilerAddr                     string `envconfig:"GO_PROFILER_ADDR"`
 	EnableAdvancedSetup                bool   `envconfig:"ENABLE_ADVANCED_SETUP" default:"true"`
 	AutoUnlockPassword                 string `envconfig:"AUTO_UNLOCK_PASSWORD"`
+	SetupCode                          string `envconfig:"SETUP_CODE"`
 	LogDBQueries                       bool   `envconfig:"LOG_DB_QUERIES" default:"false"`
 	BoltzApi                           string `envconfig:"BOLTZ_API"`
 	HideUpdateBanner                   bool   `envconfig:"HIDE_UPDATE_BANNER" default:"false"`

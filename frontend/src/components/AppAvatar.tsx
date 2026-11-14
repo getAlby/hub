@@ -10,7 +10,7 @@ import opencodeLogo from "src/assets/suggested-apps/opencode.png";
 import { appStoreApps } from "src/components/connections/SuggestedAppData";
 import UserAvatar from "src/components/UserAvatar";
 import { ALBY_ACCOUNT_APP_NAME } from "src/constants";
-import { cn } from "src/lib/utils";
+import { asString, cn } from "src/lib/utils";
 import { App } from "src/types";
 
 // Lightweight logo map for agents that don't have full app store entries.
@@ -36,17 +36,18 @@ export default function AppAvatar({ app, className }: Props) {
   if (app.name === ALBY_ACCOUNT_APP_NAME) {
     return <UserAvatar className={className} />;
   }
+  const appStoreAppId = asString(app.metadata?.app_store_app_id);
   const agentLogo =
-    (app?.metadata?.app_store_app_id
-      ? agentLogos[app.metadata.app_store_app_id]
+    (appStoreAppId &&
+    Object.prototype.hasOwnProperty.call(agentLogos, appStoreAppId)
+      ? agentLogos[appStoreAppId]
       : undefined) ||
     Object.entries(agentLogos).find(([key]) =>
       app.name.toLowerCase().includes(key)
     )?.[1];
   const appStoreApp = appStoreApps.find(
     (suggestedApp) =>
-      (app?.metadata?.app_store_app_id &&
-        suggestedApp.id === app.metadata?.app_store_app_id) ||
+      (appStoreAppId && suggestedApp.id === appStoreAppId) ||
       app.name.includes(suggestedApp.title)
   );
   const image = agentLogo || appStoreApp?.logo;

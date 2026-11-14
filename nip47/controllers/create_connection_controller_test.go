@@ -242,7 +242,7 @@ func TestHandleCreateConnectionEvent_UnsupportedMethod(t *testing.T) {
 	"params": {
 		"pubkey": "%s",
 		"name": "Test 123",
-		"request_methods": ["non_existent"]
+		"request_methods": ["get_info", "non_existent"]
 	}
 }
 `, pairingPublicKey)
@@ -266,7 +266,7 @@ func TestHandleCreateConnectionEvent_UnsupportedMethod(t *testing.T) {
 
 	assert.NotNil(t, publishedResponse.Error)
 	assert.Equal(t, constants.ERROR_BAD_REQUEST, publishedResponse.Error.Code)
-	assert.Equal(t, "One or more methods are not supported by the current LNClient", publishedResponse.Error.Message)
+	assert.Equal(t, "Methods not supported by the current LNClient: non_existent", publishedResponse.Error.Message)
 	assert.Equal(t, models.CREATE_CONNECTION_METHOD, publishedResponse.ResultType)
 	assert.Nil(t, publishedResponse.Result)
 }

@@ -119,7 +119,7 @@ func NewCLNService(ctx context.Context, eventPublisher events.EventPublisher, ad
 		clientHold := clngrpcHold.NewHoldClient(connHold)
 
 		logger.Logger.Info("Testing CLN hold plugin gRPC connection")
-		_, err = svc.clientHold.List(ctx, &clngrpcHold.ListRequest{Constraint: &clngrpcHold.ListRequest_Pagination_{
+		_, err = clientHold.List(ctx, &clngrpcHold.ListRequest{Constraint: &clngrpcHold.ListRequest_Pagination_{
 			Pagination: &clngrpcHold.ListRequest_Pagination{
 				IndexStart: 0,
 				Limit:      1,

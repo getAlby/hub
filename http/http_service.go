@@ -23,6 +23,7 @@ import (
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/service"
+	"github.com/getAlby/hub/swaps"
 
 	"github.com/getAlby/hub/api"
 	"github.com/getAlby/hub/frontend"
@@ -94,12 +95,9 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.Use(middleware.RequestID())
 
 	e.GET("/api/info", httpSvc.infoHandler)
-	e.POST("/api/setup", httpSvc.setupHandler)
-	e.POST("/api/restore", httpSvc.restoreBackupHandler)
-
 	// A single global rate limiter (one bucket for all callers, not per-IP)
-	// shared by every endpoint that verifies the unlock password, to bound how
-	// fast the password can be guessed.
+	// shared by every endpoint that verifies the unlock password or setup code,
+	// to bound how fast they can be guessed.
 	unlockRateLimiter := middleware.RateLimiterWithConfig(middleware.RateLimiterConfig{
 		Store: middleware.NewRateLimiterMemoryStoreWithConfig(
 			// burst of 2 so unlocking and then immediately acting is not blocked
@@ -112,6 +110,11 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.POST("/api/start", httpSvc.startHandler, unlockRateLimiter)
 	e.POST("/api/unlock", httpSvc.unlockHandler, unlockRateLimiter)
 	e.POST("/api/backup", httpSvc.createBackupHandler, unlockRateLimiter)
+
+	setupMiddlewares := []echo.MiddlewareFunc{unlockRateLimiter, httpSvc.requireSetupCode}
+	e.POST("/api/setup", httpSvc.setupHandler, setupMiddlewares...)
+	e.POST("/api/setup/verify-code", httpSvc.verifySetupCodeHandler, setupMiddlewares...)
+	e.POST("/api/restore", httpSvc.restoreBackupHandler, setupMiddlewares...)
 	e.GET("/logout", httpSvc.logoutHandler)
 
 	frontend.RegisterHandlers(e)
@@ -207,7 +210,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	fullAccessApiGroup.DELETE("/autoswap", httpSvc.disableAutoSwapOutHandler)
 	fullAccessApiGroup.POST("/node/alias", httpSvc.setNodeAliasHandler)
 
-	httpSvc.albyHttpSvc.RegisterSharedRoutes(readOnlyApiGroup, fullAccessApiGroup, e)
+	httpSvc.albyHttpSvc.RegisterSharedRoutes(readOnlyApiGroup, fullAccessApiGroup, e, setupMiddlewares)
 }
 
 func (httpSvc *HttpService) infoHandler(c echo.Context) error {
@@ -221,7 +224,7 @@ func (httpSvc *HttpService) infoHandler(c echo.Context) error {
 	authHeader := c.Request().Header.Get("Authorization")
 	if authHeader != "" {
 		parts := strings.Split(authHeader, " ")
-		if parts[0] == "Bearer" {
+		if len(parts) == 2 && parts[0] == "Bearer" {
 			tokenString := parts[1]
 			token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 				secret, err := httpSvc.cfg.GetJWTSecret()
@@ -1478,8 +1481,13 @@ func (httpSvc *HttpService) listSwapsHandler(c echo.Context) error {
 func (httpSvc *HttpService) lookupSwapHandler(c echo.Context) error {
 	swap, err := httpSvc.api.LookupSwap(c.Param("swapId"))
 	if err != nil {
-		return c.JSON(http.StatusNotFound, ErrorResponse{
-			Message: "App not found",
+		if errors.Is(err, swaps.ErrSwapNotFound) {
+			return c.JSON(http.StatusNotFound, ErrorResponse{
+				Message: "Swap not found",
+			})
+		}
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: "Failed to lookup swap",
 		})
 	}
 

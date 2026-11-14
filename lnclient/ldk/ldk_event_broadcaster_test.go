@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/ldk-node-go/ldk_node"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -79,5 +80,33 @@ func TestLDKEventBroadcaster_ContextCancelledWhileAwaiting(t *testing.T) {
 		require.ErrorIs(t, err, context.Canceled)
 	case <-time.After(5 * time.Second):
 		t.Fatal("timed out waiting for await loop to return after context cancellation")
+	}
+}
+
+// Regression test: after shutdown CancelSubscription (deferred by the payment
+// loops) and Subscribe used to block forever.
+func TestLDKEventBroadcaster_SubscriptionCallsReturnAfterShutdown(t *testing.T) {
+	// CancelSubscription logs when re-closing the subscription
+	logger.Init("4")
+	ctx, cancel := context.WithCancel(context.Background())
+	broadcaster := NewLDKEventBroadcaster(ctx, make(chan *ldk_node.Event))
+	subscription := broadcaster.Subscribe()
+
+	cancel()
+	_, ok := <-subscription
+	require.False(t, ok)
+
+	lateSubscriptionChannel := make(chan chan *ldk_node.Event, 1)
+	go func() {
+		broadcaster.CancelSubscription(subscription)
+		lateSubscriptionChannel <- broadcaster.Subscribe()
+	}()
+
+	select {
+	case lateSubscription := <-lateSubscriptionChannel:
+		_, ok := <-lateSubscription
+		assert.False(t, ok, "a subscription made after shutdown should be closed")
+	case <-time.After(5 * time.Second):
+		t.Fatal("CancelSubscription or Subscribe blocked after shutdown")
 	}
 }

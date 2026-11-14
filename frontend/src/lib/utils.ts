@@ -86,3 +86,21 @@ export function getBudgetRenewalLabel(renewalType: BudgetRenewalType): string {
 export function getAppDisplayName(name: string) {
   return name === ALBY_ACCOUNT_APP_NAME ? "Alby Account" : name;
 }
+
+// Transaction metadata can be set by any connected app (e.g. via NIP-47
+// make_invoice), so its fields are not guaranteed to match their declared
+// types. Rendering a non-string (e.g. an object) as a React child crashes.
+export function asString(value: unknown): string | undefined {
+  return typeof value === "string" ? value : undefined;
+}
+
+export function asStringRecord(value: unknown): Record<string, string> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+  return Object.fromEntries(
+    Object.entries(value).filter(
+      (entry): entry is [string, string] => typeof entry[1] === "string"
+    )
+  );
+}

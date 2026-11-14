@@ -14,6 +14,7 @@ import {
 import { Button } from "src/components/ui/button";
 import { SUBWALLET_APPSTORE_APP_ID } from "src/constants";
 import { useDeleteApp } from "src/hooks/useDeleteApp";
+import { asString } from "src/lib/utils";
 import { App } from "src/types";
 
 export function DisconnectApp({
@@ -36,7 +37,7 @@ export function DisconnectApp({
   // Check if this is a sub-wallet with a lightning address
   const isSubwallet =
     app.metadata?.app_store_app_id === SUBWALLET_APPSTORE_APP_ID;
-  const hasLightningAddress = !!app.metadata?.lud16;
+  const lud16 = asString(app.metadata?.lud16);
 
   return (
     <AlertDialog open>
@@ -59,10 +60,10 @@ export function DisconnectApp({
                 remain in your wallet.
               </>
             )}
-            {isSubwallet && hasLightningAddress && (
+            {isSubwallet && lud16 && (
               <p className="font-medium mt-4">
-                This sub-wallet has a lightning address ({app.metadata?.lud16})
-                that will also be deleted.
+                This sub-wallet has a lightning address ({lud16}) that will also
+                be deleted.
               </p>
             )}
           </AlertDialogDescription>

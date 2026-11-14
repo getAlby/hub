@@ -42,7 +42,6 @@ type LNDWrapper struct {
 	routerClient   routerrpc.RouterClient
 	stateClient    lnrpc.StateClient
 	invoicesClient invoicesrpc.InvoicesClient
-	IdentityPubkey string
 }
 
 func NewLNDclient(lndOptions LNDoptions) (result *LNDWrapper, err error) {

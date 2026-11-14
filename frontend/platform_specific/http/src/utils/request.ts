@@ -1,4 +1,5 @@
 import { getAuthToken } from "src/lib/auth";
+import useSetupStore from "src/state/SetupStore";
 import { ErrorResponse } from "src/types";
 
 export const request = async <T>(
@@ -18,6 +19,17 @@ export const request = async <T>(
     args[1].headers = {
       ...args[1].headers,
       Authorization: `Bearer ${token}`,
+    };
+  }
+
+  const setupCode = useSetupStore.getState().setupCode;
+  if (setupCode) {
+    if (!args[1]) {
+      args[1] = {};
+    }
+    args[1].headers = {
+      ...args[1].headers,
+      "X-Setup-Code": setupCode,
     };
   }
 

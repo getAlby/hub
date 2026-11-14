@@ -9,6 +9,7 @@ import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
 import { UnlinkAlbyAccount } from "src/components/UnlinkAlbyAccount";
 
+import { useAlbyAuthUrl } from "src/hooks/useAlbyAuthUrl";
 import { useInfo } from "src/hooks/useInfo";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { openLink } from "src/utils/openLink";
@@ -23,6 +24,7 @@ function AuthCodeForm({ url }: AuthCodeFormProps) {
   const navigate = useNavigate();
 
   const { data: info, mutate: refetchInfo } = useInfo();
+  const { mutate: mutateAlbyAuthUrl } = useAlbyAuthUrl();
 
   const [hasRequestedCode, setRequestedCode] = React.useState(false);
   const [isLoading, setLoading] = React.useState(false);
@@ -43,13 +45,20 @@ function AuthCodeForm({ url }: AuthCodeFormProps) {
     e.preventDefault();
     setLoading(true);
     try {
-      await request(`/api/alby/callback?code=${authCode}`, {
+      const callbackParams = new URLSearchParams({
+        code: authCode,
+        state: new URL(url).searchParams.get("state") || "",
+      });
+      await request(`/api/alby/callback?${callbackParams.toString()}`, {
         headers: {
           "Content-Type": "application/json",
         },
       });
       await refetchInfo();
       navigate("/");
+      // the hub discards the state and verifier after a successful login,
+      // so the next login must fetch a new auth URL
+      await mutateAlbyAuthUrl(undefined, { revalidate: false });
     } catch (error) {
       handleRequestError("Failed to connect", error);
     }

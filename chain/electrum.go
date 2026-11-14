@@ -114,6 +114,18 @@ func (e *electrumLookup) AddressHasTransactions(ctx context.Context, address str
 	return len(history) > 0, nil
 }
 
+func (e *electrumLookup) GetTransactionHex(ctx context.Context, txId string) (string, error) {
+	ctx, cancel := context.WithTimeout(ctx, requestTimeout)
+	defer cancel()
+
+	var txHex string
+	if err := e.request(ctx, "blockchain.transaction.get", []any{txId}, &txHex); err != nil {
+		return "", fmt.Errorf("failed to get transaction: %w", err)
+	}
+
+	return txHex, nil
+}
+
 func (e *electrumLookup) Close() {
 	_ = e.conn.Close()
 }

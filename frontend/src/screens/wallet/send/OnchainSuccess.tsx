@@ -14,6 +14,7 @@ import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
 import LottieLoading from "src/components/LottieLoading";
 import LottieSuccess from "src/components/LottieSuccess";
+import { OnchainTransactionCheckFailedAlert } from "src/components/OnchainTransactionCheckFailedAlert";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { useInfo } from "src/hooks/useInfo";
@@ -27,10 +28,8 @@ export default function OnchainSuccess() {
   const amountSat = state?.amountSat as number;
   const txId = state?.txId as string;
 
-  const { data: mempoolTx } = useMempoolApi<MempoolTransaction>(
-    `/tx/${txId}`,
-    3000
-  );
+  const { data: mempoolTx, error: mempoolError } =
+    useMempoolApi<MempoolTransaction>(`/tx/${txId}`, 3000);
 
   if (!info) {
     return <Loading />;
@@ -45,7 +44,9 @@ export default function OnchainSuccess() {
             <CardTitle className="text-center">
               {mempoolTx?.status.confirmed
                 ? "Payment Successful"
-                : "Awaiting Confirmation"}
+                : mempoolTx
+                  ? "Awaiting Confirmation"
+                  : "Payment Status Unknown"}
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-6">
@@ -60,6 +61,9 @@ export default function OnchainSuccess() {
               </p>
               <FormattedFiatAmount amountSat={amountSat} className="text-xl" />
             </div>
+            {!mempoolTx && mempoolError && (
+              <OnchainTransactionCheckFailedAlert />
+            )}
           </CardContent>
           <CardFooter className="flex flex-col gap-2 pt-2">
             <ExternalLinkButton

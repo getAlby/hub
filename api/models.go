@@ -315,10 +315,10 @@ type InfoResponseRelay struct {
 type InfoResponse struct {
 	BackendType                 string              `json:"backendType"`
 	SetupCompleted              bool                `json:"setupCompleted"`
+	SetupCodeRequired           bool                `json:"setupCodeRequired"`
 	OAuthRedirect               bool                `json:"oauthRedirect"`
 	Running                     bool                `json:"running"`
 	Unlocked                    bool                `json:"unlocked"`
-	AlbyAuthUrl                 string              `json:"albyAuthUrl"`
 	NextBackupReminder          string              `json:"nextBackupReminder"`
 	AlbyUserIdentifier          string              `json:"albyUserIdentifier"`
 	AlbyAccountConnected        bool                `json:"albyAccountConnected"`

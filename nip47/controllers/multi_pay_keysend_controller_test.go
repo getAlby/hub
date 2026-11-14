@@ -23,7 +23,7 @@ const nip47MultiPayKeysendJson = `
 	"params": {
 		"keysends": [{
 				"amount": 123000,
-				"pubkey": "123pubkey2",
+				"pubkey": "038a73de75fdc3c7ec951a5e0b0fa95c5cd353bd7ca72df2086aa228c1f92819a5",
 				"tlv_records": [{
 					"type": 5482373484,
 					"value": "fajsn341414fq"
@@ -31,7 +31,7 @@ const nip47MultiPayKeysendJson = `
 			},
 			{
 				"amount": 123000,
-				"pubkey": "123pubkey2",
+				"pubkey": "038a73de75fdc3c7ec951a5e0b0fa95c5cd353bd7ca72df2086aa228c1f92819a5",
 				"tlv_records": [{
 					"type": 5482373484,
 					"value": "fajsn341414fq"
@@ -48,7 +48,7 @@ const nip47MultiPayKeysendOneOverflowingBudgetJson = `
 	"params": {
 		"keysends": [{
 				"amount": 123000,
-				"pubkey": "123pubkey2",
+				"pubkey": "038a73de75fdc3c7ec951a5e0b0fa95c5cd353bd7ca72df2086aa228c1f92819a5",
 				"id": "customId",
 				"tlv_records": [{
 					"type": 5482373484,
@@ -57,7 +57,7 @@ const nip47MultiPayKeysendOneOverflowingBudgetJson = `
 			},
 			{
 				"amount": 500000,
-				"pubkey": "500pubkey",
+				"pubkey": "03a53c23a3e12cb3b16dc23c8a6d18e5930b480443c5f46860f553b33d74731342",
 				"tlv_records": [{
 					"type": 5482373484,
 					"value": "fajsn341414fq"
@@ -113,7 +113,7 @@ func TestHandleMultiPayKeysendEvent_Success(t *testing.T) {
 		assert.Equal(t, 64, len(responses[i].Result.(payResponse).Preimage))
 		assert.Equal(t, uint64(1), responses[i].Result.(payResponse).FeesPaid)
 		assert.Nil(t, responses[i].Error)
-		assert.Equal(t, "123pubkey2", dTags[i].Find("d")[1])
+		assert.Equal(t, "038a73de75fdc3c7ec951a5e0b0fa95c5cd353bd7ca72df2086aa228c1f92819a5", dTags[i].Find("d")[1])
 	}
 }
 

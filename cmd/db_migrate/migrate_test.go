@@ -8,11 +8,14 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/db/queries"
 	"github.com/getAlby/hub/logger"
 	test_db "github.com/getAlby/hub/tests/db"
 )
@@ -30,13 +33,13 @@ func (e *testEnvironment) cleanup(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestMigrate(t *testing.T) {
-	type testCase struct {
-		name      string
-		sourceURI string
-		destURI   string
-	}
+type testCase struct {
+	name      string
+	sourceURI string
+	destURI   string
+}
 
+func getTestCases() []testCase {
 	// Test migration between sqlite instances for basic sanity checking.
 	tc := []testCase{
 		{
@@ -64,7 +67,11 @@ func TestMigrate(t *testing.T) {
 		tc = append(tc, tcPg...)
 	}
 
-	for _, tt := range tc {
+	return tc
+}
+
+func TestMigrate(t *testing.T) {
+	for _, tt := range getTestCases() {
 		t.Run(tt.name, func(t *testing.T) {
 			env, err := setupTest(t, tt.sourceURI, tt.destURI)
 			require.NoError(t, err)
@@ -81,6 +88,53 @@ func TestMigrate(t *testing.T) {
 			requireCount[db.Swap](t, env.dest, 1)
 			requireCount[db.Forward](t, env.dest, 1)
 			requireCount[db.UserConfig](t, env.dest, 1)
+		})
+	}
+}
+
+func TestMigrateRemovesDeletedAppsFromTransactions(t *testing.T) {
+	for _, tt := range getTestCases() {
+		t.Run(tt.name, func(t *testing.T) {
+			env, err := setupTest(t, tt.sourceURI, tt.destURI)
+			require.NoError(t, err)
+			defer env.cleanup(t)
+
+			deletedApp := &db.App{
+				Name:      "deleted",
+				AppPubkey: "b923bc264d8d0a680f81599ea5b4e0145734564ccb314eb230b9916eeb5de170",
+				Isolated:  true,
+				Metadata:  datatypes.JSON("{}"),
+			}
+			create(t, env.source, deletedApp)
+			transaction := &db.Transaction{
+				AppId:       &deletedApp.ID,
+				Type:        constants.TRANSACTION_TYPE_INCOMING,
+				State:       constants.TRANSACTION_STATE_SETTLED,
+				AmountMsat:  5_000_000,
+				PaymentHash: "13a165e20d710ebd58cb0f41529cbd3a32454445beb54d1f169115e69dd6313d",
+			}
+			create(t, env.source, transaction)
+			require.NoError(t, env.source.Delete(deletedApp).Error)
+
+			err = db.MigrateDB(env.source, env.dest)
+			require.NoError(t, err)
+
+			var migratedTransaction db.Transaction
+			require.NoError(t, env.dest.First(&migratedTransaction, transaction.ID).Error)
+			assert.Nil(t, migratedTransaction.AppId)
+
+			// the new app may get the deleted app's ID
+			newApp := &db.App{
+				Name:      "new",
+				AppPubkey: "8d2c60ccd6f70721dd86573a062c65e06263f0e9e057ba8e5015e53d4b704870",
+				Isolated:  true,
+				Metadata:  datatypes.JSON("{}"),
+			}
+			create(t, env.dest, newApp)
+
+			balance, err := queries.GetIsolatedBalanceMsat(env.dest, newApp.ID)
+			require.NoError(t, err)
+			assert.Zero(t, balance, "new app must not inherit the deleted app's balance")
 		})
 	}
 }
@@ -255,8 +309,7 @@ func requireCount[T any](t *testing.T, tx *gorm.DB, expected int64) {
 }
 
 func create[T any](t *testing.T, tx *gorm.DB, v T) *gorm.DB {
-	tx.Create(v)
-	require.NoError(t, tx.Error)
+	require.NoError(t, tx.Create(v).Error)
 	return tx
 }
 

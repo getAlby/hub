@@ -155,6 +155,7 @@ export interface AppPermissions {
 export interface InfoResponse {
   backendType: BackendType;
   setupCompleted: boolean;
+  setupCodeRequired: boolean;
   oauthRedirect: boolean;
   albyAccountConnected: boolean;
   ldkVssEnabled: boolean;
@@ -163,7 +164,6 @@ export interface InfoResponse {
   databaseType: string;
   swapApiUrl: string;
   running: boolean;
-  albyAuthUrl: string;
   nextBackupReminder: string;
   albyUserIdentifier: string;
   network?: Network;
@@ -559,6 +559,10 @@ export type Currency = {
   symbol: string;
   name: string;
   priority: number;
+};
+
+export type AlbyAuthUrlResponse = {
+  url: string;
 };
 
 // TODO: use camel case (needs mapping in the Alby OAuth Service - see how AlbyInfo is done above)

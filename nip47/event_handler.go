@@ -273,6 +273,22 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, pool nostrmodels.Simpl
 			}).WithError(err).Error("Failed to save state to nostr event")
 		}
 
+		// reply so the client doesn't wait for a response that never comes
+		resp, err := svc.CreateResponse(event, &models.Response{
+			Error: &models.Error{
+				Code:    constants.ERROR_BAD_REQUEST,
+				Message: "failed to decode request: invalid JSON",
+			},
+		}, nostr.Tags{}, nip47Cipher, appWalletPrivKey)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"requestEventNostrId": event.ID,
+				"eventKind":           event.Kind,
+			}).WithError(err).Error("Failed to create response")
+			return
+		}
+		svc.publishResponseEvent(ctx, pool, &requestEvent, resp, &app)
+
 		return
 	}
 
@@ -335,10 +351,14 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, pool nostrmodels.Simpl
 	if !slices.Contains(permissions.GetAlwaysGrantedMethods(), nip47Request.Method) {
 		scope, err := permissions.RequestMethodToScope(nip47Request.Method)
 		if err != nil {
+			code := constants.ERROR_INTERNAL
+			if errors.Is(err, permissions.ErrUnsupportedMethod) {
+				code = constants.ERROR_NOT_IMPLEMENTED
+			}
 			publishResponse(&models.Response{
 				ResultType: nip47Request.Method,
 				Error: &models.Error{
-					Code:    constants.ERROR_INTERNAL,
+					Code:    code,
 					Message: err.Error(),
 				},
 			}, nostr.Tags{})
@@ -503,10 +523,12 @@ func (svc *nip47Service) publishResponseEvent(ctx context.Context, pool nostrmod
 	publishResultChannel := pool.PublishMany(ctx, svc.cfg.GetRelayUrls(), *resp)
 
 	publishSuccessful := false
+	var relayErrors []error
 	for result := range publishResultChannel {
 		if result.Error == nil {
 			publishSuccessful = true
 		} else {
+			relayErrors = append(relayErrors, fmt.Errorf("%s: %w", result.RelayURL, result.Error))
 			logger.Logger.WithFields(logrus.Fields{
 				"requestEventId":       requestEvent.ID,
 				"requestNostrEventId":  requestEvent.NostrId,
@@ -518,7 +540,9 @@ func (svc *nip47Service) publishResponseEvent(ctx context.Context, pool nostrmod
 		}
 	}
 
+	var publishErr error
 	if !publishSuccessful {
+		publishErr = fmt.Errorf("failed to publish response to any relay: %w", errors.Join(relayErrors...))
 		updateColumns["state"] = db.RESPONSE_EVENT_STATE_PUBLISH_FAILED
 		logger.Logger.WithFields(logrus.Fields{
 			"requestEventId":       requestEvent.ID,
@@ -526,7 +550,7 @@ func (svc *nip47Service) publishResponseEvent(ctx context.Context, pool nostrmod
 			"appId":                appId,
 			"responseEventId":      responseEvent.ID,
 			"responseNostrEventId": resp.ID,
-		}).WithError(err).Error("Failed to publish reply")
+		}).WithError(publishErr).Error("Failed to publish reply")
 	} else {
 		updateColumns["state"] = db.RESPONSE_EVENT_STATE_PUBLISH_CONFIRMED
 		updateColumns["replied_at"] = time.Now()
@@ -554,5 +578,5 @@ func (svc *nip47Service) publishResponseEvent(ctx context.Context, pool nostrmod
 		return err
 	}
 
-	return nil
+	return publishErr
 }

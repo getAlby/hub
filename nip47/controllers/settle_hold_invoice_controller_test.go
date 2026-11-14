@@ -167,10 +167,23 @@ func TestHandleSettleHoldInvoiceEvent_OtherApp(t *testing.T) {
 
 	assert.True(t, setup.publishCalled)
 	require.NotNil(t, setup.response.Error)
+	assert.Equal(t, constants.ERROR_NOT_FOUND, setup.response.Error.Code)
 
 	var transaction db.Transaction
 	err = setup.svc.DB.First(&transaction, "payment_hash = ?", testSettlePaymentHash).Error
 	require.NoError(t, err)
 	assert.Equal(t, constants.TRANSACTION_STATE_ACCEPTED, transaction.State)
 	assert.Nil(t, transaction.Preimage)
+}
+
+func TestHandleSettleHoldInvoiceEvent_NotAccepted(t *testing.T) {
+	setup := setupSettleHoldInvoiceTest(t, testSettlePreimage, testSettlePaymentHash, constants.TRANSACTION_STATE_PENDING)
+	defer setup.TearDown()
+
+	NewTestNip47Controller(setup.svc).
+		HandleSettleHoldInvoiceEvent(setup.ctx, setup.nip47Request, setup.dbRequestEvent.ID, setup.app.ID, setup.PublishResponse)
+
+	assert.True(t, setup.publishCalled)
+	require.NotNil(t, setup.response.Error)
+	assert.Equal(t, constants.ERROR_NOT_FOUND, setup.response.Error.Code)
 }

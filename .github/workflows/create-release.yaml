@@ -6,8 +6,13 @@ on:
       repo-token:
         required: true
 
+permissions:
+  contents: read
+
 jobs:
   release:
+    permissions:
+      contents: write
     runs-on: ubuntu-22.04
     steps:
       - name: Download server archives

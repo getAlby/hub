@@ -22,6 +22,9 @@ on:
       APPLE_USERNAME:
         required: true
 
+permissions:
+  contents: read
+
 jobs:
   build:
     strategy:
@@ -44,7 +47,7 @@ jobs:
               alby_arch: aarch64-unknown-linux-gnu,
               os: ubuntu-22.04,
             },
-            { arch: darwin/universal, os: macos-14 },
+            { arch: darwin/universal, os: macos-15 },
           ]
     runs-on: ${{ matrix.build.os }}
 
@@ -62,6 +65,7 @@ jobs:
         name: Check out code
         with:
           submodules: recursive
+          persist-credentials: false
 
       - name: Install Linux dependencies
         if: runner.os == 'Linux'
@@ -87,6 +91,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22.x"
+          check-latest: true
 
       - name: Run tests
         run: mkdir frontend/dist && touch frontend/dist/tmp && go test ./...
@@ -218,7 +223,14 @@ jobs:
           )
         run: |
           echo "Notarizing Zip Files"
-          gon -log-level=info -log-json ./build/darwin/http/gon-notarize.json
+          # Apple's notary service intermittently fails (e.g. a spurious
+          # "403. A required agreement is missing or has expired"), so retry.
+          for attempt in 1 2 3; do
+            gon -log-level=info -log-json ./build/darwin/http/gon-notarize.json && exit 0
+            echo "Notarization attempt $attempt failed"
+            [ "$attempt" -lt 3 ] && sleep 60
+          done
+          exit 1
         env:
           AC_USERNAME: ${{ secrets.APPLE_USERNAME }}
           AC_PASSWORD: ${{ secrets.APPLE_PASSWORD }}

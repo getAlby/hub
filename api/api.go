@@ -408,11 +408,11 @@ func (api *api) DeleteLightningAddress(ctx context.Context, appId uint) error {
 		return err
 	}
 
-	if metadata["lud16"] == nil {
+	lud16, ok := metadata["lud16"].(string)
+	if !ok {
 		return errors.New("no lightning address set")
 	}
 
-	lud16 := metadata["lud16"].(string)
 	if !strings.Contains(lud16, "@") {
 		return errors.New("invalid lightning address")
 	}
@@ -1518,6 +1518,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 		return nil, err
 	}
 	info.SetupCompleted = setupCompleted
+	info.SetupCodeRequired = !setupCompleted && api.cfg.GetEnv().SetupCode != ""
 	info.Currency = api.cfg.GetCurrency()
 	info.BitcoinDisplayFormat = api.cfg.GetBitcoinDisplayFormat()
 	info.StartupState = api.svc.GetStartupState()
@@ -1529,7 +1530,6 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.Running = lnClient != nil
 	info.NodeMigrationFileCreated = api.nodeMigrationFileCreated.Load()
 	info.BackendType = backendType
-	info.AlbyAuthUrl = api.albyOAuthSvc.GetAuthUrl()
 	info.OAuthRedirect = !api.cfg.GetEnv().IsDefaultClientId()
 	info.Version = version.Tag
 	info.EnableAdvancedSetup = api.cfg.GetEnv().EnableAdvancedSetup

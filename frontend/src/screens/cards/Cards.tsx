@@ -16,7 +16,6 @@ import { Link, useNavigate } from "react-router";
 import twoFiatLogo from "src/assets/cards/2fiat.png";
 import freedomiaLogo from "src/assets/cards/freedomia.png";
 import redotpayLogo from "src/assets/cards/redotpay.png";
-import solvocardLogo from "src/assets/cards/solvocard.png";
 import bringinLogo from "src/assets/suggested-apps/bringin.png";
 import wavespaceLogo from "src/assets/suggested-apps/wave-space.png";
 import AppHeader from "src/components/AppHeader";
@@ -154,25 +153,6 @@ const providers: Provider[] = [
     timeToGet: "Instant",
     cardCost: "$5–30 / mo",
     fees: "1.3–4.3%",
-    appStoreId: "bitcoin-card-topup",
-  },
-  {
-    id: "solvocard",
-    name: "Solvocard",
-    url: "https://www.solvocard.com/auth/sign-up?ref=77CEM87Q",
-    logo: solvocardLogo,
-    initials: "SC",
-    networks: ["Visa", "Mastercard"],
-    cardType: "Virtual",
-    regions: ["Global"],
-    applePay: true,
-    googlePay: true,
-    selfCustody: false,
-    lightningNative: false,
-    kyc: false,
-    timeToGet: "Instant",
-    cardCost: "$99",
-    fees: "4% deposit + $1 card topup",
     appStoreId: "bitcoin-card-topup",
   },
   {

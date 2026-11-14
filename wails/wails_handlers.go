@@ -12,6 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
+	"golang.org/x/oauth2"
 
 	"github.com/getAlby/hub/alby"
 	"github.com/getAlby/hub/api"
@@ -36,9 +37,19 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 
 	switch {
 	case len(authCodeMatch) > 1 && method == "GET":
-		code := authCodeMatch[1]
+		code, err := url.QueryUnescape(authCodeMatch[1])
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
 
-		err := app.svc.GetAlbyOAuthSvc().CallbackHandler(ctx, code)
+		app.albyOAuthVerifierMutex.Lock()
+		verifier := app.albyOAuthVerifier
+		app.albyOAuthVerifierMutex.Unlock()
+		if verifier == "" {
+			return WailsRequestRouterResponse{Body: nil, Error: "Invalid OAuth state. Please try connecting your Alby Account again."}
+		}
+
+		err = app.svc.GetAlbyOAuthSvc().CallbackHandler(ctx, code, verifier)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"route":  route,
@@ -46,6 +57,10 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			}).WithError(err).Error("Failed to decode request to wails router")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
+
+		app.albyOAuthVerifierMutex.Lock()
+		app.albyOAuthVerifier = ""
+		app.albyOAuthVerifierMutex.Unlock()
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
 	}
 
@@ -441,6 +456,14 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: info, Error: ""}
+	case "GET /api/alby/auth-url":
+		state, err := alby.GenerateOAuthState()
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: &alby.AlbyAuthUrlResponse{
+			Url: app.svc.GetAlbyOAuthSvc().GetAuthUrl(state, app.resolveAlbyOAuthVerifier()),
+		}, Error: ""}
 	case "GET /api/alby/me":
 		me, err := app.svc.GetAlbyOAuthSvc().GetMe(ctx)
 		if err != nil {
@@ -1307,4 +1330,15 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		"method": method,
 	}).Error("Unhandled route")
 	return WailsRequestRouterResponse{Body: nil, Error: fmt.Sprintf("Unhandled route: %s %s", method, route)}
+}
+
+// resolveAlbyOAuthVerifier reuses a pending verifier so that refetching the
+// auth URL does not invalidate a URL that was already opened
+func (app *WailsApp) resolveAlbyOAuthVerifier() string {
+	app.albyOAuthVerifierMutex.Lock()
+	defer app.albyOAuthVerifierMutex.Unlock()
+	if app.albyOAuthVerifier == "" {
+		app.albyOAuthVerifier = oauth2.GenerateVerifier()
+	}
+	return app.albyOAuthVerifier
 }
