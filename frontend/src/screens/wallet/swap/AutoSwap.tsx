@@ -30,6 +30,7 @@ import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
+import { useInfo } from "src/hooks/useInfo";
 import { useAutoSwapsConfig, useSwapInfo } from "src/hooks/useSwaps";
 import { copyToClipboard } from "src/lib/clipboard";
 import { AutoSwapConfig, AutoSwapRequest } from "src/types";
@@ -70,6 +71,9 @@ export default function AutoSwap() {
 function AutoSwapOutForm() {
   const { mutate } = useAutoSwapsConfig();
   const { data: swapInfo, error: swapInfoError } = useSwapInfo("out");
+  const { data: info } = useInfo();
+  // bitcoind has no address index to find the next unused xpub address
+  const isXpubSupported = info?.chainDataSourceType !== "bitcoind";
 
   const [isInternalSwap, setInternalSwap] = useState(true);
   const [balanceThresholdSat, setBalanceThresholdSat] = useState("");
@@ -223,44 +227,50 @@ function AutoSwapOutForm() {
         </div>
         {!isInternalSwap && (
           <div className="grid gap-4">
-            <div className="flex flex-col gap-3">
-              <Label>Destination Type</Label>
-              <RadioGroup
-                value={externalType}
-                onValueChange={(value) => {
-                  setExternalType(value as "address" | "xpub");
-                  setDestination("");
-                }}
-                className="flex gap-4 flex-row"
-              >
-                <div className="flex items-start space-x-2">
-                  <RadioGroupItem
-                    value="address"
-                    id="address"
-                    className="shrink-0"
-                  />
-                  <div className="grid gap-1.5">
-                    <Label htmlFor="address" className="cursor-pointer">
-                      Single Address
-                    </Label>
-                    <p className="text-xs text-muted-foreground">
-                      Send to the same address each time
-                    </p>
+            {isXpubSupported && (
+              <div className="flex flex-col gap-3">
+                <Label>Destination Type</Label>
+                <RadioGroup
+                  value={externalType}
+                  onValueChange={(value) => {
+                    setExternalType(value as "address" | "xpub");
+                    setDestination("");
+                  }}
+                  className="flex gap-4 flex-row"
+                >
+                  <div className="flex items-start space-x-2">
+                    <RadioGroupItem
+                      value="address"
+                      id="address"
+                      className="shrink-0"
+                    />
+                    <div className="grid gap-1.5">
+                      <Label htmlFor="address" className="cursor-pointer">
+                        Single Address
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        Send to the same address each time
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-start space-x-2">
-                  <RadioGroupItem value="xpub" id="xpub" className="shrink-0" />
-                  <div className="grid gap-1.5">
-                    <Label htmlFor="xpub" className="cursor-pointer">
-                      XPUB
-                    </Label>
-                    <p className="text-xs text-muted-foreground">
-                      Generate new addresses from extended public key
-                    </p>
+                  <div className="flex items-start space-x-2">
+                    <RadioGroupItem
+                      value="xpub"
+                      id="xpub"
+                      className="shrink-0"
+                    />
+                    <div className="grid gap-1.5">
+                      <Label htmlFor="xpub" className="cursor-pointer">
+                        XPUB
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        Generate new addresses from extended public key
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </RadioGroup>
-            </div>
+                </RadioGroup>
+              </div>
+            )}
             <div className="grid gap-1.5">
               <Label>
                 {externalType === "address"

@@ -28,6 +28,7 @@ import (
 
 	"github.com/getAlby/hub/alby"
 	"github.com/getAlby/hub/apps"
+	"github.com/getAlby/hub/chain"
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
@@ -1084,6 +1085,10 @@ func (api *api) EnableAutoSwapOut(ctx context.Context, enableAutoSwapsRequest *E
 				return err
 			}
 		case "xpub":
+			// finding the next unused xpub address needs an address index
+			if api.cfg.GetEnv().LDKBitcoindRpcHost != "" {
+				return fmt.Errorf("auto swap to an xpub is not available: %w", chain.ErrAddressLookupUnsupported)
+			}
 			if !api.cfg.CheckUnlockPassword(enableAutoSwapsRequest.UnlockPassword) {
 				return errors.New("invalid unlock password")
 			}
@@ -1298,6 +1303,10 @@ func (api *api) GetNewOnchainAddress(ctx context.Context) (string, error) {
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to save new onchain address to config")
 	}
+	err = api.cfg.SetUpdate(config.OnchainAddressIssuedAtKey, strconv.FormatInt(time.Now().Unix(), 10), "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to save new onchain address issue time to config")
+	}
 
 	return address, nil
 }
@@ -1316,6 +1325,12 @@ func (api *api) GetUnusedOnchainAddress(ctx context.Context) (string, error) {
 	if currentAddress != "" {
 		// check if address has any transactions
 		hasTransactions, err := api.addressHasTransactions(ctx, currentAddress)
+		if errors.Is(err, chain.ErrAddressLookupUnsupported) {
+			// bitcoind has no address index: rotate after any incoming on-chain
+			// payment since the address was issued. This may skip an address
+			// that was not used, but never reuses one that was.
+			hasTransactions, err = api.checkIncomingOnchainPaymentSinceAddressIssued(ctx)
+		}
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to get current address transactions")
 			return currentAddress, nil
