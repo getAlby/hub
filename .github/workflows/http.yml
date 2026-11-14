@@ -223,7 +223,14 @@ jobs:
           )
         run: |
           echo "Notarizing Zip Files"
-          gon -log-level=info -log-json ./build/darwin/http/gon-notarize.json
+          # Apple's notary service intermittently fails (e.g. a spurious
+          # "403. A required agreement is missing or has expired"), so retry.
+          for attempt in 1 2 3; do
+            gon -log-level=info -log-json ./build/darwin/http/gon-notarize.json && exit 0
+            echo "Notarization attempt $attempt failed"
+            [ "$attempt" -lt 3 ] && sleep 60
+          done
+          exit 1
         env:
           AC_USERNAME: ${{ secrets.APPLE_USERNAME }}
           AC_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
