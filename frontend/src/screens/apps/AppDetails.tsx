@@ -326,6 +326,8 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                           type="button"
                           variant="outline"
                           onClick={() => {
+                            setName(savedName);
+                            setPermissions(savedPermissions);
                             setIsEditingPermissions(false);
                           }}
                         >
