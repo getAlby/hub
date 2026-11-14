@@ -206,6 +206,29 @@ type BalancesResponse struct {
 
 type NetworkGraphResponse = interface{}
 
+const (
+	PAYMENT_STATUS_COMPLETE = "COMPLETE"
+	PAYMENT_STATUS_PENDING  = "PENDING"
+	PAYMENT_STATUS_FAILED   = "FAILED"
+	PAYMENT_STATUS_UNKNOWN  = "UNKNOWN"
+)
+
+type PaymentStatusResponse struct {
+	Status     string
+	Preimage   string
+	FeeMsat    uint64
+	AmountMsat uint64
+}
+
+// PaymentStatusLookup is an optional LNClient capability. Backends that can
+// report the authoritative state of an outgoing payment by payment hash
+// implement it, so the hub can check the node's real payment state before
+// initiating another payment for an invoice (a missing or failed hub DB row
+// is not permission to pay again).
+type PaymentStatusLookup interface {
+	LookupPaymentStatus(paymentHash string) (*PaymentStatusResponse, error)
+}
+
 type PaymentFailedEventProperties struct {
 	Transaction *Transaction
 	Reason      string
