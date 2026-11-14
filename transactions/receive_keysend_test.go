@@ -142,6 +142,48 @@ func TestReceiveKeysendWithCustomKey(t *testing.T) {
 	assert.Equal(t, uint(1), app.ID)
 }
 
+func TestReceiveKeysendWithCustomKeyZero(t *testing.T) {
+	ctx := context.TODO()
+
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+	_, _, err = tests.CreateApp(svc)
+	require.NoError(t, err)
+
+	// there is no app with ID 0, so the payment should not be assigned to any app
+	tlv := []lnclient.TLVRecord{
+		{
+			Type:  696969,
+			Value: hex.EncodeToString([]byte("0")),
+		},
+	}
+	tx := lnclient.Transaction{
+		Type:         "incoming",
+		Description:  "mock invoice 1",
+		Preimage:     "9f59b18f80a77c2930deb8be5ff1143eacdd1891c63c23d61bc9f99c64e57325",
+		PaymentHash:  "ae4277b7be3ca1420cafd24c143866190f52b996856b0e4164763f936e61ea1b",
+		AmountMsat:   1000,
+		FeesPaidMsat: 50,
+		SettledAt:    &tests.MockTimeUnix,
+		Metadata: map[string]interface{}{
+			"tlv_records": tlv,
+		},
+	}
+
+	event := events.Event{
+		Event:      "nwc_lnclient_payment_received",
+		Properties: &tx,
+	}
+	transactionsService.ConsumeEvent(ctx, &event, map[string]interface{}{})
+
+	transaction, err := transactionsService.LookupTransaction(ctx, tx.PaymentHash, nil, svc.LNClient, nil)
+	require.NoError(t, err)
+	assert.Nil(t, transaction.AppId)
+}
+
 func TestReceiveKeysend(t *testing.T) {
 	ctx := context.TODO()
 

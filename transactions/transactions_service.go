@@ -1328,9 +1328,9 @@ func (svc *transactionsService) getAppIdFromCustomRecords(customRecords []lnclie
 				logger.Logger.WithError(err).Error("Failed to parse custom key TLV record as number")
 				continue
 			}
-			err = tx.Take(&app, &db.App{
-				ID: uint(customValue),
-			}).Error
+			// use an explicit condition: with a struct condition GORM drops the
+			// zero-value ID, so a custom key of "0" would match any app
+			err = tx.Take(&app, "id = ?", customValue).Error
 			if err != nil {
 				logger.Logger.WithError(err).Error("Failed to find app by id from custom key TLV record")
 				continue
