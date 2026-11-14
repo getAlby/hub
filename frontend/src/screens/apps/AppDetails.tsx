@@ -95,7 +95,7 @@ function AppDetails() {
 type AppInternalProps = {
   app: App;
   capabilities: WalletCapabilities;
-  refetchApp: () => void;
+  refetchApp: () => Promise<unknown>;
 };
 
 function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
@@ -115,21 +115,25 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
     setIsEditingPermissions(editMode);
   }, [location.search]);
 
+  const savedPermissions = React.useMemo<AppPermissions>(
+    () => ({
+      scopes: app.scopes,
+      maxAmountSat: app.maxAmountSat,
+      budgetRenewal: app.budgetRenewal,
+      expiresAt: app.expiresAt ? new Date(app.expiresAt) : undefined,
+      isolated: app.isolated,
+    }),
+    [app]
+  );
   const [name, setName] = React.useState(app.name);
-  const [permissions, setPermissions] = React.useState<AppPermissions>({
-    scopes: app.scopes,
-    maxAmountSat: app.maxAmountSat,
-    budgetRenewal: app.budgetRenewal,
-    expiresAt: app.expiresAt ? new Date(app.expiresAt) : undefined,
-    isolated: app.isolated,
-  });
-  const [savedPermissions, setSavedPermissions] =
-    React.useState<AppPermissions>(permissions);
-  const [savedName, setSavedName] = React.useState(name);
+  const [permissions, setPermissions] = React.useState(savedPermissions);
 
   React.useEffect(() => {
-    setSavedName(app.name);
-  }, [app.name]);
+    if (!isEditingPermissions) {
+      setName(app.name);
+      setPermissions(savedPermissions);
+    }
+  }, [isEditingPermissions, app.name, savedPermissions]);
 
   const handleSave = async () => {
     try {
@@ -151,10 +155,8 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
         body: JSON.stringify(updateAppRequest),
       });
 
-      refetchApp();
+      await refetchApp();
       setIsEditingPermissions(false);
-      setSavedPermissions(permissions);
-      setSavedName(name);
       toast("Successfully updated connection");
     } catch (error) {
       handleRequestError("Failed to update connection", error);
@@ -312,11 +314,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                     </DropdownMenu>
                     <ResponsiveButton
                       variant="secondary"
-                      onClick={() => {
-                        setName(savedName);
-                        setPermissions(savedPermissions);
-                        setIsEditingPermissions(true);
-                      }}
+                      onClick={() => setIsEditingPermissions(true)}
                       icon={SquarePenIcon}
                       text="Edit Connection"
                     />
@@ -330,8 +328,6 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                           type="button"
                           variant="outline"
                           onClick={() => {
-                            setName(savedName);
-                            setPermissions(savedPermissions);
                             setIsEditingPermissions(false);
                           }}
                         >
