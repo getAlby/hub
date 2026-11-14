@@ -127,6 +127,10 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
     React.useState<AppPermissions>(permissions);
   const [savedName, setSavedName] = React.useState(name);
 
+  React.useEffect(() => {
+    setSavedName(app.name);
+  }, [app.name]);
+
   const handleSave = async () => {
     try {
       const updateAppRequest: UpdateAppRequest = {
