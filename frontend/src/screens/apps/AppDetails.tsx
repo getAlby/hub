@@ -84,6 +84,7 @@ function AppDetails() {
 
   return (
     <AppInternal
+      key={app.id}
       app={app}
       refetchApp={refetchApp}
       capabilities={capabilities}
@@ -124,6 +125,11 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   });
   const [savedPermissions, setSavedPermissions] =
     React.useState<AppPermissions>(permissions);
+  const [savedName, setSavedName] = React.useState(name);
+
+  React.useEffect(() => {
+    setSavedName(app.name);
+  }, [app.name]);
 
   const handleSave = async () => {
     try {
@@ -148,6 +154,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
       refetchApp();
       setIsEditingPermissions(false);
       setSavedPermissions(permissions);
+      setSavedName(name);
       toast("Successfully updated connection");
     } catch (error) {
       handleRequestError("Failed to update connection", error);
@@ -305,7 +312,11 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                     </DropdownMenu>
                     <ResponsiveButton
                       variant="secondary"
-                      onClick={() => setIsEditingPermissions(true)}
+                      onClick={() => {
+                        setName(savedName);
+                        setPermissions(savedPermissions);
+                        setIsEditingPermissions(true);
+                      }}
                       icon={SquarePenIcon}
                       text="Edit Connection"
                     />
@@ -319,6 +330,8 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                           type="button"
                           variant="outline"
                           onClick={() => {
+                            setName(savedName);
+                            setPermissions(savedPermissions);
                             setIsEditingPermissions(false);
                           }}
                         >
