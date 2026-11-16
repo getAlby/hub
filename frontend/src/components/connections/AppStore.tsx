@@ -4,7 +4,7 @@ import SuggestedApps from "src/components/connections/SuggestedApps";
 
 function AppStore() {
   return (
-    <>
+    <div className="flex flex-col gap-4">
       <div className="flex flex-col flex-1">
         <div className="flex justify-between items-center">
           <div className="flex-1">
@@ -21,7 +21,7 @@ function AppStore() {
         </div>
       </div>
       <SuggestedApps />
-    </>
+    </div>
   );
 }
 
