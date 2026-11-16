@@ -118,3 +118,48 @@ func TestDeleteApp_NonStringLightningAddress(t *testing.T) {
 	require.NoError(t, theAPI.DeleteApp(app))
 	assert.Nil(t, testSvc.AppsService.GetAppById(app.ID))
 }
+
+func TestListApps_NameAndSearchFilters(t *testing.T) {
+	testSvc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer testSvc.Remove()
+
+	for _, name := range []string{"Alby Go", "Damus", "Damus (1)", "100%_app", "100xapp"} {
+		_, _, err := testSvc.AppsService.CreateApp(name, "", 0, "monthly", nil, []string{constants.GET_INFO_SCOPE}, false, nil)
+		require.NoError(t, err)
+	}
+
+	theAPI := &api{db: testSvc.DB, keys: testSvc.Keys}
+
+	listNames := func(filters ListAppsFilters) []string {
+		response, err := theAPI.ListApps(0, 0, filters, "")
+		require.NoError(t, err)
+		names := []string{}
+		for _, app := range response.Apps {
+			names = append(names, app.Name)
+		}
+		return names
+	}
+
+	// name is a prefix match, used to look up apps by their exact name
+	assert.ElementsMatch(t, []string{"Damus", "Damus (1)"}, listNames(ListAppsFilters{Name: "Damus"}))
+	assert.ElementsMatch(t, []string{"Damus", "Damus (1)"}, listNames(ListAppsFilters{Name: "damus"}))
+	assert.Empty(t, listNames(ListAppsFilters{Name: "lby"}))
+
+	// search matches anywhere in the name, case-insensitively
+	assert.ElementsMatch(t, []string{"Alby Go"}, listNames(ListAppsFilters{Search: "lby"}))
+	assert.ElementsMatch(t, []string{"Alby Go"}, listNames(ListAppsFilters{Search: "GO"}))
+	assert.ElementsMatch(t, []string{"Damus", "Damus (1)"}, listNames(ListAppsFilters{Search: "amu"}))
+	assert.Empty(t, listNames(ListAppsFilters{Search: "xyz"}))
+
+	// LIKE wildcards in user input are matched literally
+	assert.ElementsMatch(t, []string{"100%_app"}, listNames(ListAppsFilters{Search: "%_"}))
+	assert.ElementsMatch(t, []string{"100%_app"}, listNames(ListAppsFilters{Name: "100%"}))
+	assert.Empty(t, listNames(ListAppsFilters{Search: "_x"}))
+}
+
+func TestEscapeLikePattern(t *testing.T) {
+	assert.Equal(t, "Alby Go", escapeLikePattern("Alby Go"))
+	assert.Equal(t, `100\%\_app`, escapeLikePattern("100%_app"))
+	assert.Equal(t, `a\\b`, escapeLikePattern(`a\b`))
+}

@@ -529,14 +529,20 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 	dbApps := []db.App{}
 	query := api.db
 
+	// Use case-insensitive matching for both SQLite and PostgreSQL
+	nameLike := "name LIKE ? ESCAPE '\\'"
+	if api.db.Dialector.Name() == "postgres" {
+		nameLike = "name ILIKE ? ESCAPE '\\'"
+	}
+
 	if filters.Name != "" {
-		// searching for "Damus" will return "Damus" and "Damus (1)"
-		// Use case-insensitive search for both SQLite and PostgreSQL
-		if api.db.Dialector.Name() == "postgres" {
-			query = query.Where("name ILIKE ?", filters.Name+"%")
-		} else {
-			query = query.Where("name LIKE ?", filters.Name+"%")
-		}
+		// prefix match: searching for "Damus" will return "Damus" and "Damus (1)"
+		query = query.Where(nameLike, escapeLikePattern(filters.Name)+"%")
+	}
+
+	if filters.Search != "" {
+		// substring match for user-facing search: "lby" will return "Alby Go"
+		query = query.Where(nameLike, "%"+escapeLikePattern(filters.Search)+"%")
 	}
 
 	if filters.AppStoreAppId != "" {
@@ -699,6 +705,14 @@ func resolveAppOrderBy(orderBy string) string {
 	default:
 		return "last_used_at IS NULL, last_used_at DESC"
 	}
+}
+
+// escapeLikePattern escapes LIKE wildcards so user input is matched literally
+// (used together with ESCAPE '\')
+var likePatternEscaper = strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`)
+
+func escapeLikePattern(value string) string {
+	return likePatternEscaper.Replace(value)
 }
 
 func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
