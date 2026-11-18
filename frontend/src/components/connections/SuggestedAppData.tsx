@@ -2506,6 +2506,7 @@ export const appStoreApps: AppStoreApp[] = (
       extendedDescription:
         "Scan a bag of coffee for its rating, flavour and origin. Your Hub pays the subscription by itself, monthly or yearly, within a budget you set.",
       webLink: "https://espress.coffee",
+      zapStoreLink: "https://zapstore.dev/apps/coffee.espress.app",
       logo: espress,
       categories: ["misc"],
       hideConnectionQr: true,
