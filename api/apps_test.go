@@ -119,7 +119,7 @@ func TestDeleteApp_NonStringLightningAddress(t *testing.T) {
 	assert.Nil(t, testSvc.AppsService.GetAppById(app.ID))
 }
 
-func TestListApps_NameAndSearchFilters(t *testing.T) {
+func TestListApps_NameFilter(t *testing.T) {
 	testSvc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer testSvc.Remove()
@@ -141,21 +141,17 @@ func TestListApps_NameAndSearchFilters(t *testing.T) {
 		return names
 	}
 
-	// name is a prefix match, used to look up apps by their exact name
+	// name matches anywhere in the name, case-insensitively
 	assert.ElementsMatch(t, []string{"Damus", "Damus (1)"}, listNames(ListAppsFilters{Name: "Damus"}))
 	assert.ElementsMatch(t, []string{"Damus", "Damus (1)"}, listNames(ListAppsFilters{Name: "damus"}))
-	assert.Empty(t, listNames(ListAppsFilters{Name: "lby"}))
-
-	// search matches anywhere in the name, case-insensitively
-	assert.ElementsMatch(t, []string{"Alby Go"}, listNames(ListAppsFilters{Search: "lby"}))
-	assert.ElementsMatch(t, []string{"Alby Go"}, listNames(ListAppsFilters{Search: "GO"}))
-	assert.ElementsMatch(t, []string{"Damus", "Damus (1)"}, listNames(ListAppsFilters{Search: "amu"}))
-	assert.Empty(t, listNames(ListAppsFilters{Search: "xyz"}))
+	assert.ElementsMatch(t, []string{"Alby Go"}, listNames(ListAppsFilters{Name: "lby"}))
+	assert.ElementsMatch(t, []string{"Alby Go"}, listNames(ListAppsFilters{Name: "GO"}))
+	assert.ElementsMatch(t, []string{"Damus", "Damus (1)"}, listNames(ListAppsFilters{Name: "amu"}))
+	assert.Empty(t, listNames(ListAppsFilters{Name: "xyz"}))
 
 	// LIKE wildcards in user input are matched literally
-	assert.ElementsMatch(t, []string{"100%_app"}, listNames(ListAppsFilters{Search: "%_"}))
-	assert.ElementsMatch(t, []string{"100%_app"}, listNames(ListAppsFilters{Name: "100%"}))
-	assert.Empty(t, listNames(ListAppsFilters{Search: "_x"}))
+	assert.ElementsMatch(t, []string{"100%_app"}, listNames(ListAppsFilters{Name: "%_"}))
+	assert.Empty(t, listNames(ListAppsFilters{Name: "_x"}))
 }
 
 func TestEscapeLikePattern(t *testing.T) {

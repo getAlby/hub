@@ -536,13 +536,9 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 	}
 
 	if filters.Name != "" {
-		// prefix match: searching for "Damus" will return "Damus" and "Damus (1)"
-		query = query.Where(nameLike, escapeLikePattern(filters.Name)+"%")
-	}
-
-	if filters.Search != "" {
-		// substring match for user-facing search: "lby" will return "Alby Go"
-		query = query.Where(nameLike, "%"+escapeLikePattern(filters.Search)+"%")
+		// match anywhere in the name: searching for "lby" will return "Alby Go",
+		// and "Damus" will return "Damus" and "Damus (1)"
+		query = query.Where(nameLike, "%"+escapeLikePattern(filters.Name)+"%")
 	}
 
 	if filters.AppStoreAppId != "" {

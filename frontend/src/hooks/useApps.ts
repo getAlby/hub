@@ -11,7 +11,6 @@ export function useApps(
   page = 1,
   filters?: {
     name?: string;
-    search?: string;
     appStoreAppId?: string;
     unused?: boolean;
     subWallets?: boolean;

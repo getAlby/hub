@@ -48,7 +48,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     undefined,
     undefined,
     {
-      search: searchText,
+      name: searchText,
     },
     undefined,
     !!searchText?.length
