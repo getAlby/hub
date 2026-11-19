@@ -109,13 +109,24 @@ cd deploy/digitalocean
 ./build.sh
 ```
 
-4. Confirm that `manifest.json` was created and contains the new snapshot artifact.
-5. Submit the Marketplace update:
+4. Confirm that `manifest.json` contains the new snapshot artifact and
+   `software-versions.json` records the bundled versions. Boot-test a new droplet
+   from the snapshot, including SSH forwarding and reboot persistence, then
+   remove that temporary droplet.
+5. Before submitting, update the Marketplace listing's Getting Started instructions
+   in the Vendor Portal to match the SSH-tunnel flow above. The image-update API
+   does not update those instructions. Confirm the Vendor Portal app ID (not the
+   numeric image ID) matches Alby Hub.
+6. Submit the Marketplace update:
 
 ```bash
 ./scripts/marketplace-submit.sh
 ```
 
 The script reads the snapshot image ID from `manifest.json` and sends the update request to the DigitalOcean Vendor Portal.
+An accepted submission is not proof of Marketplace publication; inspect
+`marketplace-response.json` and verify the submitted image and review state in
+the Vendor Portal. Keep generated manifests, version records, payloads, responses,
+and build logs out of commits.
 
 Once this manual flow has been verified during a release, we can move it into `.github/workflows/release.yaml` by adding a job that waits for the GHCR image, builds the snapshot and runs the Marketplace submission script.

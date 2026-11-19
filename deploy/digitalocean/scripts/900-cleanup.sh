@@ -47,4 +47,7 @@ The secure erase will complete successfully when you see:${NC}
     dd: writing to '/zerofile': No space left on device\n
 Beginning secure erase now\n"
 
-dd if=/dev/zero of=/zerofile bs=4096 || rm /zerofile
+dd if=/dev/zero of=/zerofile bs=4096 || true
+sync
+rm -f /zerofile
+sync
