@@ -399,7 +399,7 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 
 			var expiresAt *time.Time
 			if paymentRequest.Expiry > 0 {
-				expiresAtValue := time.Now().Add(time.Duration(paymentRequest.Expiry) * time.Second)
+				expiresAtValue := time.Unix(int64(paymentRequest.CreatedAt+paymentRequest.Expiry), 0)
 				expiresAt = &expiresAtValue
 			}
 			dbTransaction = db.Transaction{
