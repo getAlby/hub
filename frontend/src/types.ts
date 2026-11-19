@@ -255,6 +255,7 @@ export type BaseSwap = {
   createdAt: string;
   updatedAt: string;
   lockupTxId?: string;
+  depositTxId?: string;
   claimTxId?: string;
   receiveAmountSat?: number;
 };

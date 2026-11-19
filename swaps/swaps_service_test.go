@@ -1,6 +1,7 @@
 package swaps
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
@@ -14,6 +15,7 @@ import (
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	testsdb "github.com/getAlby/hub/tests/db"
 	"github.com/lightningnetwork/lnd/lnwire"
@@ -172,6 +174,40 @@ func TestSwapOutRejectsInvalidDestination(t *testing.T) {
 
 	_, err := svc.SwapOut(100_000, "bitcoin:bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4?amount=0.001", false, false)
 	assert.ErrorContains(t, err, "invalid bitcoin address")
+}
+
+// depositLNClient returns a fixed transaction ID for on-chain payments
+type depositLNClient struct {
+	lnclient.LNClient
+	txId string
+}
+
+func (c *depositLNClient) RedeemOnchainFunds(ctx context.Context, toAddress string, amountSat uint64, feeRate *uint64, sendAll bool) (string, error) {
+	return c.txId, nil
+}
+
+func TestFundInternalSwapInSavesDepositTxId(t *testing.T) {
+	logger.Init("4")
+	gormDB, err := testsdb.NewDB(t)
+	require.NoError(t, err)
+	defer testsdb.CloseDB(gormDB)
+
+	dbSwap := db.Swap{
+		SwapId: "internal-swap",
+		Type:   "in",
+		State:  "PENDING",
+	}
+	require.NoError(t, gormDB.Create(&dbSwap).Error)
+
+	svc := &swapsService{db: gormDB, lnClient: &depositLNClient{txId: "deposit-tx-id"}}
+
+	require.NoError(t, svc.fundInternalSwapIn(&dbSwap, "lockup-address", 100_000, nil))
+
+	swap, err := svc.GetSwap("internal-swap")
+	require.NoError(t, err)
+	assert.Equal(t, "deposit-tx-id", swap.DepositTxId)
+	// only the swap provider reporting the transaction sets the lockup transaction ID
+	assert.Empty(t, swap.LockupTxId)
 }
 
 func TestRefundSwapRejectsInvalidAddress(t *testing.T) {
