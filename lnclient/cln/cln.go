@@ -1168,6 +1168,12 @@ func (c *CLNService) GetNewOnchainAddress(ctx context.Context) (string, error) {
 	return "", fmt.Errorf("unknown default onchain address type")
 }
 
+// CLN has no way to ask for an unused address, so this returns a new address
+// each time.
+func (c *CLNService) GetUnusedOnchainAddress(ctx context.Context) (string, error) {
+	return c.GetNewOnchainAddress(ctx)
+}
+
 func (c *CLNService) GetNodeConnectionInfo(ctx context.Context) (*lnclient.NodeConnectionInfo, error) {
 	resp, err := c.client.Getinfo(ctx, &clngrpc.GetinfoRequest{})
 	if err != nil {

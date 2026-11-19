@@ -52,7 +52,7 @@ type electrumResponse struct {
 }
 
 // newElectrumLookup connects to the given electrum server. The server URL uses the same
-// format as LDK_ELECTRUM_SERVER: "ssl://host:port", "tcp://host:port" or "host:port" (tcp).
+// format as ELECTRUM_SERVER: "ssl://host:port", "tcp://host:port" or "host:port" (tcp).
 func newElectrumLookup(ctx context.Context, serverURL string, network string) (*electrumLookup, error) {
 	if serverURL == "" {
 		return nil, errors.New("no electrum server configured")

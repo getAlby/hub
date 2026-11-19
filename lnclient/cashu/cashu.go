@@ -186,6 +186,10 @@ func (cs *CashuService) GetNewOnchainAddress(ctx context.Context) (string, error
 	return "", errors.New("not implemented")
 }
 
+func (cs *CashuService) GetUnusedOnchainAddress(ctx context.Context) (string, error) {
+	return "", errors.New("not implemented")
+}
+
 func (cs *CashuService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
 	return &lnclient.OnchainBalanceResponse{}, nil
 }

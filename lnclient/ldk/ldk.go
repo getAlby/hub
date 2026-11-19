@@ -213,36 +213,33 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	}
 
 	var chainSource string
-	if cfg.GetEnv().LDKBitcoindRpcHost != "" {
+	if cfg.GetEnv().BitcoindRpcHost != "" {
 		logger.Logger.WithFields(logrus.Fields{
-			"rpc_host": cfg.GetEnv().LDKBitcoindRpcHost,
-			"rpc_port": cfg.GetEnv().LDKBitcoindRpcPort,
+			"rpc_host": cfg.GetEnv().BitcoindRpcHost,
+			"rpc_port": cfg.GetEnv().BitcoindRpcPort,
 		}).Info("Using LDK node bitcoin RPC chain source")
-		port, err := strconv.ParseUint(cfg.GetEnv().LDKBitcoindRpcPort, 10, 16)
+		port, err := strconv.ParseUint(cfg.GetEnv().BitcoindRpcPort, 10, 16)
 		if err != nil {
 			return nil, err
 		}
-		builder.SetChainSourceBitcoindRpc(cfg.GetEnv().LDKBitcoindRpcHost, uint16(port), cfg.GetEnv().LDKBitcoindRpcUser, cfg.GetEnv().LDKBitcoindRpcPassword)
-		// bitcoind has no address index, so address lookups still need an esplora or electrum server
-		logger.Logger.WithFields(logrus.Fields{
-			"esplora_url":  cfg.GetEnv().LDKEsploraServer,
-			"electrum_url": cfg.GetEnv().LDKElectrumServer,
-		}).Warn("Bitcoind chain source does not support address lookups, using alternate server for address lookups. Set LDK_ESPLORA_SERVER or LDK_ELECTRUM_SERVER to use your own")
+		builder.SetChainSourceBitcoindRpc(cfg.GetEnv().BitcoindRpcHost, uint16(port), cfg.GetEnv().BitcoindRpcUser, cfg.GetEnv().BitcoindRpcPassword)
+		// bitcoind has no address index, and lookups are never sent to another server
+		logger.Logger.Warn("Bitcoind chain source does not support address lookups: auto swap to an xpub is not available")
 		chainSource = "bitcoind"
-	} else if cfg.GetEnv().LDKEsploraServer != "" {
+	} else if cfg.GetEnv().EsploraServer != "" {
 		logger.Logger.WithFields(logrus.Fields{
-			"esplora_url": cfg.GetEnv().LDKEsploraServer,
+			"esplora_url": cfg.GetEnv().EsploraServer,
 		}).Info("Using LDK node esplora chain source")
-		builder.SetChainSourceEsplora(cfg.GetEnv().LDKEsploraServer, &ldk_node.EsploraSyncConfig{
+		builder.SetChainSourceEsplora(cfg.GetEnv().EsploraServer, &ldk_node.EsploraSyncConfig{
 			// turn off background sync - we manage syncs ourselves
 			BackgroundSyncConfig: nil,
 		})
 		chainSource = "esplora"
 	} else {
 		logger.Logger.WithFields(logrus.Fields{
-			"electrum_url": cfg.GetEnv().LDKElectrumServer,
+			"electrum_url": cfg.GetEnv().ElectrumServer,
 		}).Info("Using LDK node electrum chain source")
-		builder.SetChainSourceElectrum(cfg.GetEnv().LDKElectrumServer, &ldk_node.ElectrumSyncConfig{
+		builder.SetChainSourceElectrum(cfg.GetEnv().ElectrumServer, &ldk_node.ElectrumSyncConfig{
 			// turn off background sync - we manage syncs ourselves
 			BackgroundSyncConfig: nil,
 		})
@@ -1298,6 +1295,19 @@ func (ls *LDKService) GetNewOnchainAddress(ctx context.Context) (string, error) 
 	address, err := ls.node.OnchainPayment().NewAddress()
 	if err != nil {
 		logger.Logger.WithError(err).Error("NewOnchainAddress failed")
+		return "", err
+	}
+	return address, nil
+}
+
+func (ls *LDKService) GetUnusedOnchainAddress(ctx context.Context) (string, error) {
+	// the wallet only learns about a payment when it syncs, so sync soon in
+	// case the current address was just paid
+	ls.UpdateLastWalletSyncRequest()
+
+	address, err := ls.node.OnchainPayment().NextUnusedAddress()
+	if err != nil {
+		logger.Logger.WithError(err).Error("NextUnusedAddress failed")
 		return "", err
 	}
 	return address, nil
@@ -2719,16 +2729,16 @@ func (ls *LDKService) ConsumeEvent(ctx context.Context, event *events.Event, glo
 }
 
 func (ls *LDKService) GetChainDataSource() (string, string) {
-	if endpoint := ls.cfg.GetEnv().LDKBitcoindRpcHost; endpoint != "" {
-		rpcPort := ls.cfg.GetEnv().LDKBitcoindRpcPort
+	if endpoint := ls.cfg.GetEnv().BitcoindRpcHost; endpoint != "" {
+		rpcPort := ls.cfg.GetEnv().BitcoindRpcPort
 		return "bitcoind", sanitizeChainEndpoint(endpoint, rpcPort)
 	}
-	if endpoint := ls.cfg.GetEnv().LDKEsploraServer; endpoint != "" {
+	if endpoint := ls.cfg.GetEnv().EsploraServer; endpoint != "" {
 		return "esplora", sanitizeChainEndpoint(endpoint, "")
 	}
 
 	// Fallback to Electrum
-	endpoint := ls.cfg.GetEnv().LDKElectrumServer
+	endpoint := ls.cfg.GetEnv().ElectrumServer
 	return "electrum", sanitizeChainEndpoint(endpoint, "")
 }
 

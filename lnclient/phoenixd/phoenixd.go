@@ -444,6 +444,10 @@ func (svc *PhoenixService) GetNewOnchainAddress(ctx context.Context) (string, er
 	return "", errors.New("not implemented")
 }
 
+func (svc *PhoenixService) GetUnusedOnchainAddress(ctx context.Context) (string, error) {
+	return "", errors.New("not implemented")
+}
+
 func (svc *PhoenixService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
 	return nil, errors.New("not implemented")
 }

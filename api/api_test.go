@@ -287,3 +287,18 @@ func TestExecuteCustomNodeCommand(t *testing.T) {
 func instantiateAPIWithService(s service.Service) *api {
 	return &api{svc: s}
 }
+
+// the backend decides which of its addresses is unused
+func TestGetUnusedOnchainAddress(t *testing.T) {
+	lnClient := mocks.NewMockLNClient(t)
+	svc := mocks.NewMockService(t)
+
+	lnClient.On("GetUnusedOnchainAddress", mock.Anything).Return("bcrt1qunused", nil)
+	svc.On("GetLNClient").Return(lnClient)
+
+	theAPI := instantiateAPIWithService(svc)
+
+	address, err := theAPI.GetUnusedOnchainAddress(context.TODO())
+	require.NoError(t, err)
+	require.Equal(t, "bcrt1qunused", address)
+}

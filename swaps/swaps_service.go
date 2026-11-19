@@ -184,7 +184,7 @@ func (svc *swapsService) EnableAutoSwapOut(encryptionKey string) error {
 
 	swapDestination, _ := svc.cfg.Get(config.AutoSwapDestinationKey, encryptionKey)
 	if swapDestination != "" {
-		if err := svc.ValidateXpub(swapDestination); err == nil {
+		if err := parseXpub(swapDestination); err == nil {
 			svc.autoSwapOutXpubLock.Lock()
 			svc.autoSwapOutDecryptedXpub = swapDestination
 			svc.autoSwapOutXpubLock.Unlock()
@@ -238,7 +238,7 @@ func (svc *swapsService) EnableAutoSwapOut(encryptionKey string) error {
 				hasDecryptedXpub := svc.autoSwapOutDecryptedXpub != ""
 				svc.autoSwapOutXpubLock.Unlock()
 				if hasDecryptedXpub {
-					actualDestination, err = svc.getNextUnusedAddressFromXpub()
+					actualDestination, err = svc.getNextUnusedAddressFromXpub(svc.GetDecryptedAutoSwapXpub())
 					if err != nil {
 						logger.Logger.WithError(err).Error("Failed to get next address from xpub")
 						continue
@@ -1688,12 +1688,8 @@ func (svc *swapsService) deriveAddressFromXpub(xpub string, index uint32) (strin
 	return address.EncodeAddress(), nil
 }
 
-func (svc *swapsService) getNextUnusedAddressFromXpub() (string, error) {
-	// Use the decrypted XPUB from memory (already decrypted during EnableAutoSwapOut)
-	svc.autoSwapOutXpubLock.Lock()
-	destination := svc.autoSwapOutDecryptedXpub
-	svc.autoSwapOutXpubLock.Unlock()
-	if destination == "" {
+func (svc *swapsService) getNextUnusedAddressFromXpub(xpub string) (string, error) {
+	if xpub == "" {
 		return "", errors.New("no XPUB configured")
 	}
 
@@ -1718,7 +1714,7 @@ func (svc *swapsService) getNextUnusedAddressFromXpub() (string, error) {
 	const addressLookAheadLimit = 100
 
 	for i := uint32(index); i < uint32(index)+addressLookAheadLimit; i++ {
-		address, err := svc.deriveAddressFromXpub(destination, i)
+		address, err := svc.deriveAddressFromXpub(xpub, i)
 		if err != nil {
 			return "", fmt.Errorf("failed to derive address at index %d: %w", i, err)
 		}
@@ -1755,7 +1751,21 @@ func (svc *swapsService) ValidateAddress(address string) error {
 	return nil
 }
 
+// ValidateXpub checks that auto swaps can send to the xpub: each swap goes to
+// its next unused address, which the chain source must be able to find.
 func (svc *swapsService) ValidateXpub(xpub string) error {
+	if err := parseXpub(xpub); err != nil {
+		return err
+	}
+
+	if _, err := svc.getNextUnusedAddressFromXpub(xpub); err != nil {
+		return fmt.Errorf("failed to find an unused address for xpub: %w", err)
+	}
+
+	return nil
+}
+
+func parseXpub(xpub string) error {
 	extendedKey, err := hdkeychain.NewKeyFromString(xpub)
 	if err != nil {
 		return fmt.Errorf("invalid xpub: %w", err)

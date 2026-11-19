@@ -1291,50 +1291,15 @@ func (api *api) GetNewOnchainAddress(ctx context.Context) (string, error) {
 	if lnClient == nil {
 		return "", ErrLNClientNotStarted
 	}
-	address, err := lnClient.GetNewOnchainAddress(ctx)
-	if err != nil {
-		return "", err
-	}
-
-	err = api.cfg.SetUpdate(config.OnchainAddressKey, address, "")
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to save new onchain address to config")
-	}
-
-	return address, nil
+	return lnClient.GetNewOnchainAddress(ctx)
 }
 
 func (api *api) GetUnusedOnchainAddress(ctx context.Context) (string, error) {
-	if api.svc.GetLNClient() == nil {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
 		return "", ErrLNClientNotStarted
 	}
-
-	currentAddress, err := api.cfg.Get(config.OnchainAddressKey, "")
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to get current address from config")
-		return "", err
-	}
-
-	if currentAddress != "" {
-		// check if address has any transactions
-		hasTransactions, err := api.addressHasTransactions(ctx, currentAddress)
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to get current address transactions")
-			return currentAddress, nil
-		}
-
-		if !hasTransactions {
-			// address has not been used yet
-			return currentAddress, nil
-		}
-	}
-
-	newAddress, err := api.GetNewOnchainAddress(ctx)
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to retrieve new onchain address")
-		return "", err
-	}
-	return newAddress, nil
+	return lnClient.GetUnusedOnchainAddress(ctx)
 }
 
 func (api *api) SignMessage(ctx context.Context, message string) (*SignMessageResponse, error) {
