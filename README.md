@@ -183,6 +183,10 @@ The chain source is used by the LDK backend to sync, and with every backend to l
 
 Bitcoind does not need `-txindex`: transactions are looked up in the mempool and the last 288 blocks, which are kept even on pruned nodes. Bitcoind has no address index, so auto swap to an xpub is not available.
 
+Wait until bitcoind has finished its initial sync before starting Alby Hub. If a hub with channels is started while bitcoind is still syncing, the channels can be force-closed.
+
+If you import a seed, on-chain funds received before the import are not found: with bitcoind the on-chain wallet starts at the current block and does not scan older ones.
+
 With a pruned bitcoind, set `AUTO_UNLOCK_PASSWORD` so Alby Hub starts syncing again right after a restart. If bitcoind runs for a long time while Alby Hub is locked, it can prune blocks that Alby Hub has not seen yet, and bitcoind then has to be re-synced.
 
 ### Boltz Regtest Setup
