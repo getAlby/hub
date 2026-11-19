@@ -187,6 +187,8 @@ Wait until bitcoind has finished its initial sync before starting Alby Hub. If a
 
 If you import a seed, on-chain funds received before the import are not found: with bitcoind the on-chain wallet starts at the current block and does not scan older ones.
 
+A pruned bitcoind should only be used for new hubs. To import an existing hub, use a full node.
+
 With a pruned bitcoind, set `AUTO_UNLOCK_PASSWORD` so Alby Hub starts syncing again right after a restart. If bitcoind runs for a long time while Alby Hub is locked, it can prune blocks that Alby Hub has not seen yet, and bitcoind then has to be re-synced with pruning turned off, or with a prune target large enough to keep those blocks, until Alby Hub has caught up.
 
 ### Boltz Regtest Setup
