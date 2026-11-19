@@ -1229,6 +1229,17 @@ func (svc *LNDService) GetNewOnchainAddress(ctx context.Context) (string, error)
 	return resp.Address, nil
 }
 
+func (svc *LNDService) GetUnusedOnchainAddress(ctx context.Context) (string, error) {
+	resp, err := svc.client.NewAddress(ctx, &lnrpc.NewAddressRequest{
+		Type: lnrpc.AddressType_UNUSED_WITNESS_PUBKEY_HASH,
+	})
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to get unused onchain address")
+		return "", err
+	}
+	return resp.Address, nil
+}
+
 func (svc *LNDService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
 	balances, err := svc.client.WalletBalance(ctx, &lnrpc.WalletBalanceRequest{})
 	if err != nil {

@@ -22,10 +22,10 @@ func (c *testConfig) GetNetwork() string        { return "bitcoin" }
 // lookups for a bitcoind user must go to their own node, not another server
 func TestNewAddressLookup_Bitcoind(t *testing.T) {
 	cfg := &testConfig{env: &config.AppConfig{
-		LDKBitcoindRpcHost: "127.0.0.1",
-		LDKBitcoindRpcPort: "8332",
-		LDKEsploraServer:   "https://esplora.example.com/api",
-		LDKElectrumServer:  "ssl://electrum.example.com:50002",
+		BitcoindRpcHost: "127.0.0.1",
+		BitcoindRpcPort: "8332",
+		EsploraServer:   "https://esplora.example.com/api",
+		ElectrumServer:  "ssl://electrum.example.com:50002",
 	}}
 
 	lookup, err := NewAddressLookup(context.Background(), cfg)
@@ -38,8 +38,8 @@ func TestNewAddressLookup_Bitcoind(t *testing.T) {
 
 func TestNewAddressLookup_Esplora(t *testing.T) {
 	cfg := &testConfig{env: &config.AppConfig{
-		LDKEsploraServer:  "https://esplora.example.com/api",
-		LDKElectrumServer: "ssl://electrum.example.com:50002",
+		EsploraServer:  "https://esplora.example.com/api",
+		ElectrumServer: "ssl://electrum.example.com:50002",
 	}}
 
 	lookup, err := NewAddressLookup(context.Background(), cfg)

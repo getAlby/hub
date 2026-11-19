@@ -156,11 +156,11 @@ func TestBitcoindAddressHasTransactions_Unsupported(t *testing.T) {
 
 	_, err := lookup.AddressHasTransactions(context.Background(), "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4")
 
-	require.ErrorIs(t, err, ErrAddressLookupUnsupported)
+	require.ErrorIs(t, err, errAddressLookupUnsupported)
 	assert.Empty(t, fake.calledMethod)
 }
 
 func TestBitcoindRequiresPort(t *testing.T) {
 	_, err := newBitcoindLookup("127.0.0.1", "", "user", "pass")
-	assert.EqualError(t, err, "LDK_BITCOIND_RPC_PORT is required")
+	assert.EqualError(t, err, "BITCOIND_RPC_PORT is required")
 }

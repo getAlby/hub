@@ -169,6 +169,20 @@ The following configuration options can be set as environment variables or in a 
 - `NETWORK`: On-chain network used for the node. Default: "bitcoin"
 - `REBALANCE_SERVICE_URL`: service url for rebalancing existing channels.
 
+### Chain source
+
+The chain source is used by the LDK backend to sync, and with every backend to look up on-chain transactions and addresses for swaps. Lookups are never sent to a server other than the configured one.
+
+- `ELECTRUM_SERVER`: By default the optimized Alby electrum server is used. You can configure your own electrum server (e.g. `127.0.0.1:50001` for a self-hosted server, or `ssl://host:50002` for a server using SSL).
+- `ESPLORA_SERVER`: Use an esplora server as the chain source instead of electrum (note: the public blockstream one is slow and can cause onchain syncing and issues with opening channels)
+- `BITCOIND_RPC_HOST`, `BITCOIND_RPC_PORT`, `BITCOIND_RPC_USER`, `BITCOIND_RPC_PASSWORD`: Use your own bitcoind as the chain source instead of electrum or esplora, e.g.
+  - `BITCOIND_RPC_HOST=127.0.0.1`
+  - `BITCOIND_RPC_PORT=8332`
+  - `BITCOIND_RPC_USER=yourusername`
+  - `BITCOIND_RPC_PASSWORD=yourpassword`
+
+Bitcoind does not need `-txindex`: transactions are looked up in the mempool and the last 288 blocks, which are kept even on pruned nodes. Bitcoind has no address index, so auto swap to an xpub is not available.
+
 ### Boltz Regtest Setup
 
 There is a boltz regtest fork with mempool service and alby-specific instructions [here](https://github.com/rolznz/boltz-regtest/tree/alby-hub?tab=readme-ov-file#your-first-swap)
@@ -176,12 +190,12 @@ There is a boltz regtest fork with mempool service and alby-specific instruction
 Make sure to update your RPC password below (`docker exec boltz-bitcoind cat /app/bitcoin/regtest/.cookie | cut -d: -f2`), and change your work directory each time you restart boltz (it is ephemeral):
 
     WORK_DIR=.data/boltz-regtest-1
-    LDK_BITCOIND_RPC_HOST="127.0.0.1"
-    LDK_BITCOIND_RPC_PORT="18443"
-    LDK_BITCOIND_RPC_USER="__cookie__"
-    LDK_BITCOIND_RPC_PASSWORD="f7460d81974b000b63e46c0e880243cf28bbaf93938b6e38494628f1f1700f23"
+    BITCOIND_RPC_HOST="127.0.0.1"
+    BITCOIND_RPC_PORT="18443"
+    BITCOIND_RPC_USER="__cookie__"
+    BITCOIND_RPC_PASSWORD="f7460d81974b000b63e46c0e880243cf28bbaf93938b6e38494628f1f1700f23"
     # or use esplora
-    #LDK_ESPLORA_SERVER=http://localhost:4002/api
+    #ESPLORA_SERVER=http://localhost:4002/api
     NETWORK="regtest"
     LDK_LISTENING_ADDRESSES="0.0.0.0:19735"
     BOLTZ_API=http://localhost:9001
@@ -254,9 +268,7 @@ _To configure via env, the following parameters must be provided:_
 
 ### LDK Backend parameters
 
-- `LDK_ELECTRUM_SERVER`: By default the optimized Alby electrum server is used. You can configure your own electrum server (e.g. `ssl://host:50002` or `tcp://host:50001`).
-- `LDK_ESPLORA_SERVER`: Use an esplora server as the chain source instead of electrum (note: the public blockstream one is slow and can cause onchain syncing and issues with opening channels)
-- The configured chain source is also used for onchain transaction and address lookups. They are never sent to another server.
+- The chain source is configured for all backends, see [Chain source](#chain-source).
 - `LDK_VSS_URL`: Use VSS (encrypted remote storage) rather than local sqlite store for lightning and bitcoin data. Currently this feature only works for brand new Alby Hub instances that are connected to Alby Accounts with an active subscription plan.
 - `LDK_LISTENING_ADDRESSES`: configure listening addresses, required for public channels, and ideally reachable if you would like others to be able to initiate peering with your node.
 - `LDK_ANNOUNCEMENT_ADDRESSES`: configure announcement addresses (only required if you use a VPN)
@@ -272,37 +284,25 @@ _To configure via env, the following parameters must be provided:_
 
 - `MEMPOOL_API=https://mutinynet.com/api`
 - `NETWORK=signet`
-- `LDK_ELECTRUM_SERVER=electrum.mutinynet.com:50001`
+- `ELECTRUM_SERVER=electrum.mutinynet.com:50001`
 - `LDK_GOSSIP_SOURCE=https://rgs.mutinynet.com/snapshot` (NOTE: by default ALby Hub does not use RGS)
 
 (or esplora instead of electrum)
 
-- `LDK_ESPLORA_SERVER=https://mutinynet.com/api`
+- `ESPLORA_SERVER=https://mutinynet.com/api`
 
 ##### Signet
 
 - `MEMPOOL_API=https://mempool.space/signet/api`
-- `LDK_NETWORK=signet`
-- `LDK_ESPLORA_SERVER=https://mempool.space/signet/api`
+- `NETWORK=signet`
+- `ESPLORA_SERVER=https://mempool.space/signet/api`
 
 ##### Testnet (Not recommended - try Mutinynet)
 
 - `MEMPOOL_API=https://mempool.space/testnet/api`
 - `NETWORK=testnet`
-- `LDK_ESPLORA_SERVER=https://mempool.space/testnet/api`
+- `ESPLORA_SERVER=https://mempool.space/testnet/api`
 - `LDK_GOSSIP_SOURCE=https://rapidsync.lightningdevkit.org/testnet/snapshot` (NOTE: by default ALby Hub does not use RGS)
-
-###### Connect to your own bitcoind
-
-- `LDK_BITCOIND_RPC_HOST=127.0.0.1`
-- `LDK_BITCOIND_RPC_PORT=8332`
-- `LDK_BITCOIND_RPC_USER=yourusername`
-- `LDK_BITCOIND_RPC_PASSWORD=yourpassword`
-
-Bitcoind does not need `-txindex`: transactions are looked up in the mempool and the last 288 blocks, which are kept even on pruned nodes. Bitcoind has no address index, so:
-
-- auto swap to an xpub is not available
-- the on-chain receive address is rotated after any incoming on-chain payment, rather than only when that address was paid
 
 ### Phoenixd
 

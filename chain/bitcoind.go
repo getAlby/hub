@@ -19,9 +19,9 @@ const bitcoindScanDepth = 288
 // bitcoind RPC error code for a transaction or block that was not found
 const bitcoindRpcInvalidAddressOrKey = -5
 
-// ErrAddressLookupUnsupported is returned by chain sources without an address
-// index (bitcoind) when asked for an address's transaction history.
-var ErrAddressLookupUnsupported = errors.New("address lookups are not supported with the bitcoind chain source")
+// bitcoind has no address index, so it cannot tell whether an address has
+// transaction history
+var errAddressLookupUnsupported = errors.New("address lookups are not supported with the bitcoind chain source")
 
 // bitcoindLookup looks up transactions from the user's own bitcoind over
 // JSON-RPC. It does not need -txindex: unconfirmed transactions come from the
@@ -44,7 +44,7 @@ func (e *bitcoindRpcError) Error() string {
 
 func newBitcoindLookup(host, port, user, password string) (*bitcoindLookup, error) {
 	if port == "" {
-		return nil, errors.New("LDK_BITCOIND_RPC_PORT is required")
+		return nil, errors.New("BITCOIND_RPC_PORT is required")
 	}
 	url := host + ":" + port
 	if !strings.Contains(host, "://") {
@@ -61,7 +61,7 @@ func newBitcoindLookup(host, port, user, password string) (*bitcoindLookup, erro
 }
 
 func (b *bitcoindLookup) AddressHasTransactions(ctx context.Context, address string) (bool, error) {
-	return false, ErrAddressLookupUnsupported
+	return false, errAddressLookupUnsupported
 }
 
 func (b *bitcoindLookup) GetTransactionHex(ctx context.Context, txId string) (string, error) {

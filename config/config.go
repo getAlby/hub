@@ -46,6 +46,7 @@ func NewConfig(env *AppConfig, db *gorm.DB) (*config, error) {
 
 func (cfg *config) init(env *AppConfig) error {
 	cfg.Env = env
+	cfg.Env.applyDeprecatedEnv()
 
 	if cfg.Env.Relay != "" {
 		err := cfg.SetUpdate("Relay", cfg.Env.Relay, "")
@@ -210,17 +211,7 @@ func (cfg *config) GetRelayUrls() []string {
 }
 
 func (cfg *config) GetNetwork() string {
-	env := cfg.GetEnv()
-
-	if env.Network != "" {
-		return env.Network
-	}
-
-	if env.LDKNetwork != "" {
-		return env.LDKNetwork
-	}
-
-	return "bitcoin"
+	return cfg.GetEnv().Network
 }
 
 func (cfg *config) GetMempoolUrl() string {
