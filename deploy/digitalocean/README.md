@@ -62,11 +62,25 @@ That snapshot is the artifact you use.
 3. Find the new snapshot under "Choose an image".
 4. Create a droplet from it.
 5. Wait for the droplet to boot.
-6. You should now see Alby Hub running at:
+6. On your own computer, open an SSH tunnel using the SSH key configured for the droplet. Replace `<droplet-ip>` with its public IP address:
+
+```bash
+ssh -N -L 8080:127.0.0.1:80 root@<droplet-ip>
+```
+
+7. Keep that command running and open this URL in a browser on the same computer:
 
 ```text
-http://<droplet-ip>
+http://localhost:8080
 ```
+
+Alby Hub is bound to the droplet's loopback interface, not its public IP. SSH access is required for both initial setup and later browser access; no separate setup code is configured by this deployment. The browser connection travels through the encrypted SSH tunnel. Keep the tunnel running while using Alby Hub; press `Ctrl+C` to close it, and run the command again when you return. Alby Hub continues running on the droplet when the tunnel is closed.
+
+### Proposed Marketplace Getting Started Copy
+
+Before publishing a snapshot with this configuration, update the Marketplace Getting Started instructions to match:
+
+> Create your Alby Hub droplet with an SSH key. On your computer, run `ssh -N -L 8080:127.0.0.1:80 root@<droplet-ip>`, replacing `<droplet-ip>` with your droplet's public IP address. Keep the tunnel running and open `http://localhost:8080` in your browser to set up or access Alby Hub. Public HTTP/HTTPS access is not enabled. SSH access is required; no separate setup code is configured. To reconnect later, run the same tunnel command.
 
 ## Updating
 
