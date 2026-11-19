@@ -1,6 +1,6 @@
 #!/bin/sh
 
-sed -e 's|DEFAULT_FORWARD_POLICY=.*|DEFAULT_FORWARD_POLICY="ACCEPT"|g' \
+sed -e 's|DEFAULT_FORWARD_POLICY=.*|DEFAULT_FORWARD_POLICY="DROP"|g' \
     -i /etc/default/ufw
 
 ufw limit ssh

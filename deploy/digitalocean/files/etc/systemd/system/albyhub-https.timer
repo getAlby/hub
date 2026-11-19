@@ -1,0 +1,11 @@
+[Unit]
+Description=Retry Alby Hub HTTPS provisioning and renew short-lived certificates
+
+[Timer]
+OnBootSec=1min
+OnUnitInactiveSec=1h
+RandomizedDelaySec=5min
+Unit=albyhub-https.service
+
+[Install]
+WantedBy=timers.target

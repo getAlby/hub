@@ -2,7 +2,7 @@
 
 set -eu
 
-mkdir -p /opt/albyhub/data
-
-cd /opt/albyhub
-docker compose up -d --quiet-pull
+# Enable only on the customer instance, never during the snapshot build.
+# The timer retries transient metadata/ACME/network failures and runs on reboot.
+systemctl enable --now albyhub-https.timer
+systemctl start --no-block albyhub-https.service

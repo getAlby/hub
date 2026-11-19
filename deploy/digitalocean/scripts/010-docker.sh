@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -eu
+
 mkdir -p /etc/apt/keyrings
 
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc

@@ -1,0 +1,11 @@
+[Unit]
+Description=Alby Hub setup protection and public IPv4 HTTPS
+Wants=network-online.target
+After=network-online.target docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+UMask=0077
+ExecStart=/bin/bash /opt/albyhub/ensure-https.sh
+TimeoutStartSec=10min

@@ -26,6 +26,10 @@ elif [ -n "$(command -v apt-get)" ]; then
   apt-get -y autoclean
 fi
 
+# Never distribute customer setup codes, ACME accounts, or certificate keys.
+rm -f /opt/albyhub/.env /opt/albyhub/.env.new /etc/nginx/conf.d/albyhub-https.conf
+rm -rf /etc/letsencrypt /var/lib/letsencrypt /var/log/letsencrypt
+
 rm -rf /tmp/* /var/tmp/*
 history -c
 cat /dev/null > /root/.bash_history
@@ -47,4 +51,7 @@ The secure erase will complete successfully when you see:${NC}
     dd: writing to '/zerofile': No space left on device\n
 Beginning secure erase now\n"
 
-dd if=/dev/zero of=/zerofile bs=4096 || rm /zerofile
+dd if=/dev/zero of=/zerofile bs=4096 || true
+sync
+rm -f /zerofile
+sync

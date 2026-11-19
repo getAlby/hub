@@ -5,8 +5,9 @@ services:
     volumes:
       - ./data:/data
     ports:
-      - "80:8080"
+      - "127.0.0.1:8080:8080"
     environment:
       WORK_DIR: /data/albyhub
+      SETUP_CODE: ${SETUP_CODE:?First-boot setup code is required}
     restart: unless-stopped
     stop_grace_period: 300s
