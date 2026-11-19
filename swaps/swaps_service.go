@@ -623,13 +623,8 @@ func (svc *swapsService) SwapIn(amountSat uint64, autoSwap bool, internalPayment
 	logger.Logger.WithField("swapId", swap.Id).Info("Swap created")
 
 	if internalPayment {
-		// TODO: save the returned transaction ID to the swap (https://github.com/getAlby/hub/issues/2720)
-		_, err = svc.lnClient.RedeemOnchainFunds(svc.ctx, swap.Address, swap.ExpectedAmount, feeRate, false)
+		err = svc.fundInternalSwapIn(&dbSwap, swap.Address, swap.ExpectedAmount, feeRate)
 		if err != nil {
-			logger.Logger.WithError(err).WithFields(logrus.Fields{
-				"swapId":    swap.Id,
-				"amountSat": swap.ExpectedAmount,
-			}).Error("Failed to fund internal swap in")
 			return nil, err
 		}
 	}
@@ -640,6 +635,31 @@ func (svc *swapsService) SwapIn(amountSat uint64, autoSwap bool, internalPayment
 		SwapId:      swap.Id,
 		PaymentHash: invoice.PaymentHash,
 	}, nil
+}
+
+// fundInternalSwapIn pays a swap in from the hub's on-chain balance and saves
+// the ID of the deposit transaction to the swap.
+func (svc *swapsService) fundInternalSwapIn(dbSwap *db.Swap, address string, amountSat uint64, feeRate *uint64) error {
+	depositTxId, err := svc.lnClient.RedeemOnchainFunds(svc.ctx, address, amountSat, feeRate, false)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"swapId":    dbSwap.SwapId,
+			"amountSat": amountSat,
+		}).Error("Failed to fund internal swap in")
+		return err
+	}
+
+	// the deposit is already sent, so the swap must continue even if the
+	// transaction ID cannot be saved
+	err = svc.db.Model(dbSwap).Update("deposit_tx_id", depositTxId).Error
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"swapId":      dbSwap.SwapId,
+			"depositTxId": depositTxId,
+		}).Error("Failed to save deposit transaction ID to swap")
+	}
+
+	return nil
 }
 
 // verifySwapIn checks that the swap's lockup address commits to our refund key
