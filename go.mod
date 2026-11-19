@@ -13,20 +13,20 @@ require (
 	github.com/btcsuite/btcd/btcutil v1.2.0
 	github.com/elnosh/gonuts v0.4.2
 	github.com/getAlby/go-nostr v0.0.0-20261110062342-5d9af3cfa9c8
-	github.com/getAlby/ldk-node-go v0.0.0-20261111074958-0ea158f0c7f4
+	github.com/getAlby/ldk-node-go v0.0.0-20261118164854-d98e7ace35be
 	github.com/go-gormigrate/gormigrate/v2 v2.1.7
 	github.com/google/uuid v1.6.0
 	github.com/labstack/echo/v4 v4.16.3
-	github.com/mattn/go-sqlite3 v1.14.52
+	github.com/mattn/go-sqlite3 v1.14.53
 	github.com/nbd-wtf/ln-decodepay v1.13.0
 	github.com/orandin/lumberjackrus v1.0.1
 	github.com/peterldowns/pgtestdb v0.1.1
 	github.com/stretchr/testify v1.12.1
 	github.com/tyler-smith/go-bip39 v1.1.0
 	github.com/wailsapp/wails/v2 v2.17.1
-	gitlab.com/ark-bitcoin/bark-ffi-bindings/golang v0.26.1
+	gitlab.com/ark-bitcoin/bark-ffi-bindings/golang v0.27.0
 	golang.org/x/crypto v0.58.0
-	golang.org/x/oauth2 v0.37.0
+	golang.org/x/oauth2 v0.38.0
 	google.golang.org/grpc v1.83.1
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/macaroon.v2 v2.1.0

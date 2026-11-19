@@ -497,8 +497,8 @@ func (bs *BarkService) MakeInvoice(ctx context.Context, amountMsat int64, descri
 		desc = &description
 	}
 
-	// The nil argument is an optional anti-DoS token, which we don't use.
-	invoice, err := bs.wallet.Bolt11Invoice(uint64(amountMsat/1000), desc, nil)
+	// The nil arguments are an optional anti-DoS token and an optional expiry, which we don't use.
+	invoice, err := bs.wallet.Bolt11Invoice(uint64(amountMsat/1000), desc, nil, nil)
 	if err != nil {
 		return nil, fmt.Errorf("bark Bolt11Invoice failed: %w", err)
 	}
