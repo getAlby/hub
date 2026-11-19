@@ -124,7 +124,7 @@ func TestListApps_NameFilter(t *testing.T) {
 	require.NoError(t, err)
 	defer testSvc.Remove()
 
-	for _, name := range []string{"Alby Go", "Damus", "Damus (1)", "100%_app", "100xapp"} {
+	for _, name := range []string{"Alby Go", "Damus", "Damus (1)", "100%_app", "100xapp", `back\slash`} {
 		_, _, err := testSvc.AppsService.CreateApp(name, "", 0, "monthly", nil, []string{constants.GET_INFO_SCOPE}, false, nil)
 		require.NoError(t, err)
 	}
@@ -152,10 +152,6 @@ func TestListApps_NameFilter(t *testing.T) {
 	// LIKE wildcards in user input are matched literally
 	assert.ElementsMatch(t, []string{"100%_app"}, listNames(ListAppsFilters{Name: "%_"}))
 	assert.Empty(t, listNames(ListAppsFilters{Name: "_x"}))
-}
-
-func TestEscapeLikePattern(t *testing.T) {
-	assert.Equal(t, "Alby Go", escapeLikePattern("Alby Go"))
-	assert.Equal(t, `100\%\_app`, escapeLikePattern("100%_app"))
-	assert.Equal(t, `a\\b`, escapeLikePattern(`a\b`))
+	// without escaping, `\s` would match any name containing "s"
+	assert.ElementsMatch(t, []string{`back\slash`}, listNames(ListAppsFilters{Name: `\s`}))
 }

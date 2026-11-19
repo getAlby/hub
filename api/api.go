@@ -536,7 +536,9 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 		if api.db.Dialector.Name() == "postgres" {
 			nameLike = "name ILIKE ? ESCAPE '\\'"
 		}
-		query = query.Where(nameLike, "%"+escapeLikePattern(filters.Name)+"%")
+		// escape LIKE wildcards so the name is matched literally
+		escapedName := strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`).Replace(filters.Name)
+		query = query.Where(nameLike, "%"+escapedName+"%")
 	}
 
 	if filters.AppStoreAppId != "" {
@@ -699,14 +701,6 @@ func resolveAppOrderBy(orderBy string) string {
 	default:
 		return "last_used_at IS NULL, last_used_at DESC"
 	}
-}
-
-var likePatternEscaper = strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`)
-
-// escapeLikePattern escapes LIKE wildcards so user input is matched literally
-// (used together with ESCAPE '\')
-func escapeLikePattern(value string) string {
-	return likePatternEscaper.Replace(value)
 }
 
 func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
