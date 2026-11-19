@@ -118,3 +118,40 @@ func TestDeleteApp_NonStringLightningAddress(t *testing.T) {
 	require.NoError(t, theAPI.DeleteApp(app))
 	assert.Nil(t, testSvc.AppsService.GetAppById(app.ID))
 }
+
+func TestListApps_NameFilter(t *testing.T) {
+	testSvc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer testSvc.Remove()
+
+	for _, name := range []string{"Alby Go", "Damus", "Damus (1)", "100%_app", "100xapp", `back\slash`} {
+		_, _, err := testSvc.AppsService.CreateApp(name, "", 0, "monthly", nil, []string{constants.GET_INFO_SCOPE}, false, nil)
+		require.NoError(t, err)
+	}
+
+	theAPI := &api{db: testSvc.DB, keys: testSvc.Keys}
+
+	listNames := func(filters ListAppsFilters) []string {
+		response, err := theAPI.ListApps(0, 0, filters, "")
+		require.NoError(t, err)
+		names := []string{}
+		for _, app := range response.Apps {
+			names = append(names, app.Name)
+		}
+		return names
+	}
+
+	// name matches anywhere in the name, case-insensitively
+	assert.ElementsMatch(t, []string{"Damus", "Damus (1)"}, listNames(ListAppsFilters{Name: "Damus"}))
+	assert.ElementsMatch(t, []string{"Damus", "Damus (1)"}, listNames(ListAppsFilters{Name: "damus"}))
+	assert.ElementsMatch(t, []string{"Alby Go"}, listNames(ListAppsFilters{Name: "lby"}))
+	assert.ElementsMatch(t, []string{"Alby Go"}, listNames(ListAppsFilters{Name: "GO"}))
+	assert.ElementsMatch(t, []string{"Damus", "Damus (1)"}, listNames(ListAppsFilters{Name: "amu"}))
+	assert.Empty(t, listNames(ListAppsFilters{Name: "xyz"}))
+
+	// LIKE wildcards in user input are matched literally
+	assert.ElementsMatch(t, []string{"100%_app"}, listNames(ListAppsFilters{Name: "%_"}))
+	assert.Empty(t, listNames(ListAppsFilters{Name: "_x"}))
+	// without escaping, `\s` would match any name containing "s"
+	assert.ElementsMatch(t, []string{`back\slash`}, listNames(ListAppsFilters{Name: `\s`}))
+}

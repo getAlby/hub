@@ -530,13 +530,15 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 	query := api.db
 
 	if filters.Name != "" {
-		// searching for "Damus" will return "Damus" and "Damus (1)"
-		// Use case-insensitive search for both SQLite and PostgreSQL
+		// match anywhere in the name, case-insensitively: searching for "lby"
+		// will return "Alby Go", and "Damus" will return "Damus" and "Damus (1)"
+		nameLike := "name LIKE ? ESCAPE '\\'"
 		if api.db.Dialector.Name() == "postgres" {
-			query = query.Where("name ILIKE ?", filters.Name+"%")
-		} else {
-			query = query.Where("name LIKE ?", filters.Name+"%")
+			nameLike = "name ILIKE ? ESCAPE '\\'"
 		}
+		// escape LIKE wildcards so the name is matched literally
+		escapedName := strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`).Replace(filters.Name)
+		query = query.Where(nameLike, "%"+escapedName+"%")
 	}
 
 	if filters.AppStoreAppId != "" {
