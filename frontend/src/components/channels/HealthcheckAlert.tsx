@@ -40,6 +40,8 @@ export function HealthCheckAlert() {
           );
         case "vss_no_subscription":
           return "Your lightning channel data is stored encrypted by Alby's Versioned Storage Service which is a paid feature. Restart your subscription or send your funds to another wallet as soon as possible.";
+        case "chain_sync_stale":
+          return "Your node could not sync with its chain source recently. On-chain balances may be outdated and on-chain transactions may not be broadcast. Check your network connection and chain source.";
       }
     } catch (error) {
       console.error("failed to parse alarm details", alarm.kind, error);
