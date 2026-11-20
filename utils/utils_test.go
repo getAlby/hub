@@ -49,6 +49,24 @@ func TestParseCommandLine(t *testing.T) {
 			expectedError:   "",
 		},
 		{
+			name:            "explicitly empty quoted argument",
+			input:           `""`,
+			expectedSuccess: []string{""},
+			expectedError:   "",
+		},
+		{
+			name:            "empty quoted argument between other arguments",
+			input:           `arg1 "" arg3`,
+			expectedSuccess: []string{"arg1", "", "arg3"},
+			expectedError:   "",
+		},
+		{
+			name:            "empty quoted flag value",
+			input:           `cmd --name "" --other=value`,
+			expectedSuccess: []string{"cmd", "--name", "", "--other=value"},
+			expectedError:   "",
+		},
+		{
 			name:            "unquoted escaped whitespace",
 			input:           `arg\ 1 arg2`,
 			expectedSuccess: []string{"arg 1", "arg2"},
