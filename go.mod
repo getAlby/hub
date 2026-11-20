@@ -55,7 +55,7 @@ require (
 	github.com/btcsuite/btcd/wire/v2 v2.0.0 // indirect
 	github.com/btcsuite/btclog v1.0.0 // indirect
 	github.com/btcsuite/btclog/v2 v2.0.1-0.20250728225537-6090e87c6c5b // indirect
-	github.com/btcsuite/btcwallet v0.16.20-0.20261020152346-4423f4716968 // indirect
+	github.com/btcsuite/btcwallet v0.16.20-0.20261108131155-245ce39ba343 // indirect
 	github.com/btcsuite/btcwallet/wallet/txauthor v1.3.5 // indirect
 	github.com/btcsuite/btcwallet/wallet/txrules v1.2.2 // indirect
 	github.com/btcsuite/btcwallet/wallet/txsizes v1.2.5 // indirect
@@ -258,7 +258,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/labstack/echo-jwt/v4 v4.4.0
-	github.com/lightningnetwork/lnd v0.21.6-beta
+	github.com/lightningnetwork/lnd v0.21.8-beta
 	github.com/sirupsen/logrus v1.10.2
 	github.com/tyler-smith/go-bip32 v1.0.0
 	golang.org/x/exp v0.0.0-20250811191247-51f88131bc50 // indirect
