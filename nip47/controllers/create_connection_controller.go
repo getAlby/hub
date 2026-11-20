@@ -53,6 +53,19 @@ func (controller *nip47Controller) HandleCreateConnectionEvent(ctx context.Conte
 		expiresAt = &expiresAtValue
 	}
 
+	// max_amount is in msats but budgets are stored in sats, and a budget of 0
+	// means no limit, so don't let a sub-sat max_amount turn into an unlimited budget
+	if params.MaxAmount > 0 && params.MaxAmount < 1000 {
+		publishResponse(&models.Response{
+			ResultType: nip47Request.Method,
+			Error: &models.Error{
+				Code:    constants.ERROR_BAD_REQUEST,
+				Message: "max_amount must be at least 1000 msats",
+			},
+		}, nostr.Tags{})
+		return
+	}
+
 	maxAmountSat := params.MaxAmount / 1000
 
 	if params.Name == alby.ALBY_ACCOUNT_APP_NAME {
