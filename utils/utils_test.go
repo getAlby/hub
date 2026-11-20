@@ -1,10 +1,48 @@
 package utils
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
+
+func TestReadFileTail(t *testing.T) {
+	t.Parallel()
+
+	path := filepath.Join(t.TempDir(), "log.txt")
+	require.NoError(t, os.WriteFile(path, []byte("0123456789"), 0o600))
+
+	t.Run("full file", func(t *testing.T) {
+		data, err := ReadFileTail(path, 0)
+		require.NoError(t, err)
+		assert.Equal(t, []byte("0123456789"), data)
+	})
+
+	t.Run("tail", func(t *testing.T) {
+		data, err := ReadFileTail(path, 4)
+		require.NoError(t, err)
+		assert.Equal(t, []byte("6789"), data)
+	})
+
+	t.Run("maxLen larger than file", func(t *testing.T) {
+		data, err := ReadFileTail(path, 100)
+		require.NoError(t, err)
+		assert.Equal(t, []byte("0123456789"), data)
+	})
+}
+
+func TestReadFileTailPropagatesReadError(t *testing.T) {
+	t.Parallel()
+
+	// Reading a directory fails. The deferred file close must not overwrite
+	// that error with a nil close result.
+	data, err := ReadFileTail(t.TempDir(), 0)
+	assert.Error(t, err)
+	assert.Empty(t, data)
+}
 
 func TestParseCommandLine(t *testing.T) {
 	t.Parallel()
