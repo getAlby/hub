@@ -198,3 +198,34 @@ func TestInit_ExistingNostrKeyIsKept(t *testing.T) {
 	assert.Equal(t, stored, got)
 	assert.NotEqual(t, "7f7ff03d123792d6ac594bfa67bf6d0c0ab55b6b1fdb6249303fe861f1ccba9a", got)
 }
+
+func TestInit_FreshNostrKeyUsesNIP06(t *testing.T) {
+	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
+	gormDb, err := db.NewDB(t)
+	require.NoError(t, err)
+	defer db.CloseDB(gormDb)
+
+	unlockPassword := "123"
+	mnemonic := "leader monkey parrot ring guide accident before fence cannon height naive bean"
+	wantSecret := "7f7ff03d123792d6ac594bfa67bf6d0c0ab55b6b1fdb6249303fe861f1ccba9a"
+	wantPublic, err := nostr.GetPublicKey(wantSecret)
+	require.NoError(t, err)
+
+	cfg, err := config.NewConfig(&config.AppConfig{}, gormDb)
+	require.NoError(t, err)
+	require.NoError(t, cfg.SetUpdate("Mnemonic", mnemonic, unlockPassword))
+
+	keys := NewKeys()
+	require.NoError(t, keys.Init(cfg, unlockPassword))
+
+	stored, err := cfg.Get("NostrSecretKey", unlockPassword)
+	require.NoError(t, err)
+	assert.Equal(t, wantSecret, stored)
+	assert.Equal(t, wantSecret, keys.GetNostrSecretKey())
+	assert.Equal(t, wantPublic, keys.GetNostrPublicKey())
+
+	again := NewKeys()
+	require.NoError(t, again.Init(cfg, unlockPassword))
+	assert.Equal(t, wantSecret, again.GetNostrSecretKey())
+	assert.Equal(t, wantPublic, again.GetNostrPublicKey())
+}

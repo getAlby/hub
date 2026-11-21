@@ -1561,7 +1561,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 				GetMintUrl() string
 			}
 			if cashuService, ok := lnClient.(mintUrlProvider); ok {
-				info.CashuMintUrl = cashuService.GetMintUrl()
+				info.CashuMintUrl = publicMintUrl(cashuService.GetMintUrl())
 			}
 		}
 	}
@@ -1571,6 +1571,16 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.NodeAlias, _ = api.cfg.Get("NodeAlias", "")
 
 	return &info, nil
+}
+
+// publicMintUrl drops any username or password. /api/info is not authenticated.
+func publicMintUrl(raw string) string {
+	parsed, err := url.Parse(raw)
+	if err != nil {
+		return ""
+	}
+	parsed.User = nil
+	return parsed.String()
 }
 
 func (api *api) GetJitChannelsInfo() (*JitChannelsInfoResponse, error) {
