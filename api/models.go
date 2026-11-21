@@ -341,6 +341,7 @@ type InfoResponse struct {
 	Relays                      []InfoResponseRelay `json:"relays"`
 	NodeAlias                   string              `json:"nodeAlias"`
 	MempoolUrl                  string              `json:"mempoolUrl"`
+	CashuMintUrl                string              `json:"cashuMintUrl,omitempty"`
 	ChainDataSourceType         string              `json:"chainDataSourceType,omitempty"`
 	ChainDataSourceAddress      string              `json:"chainDataSourceAddress,omitempty"`
 	JitChannelsLiquiditySource  string              `json:"jitChannelsLiquiditySource,omitempty"`

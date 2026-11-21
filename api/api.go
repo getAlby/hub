@@ -1556,6 +1556,14 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 				info.JitChannelsLiquiditySource = ldkService.GetLiquiditySourceLsps2()
 			}
 		}
+		if backendType == config.CashuBackendType {
+			type mintUrlProvider interface {
+				GetMintUrl() string
+			}
+			if cashuService, ok := lnClient.(mintUrlProvider); ok {
+				info.CashuMintUrl = publicMintUrl(cashuService.GetMintUrl())
+			}
+		}
 	}
 
 	info.NextBackupReminder, _ = api.cfg.Get("NextBackupReminder", "")
@@ -1563,6 +1571,16 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.NodeAlias, _ = api.cfg.Get("NodeAlias", "")
 
 	return &info, nil
+}
+
+// publicMintUrl drops any username or password. /api/info is not authenticated.
+func publicMintUrl(raw string) string {
+	parsed, err := url.Parse(raw)
+	if err != nil {
+		return ""
+	}
+	parsed.User = nil
+	return parsed.String()
 }
 
 func (api *api) GetJitChannelsInfo() (*JitChannelsInfoResponse, error) {

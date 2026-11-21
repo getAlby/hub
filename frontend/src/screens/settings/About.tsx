@@ -70,6 +70,18 @@ export function About() {
             <p>{backendTypeConfigs[info.backendType].title}</p>
           </div>
         </div>
+        {info.backendType === "CASHU" && info.cashuMintUrl && (
+          <div className="grid gap-2">
+            <p className="font-medium text-sm">Cashu Mint</p>
+            <ExternalLink
+              to={info.cashuMintUrl}
+              className="inline-flex items-center gap-1 underline w-fit text-muted-foreground text-sm break-all"
+            >
+              {info.cashuMintUrl}
+              <ExternalLinkIcon className="size-4" />
+            </ExternalLink>
+          </div>
+        )}
         {info.databaseType && (
           <div className="grid gap-2">
             <p className="font-medium text-sm">Database Storage</p>
@@ -101,16 +113,18 @@ export function About() {
             </div>
           </div>
         )}
-        <div className="grid gap-2">
-          <p className="font-medium text-sm">Mempool Data Source</p>
-          <ExternalLink
-            to={info.mempoolUrl}
-            className="inline-flex items-center gap-1 underline w-fit text-muted-foreground text-sm break-all"
-          >
-            {info.mempoolUrl}
-            <ExternalLinkIcon className="size-4" />
-          </ExternalLink>
-        </div>
+        {info.backendType !== "CASHU" && (
+          <div className="grid gap-2">
+            <p className="font-medium text-sm">Mempool Data Source</p>
+            <ExternalLink
+              to={info.mempoolUrl}
+              className="inline-flex items-center gap-1 underline w-fit text-muted-foreground text-sm break-all"
+            >
+              {info.mempoolUrl}
+              <ExternalLinkIcon className="size-4" />
+            </ExternalLink>
+          </div>
+        )}
         {info.swapApiUrl && (
           <div className="grid gap-2">
             <p className="font-medium text-sm">Swap Provider</p>

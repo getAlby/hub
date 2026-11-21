@@ -45,29 +45,34 @@ func NewKeys() *keys {
 	return &keys{}
 }
 
-func (keys *keys) Init(cfg config.Config, encryptionKey string) error {
-	nostrSecretKey, err := cfg.Get("NostrSecretKey", encryptionKey)
+// deriveNostrKeyFromMnemonic derives the nostr identity via NIP-06:
+// m/44'/1237'/0'/0/0. The first three children are hardened. The last two
+// are not, matching the nostr-tools derivation.
+func deriveNostrKeyFromMnemonic(mnemonic string) (string, error) {
+	master, err := bip32.NewMasterKey(bip39.NewSeed(mnemonic, ""))
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to decrypt nostr secret key")
-		return err
+		return "", err
 	}
-
-	if nostrSecretKey == "" {
-		nostrSecretKey = nostr.GeneratePrivateKey()
-		err = cfg.SetUpdate("NostrSecretKey", nostrSecretKey, encryptionKey)
+	path := []uint32{
+		bip32.FirstHardenedChild + 44,
+		bip32.FirstHardenedChild + 1237,
+		bip32.FirstHardenedChild + 0,
+		0,
+		0,
+	}
+	key := master
+	for _, index := range path {
+		key, err = key.NewChildKey(index)
 		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to save generated nostr secret key")
-			return err
+			return "", err
 		}
 	}
-	nostrPublicKey, err := nostr.GetPublicKey(nostrSecretKey)
-	if err != nil {
-		logger.Logger.WithError(err).Error("Error converting nostr privkey to pubkey")
-		return err
-	}
-	keys.nostrSecretKey = nostrSecretKey
-	keys.nostrPublicKey = nostrPublicKey
+	return hex.EncodeToString(key.Key), nil
+}
 
+func (keys *keys) Init(cfg config.Config, encryptionKey string) error {
+	// The mnemonic must exist before the identity decision. On a fresh setup
+	// the nostr identity is derived from it, so one phrase restores both.
 	mnemonic, err := cfg.Get("Mnemonic", encryptionKey)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to decrypt mnemonic")
@@ -92,6 +97,33 @@ func (keys *keys) Init(cfg config.Config, encryptionKey string) error {
 			return err
 		}
 	}
+
+	nostrSecretKey, err := cfg.Get("NostrSecretKey", encryptionKey)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to decrypt nostr secret key")
+		return err
+	}
+
+	if nostrSecretKey == "" {
+		// Fresh setup only. An existing hub keeps the key it already stored.
+		nostrSecretKey, err = deriveNostrKeyFromMnemonic(mnemonic)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to derive nostr secret key from mnemonic")
+			return err
+		}
+		err = cfg.SetUpdate("NostrSecretKey", nostrSecretKey, encryptionKey)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to save derived nostr secret key")
+			return err
+		}
+	}
+	nostrPublicKey, err := nostr.GetPublicKey(nostrSecretKey)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Error converting nostr privkey to pubkey")
+		return err
+	}
+	keys.nostrSecretKey = nostrSecretKey
+	keys.nostrPublicKey = nostrPublicKey
 
 	masterKey, err := bip32.NewMasterKey(bip39.NewSeed(mnemonic, ""))
 	if err != nil {
