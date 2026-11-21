@@ -1556,6 +1556,14 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 				info.JitChannelsLiquiditySource = ldkService.GetLiquiditySourceLsps2()
 			}
 		}
+		if backendType == config.CashuBackendType {
+			type mintUrlProvider interface {
+				GetMintUrl() string
+			}
+			if cashuService, ok := lnClient.(mintUrlProvider); ok {
+				info.CashuMintUrl = cashuService.GetMintUrl()
+			}
+		}
 	}
 
 	info.NextBackupReminder, _ = api.cfg.Get("NextBackupReminder", "")

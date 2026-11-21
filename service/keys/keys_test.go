@@ -174,3 +174,27 @@ func TestGenerateSwapMnemonic(t *testing.T) {
 	expectedSwapMnemonic := "truth cargo pluck prefer mosquito symptom review kitchen exile fit corn vault"
 	assert.Equal(t, expectedSwapMnemonic, swapMnemonic)
 }
+
+func TestInit_ExistingNostrKeyIsKept(t *testing.T) {
+	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
+	gormDb, err := db.NewDB(t)
+	require.NoError(t, err)
+	defer db.CloseDB(gormDb)
+
+	unlockPassword := "123"
+	mnemonic := "leader monkey parrot ring guide accident before fence cannon height naive bean"
+	stored := nostr.GeneratePrivateKey()
+
+	cfg, err := config.NewConfig(&config.AppConfig{}, gormDb)
+	require.NoError(t, err)
+	require.NoError(t, cfg.SetUpdate("Mnemonic", mnemonic, unlockPassword))
+	require.NoError(t, cfg.SetUpdate("NostrSecretKey", stored, unlockPassword))
+
+	keys := NewKeys()
+	require.NoError(t, keys.Init(cfg, unlockPassword))
+
+	got, err := cfg.Get("NostrSecretKey", unlockPassword)
+	require.NoError(t, err)
+	assert.Equal(t, stored, got)
+	assert.NotEqual(t, "7f7ff03d123792d6ac594bfa67bf6d0c0ab55b6b1fdb6249303fe861f1ccba9a", got)
+}

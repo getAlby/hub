@@ -216,6 +216,15 @@ func (cfg *config) GetNetwork() string {
 
 func (cfg *config) GetMempoolUrl() string {
 	mempoolApiUrl := cfg.GetEnv().MempoolApi
+	// A default mainnet explorer is wrong for signet and testnet.
+	if mempoolApiUrl == "https://mempool.space/api" {
+		switch cfg.GetNetwork() {
+		case "signet":
+			return "https://mutinynet.com"
+		case "testnet":
+			return "https://mempool.space/testnet"
+		}
+	}
 	return strings.TrimSuffix(mempoolApiUrl, "/api")
 }
 
