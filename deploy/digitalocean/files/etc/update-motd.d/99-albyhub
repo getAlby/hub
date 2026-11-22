@@ -1,0 +1,27 @@
+#!/bin/sh
+# First-login motd for Alby Hub droplets.
+
+PUBLIC_IP=$(curl -s --max-time 2 http://169.254.169.254/metadata/v1/interfaces/public/0/ipv4/address || echo "<your-droplet-ip>")
+DOMAIN=$(grep -s '^DOMAIN=' /etc/albyhub/hub.env | cut -d= -f2-)
+
+cat <<EOF
+
+ ✨ Alby Hub is installed on this droplet.
+
+  Status:      systemctl status albyhub
+  Logs:        journalctl -u albyhub -f
+  Data:        /opt/albyhub/data   (BACK THIS UP — holds your seed and channel state)
+  Config:      /etc/albyhub/hub.env
+
+EOF
+
+if [ -n "$DOMAIN" ]; then
+  echo "  Open Alby Hub:  https://$DOMAIN"
+else
+  echo "  Open Alby Hub:  http://$PUBLIC_IP:8080"
+  echo ""
+  echo "  To enable TLS, set DOMAIN in /etc/albyhub/hub.env, point your DNS at"
+  echo "  $PUBLIC_IP, then run:  systemctl restart caddy albyhub"
+fi
+
+echo ""
