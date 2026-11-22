@@ -5,6 +5,7 @@ import albyExtension from "src/assets/suggested-apps/alby-extension.png";
 import albyGo from "src/assets/suggested-apps/alby-go.png";
 import albySandbox from "src/assets/suggested-apps/alby-sandbox.png";
 import albyCli from "src/assets/suggested-apps/alby.png";
+import ambrosia from "src/assets/suggested-apps/ambrosia.png";
 import amethyst from "src/assets/suggested-apps/amethyst.png";
 import bitcoinCardTopup from "src/assets/suggested-apps/bitcoin-card-topup.png";
 import bitrefill from "src/assets/suggested-apps/bitrefill.png";
@@ -193,6 +194,64 @@ export const appStoreApps: AppStoreApp[] = (
       categories: ["merchant-tools"],
       webLink: "https://pos.albylabs.com",
       addedDate: "2024-09-03",
+    },
+    {
+      id: "ambrosia",
+      title: "Ambrosia",
+      description: "The Self-sovereign Point of Sale",
+      webLink: "https://ambrosiapay.com",
+      logo: ambrosia,
+      extendedDescription:
+        "Local-first, subscription-free POS system for merchants. Accept Lightning payments via NWC, manage tables, orders, inventory with recipes, and control user permissions (admin, supervisor, waiter).",
+      categories: ["merchant-tools"],
+      readonly: true,
+      addedDate: "2026-11-22",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Visit{" "}
+            <ExternalLink
+              to="https://ambrosiapay.com"
+              className="font-medium text-foreground underline"
+            >
+              ambrosiapay.com
+            </ExternalLink>{" "}
+            to download and self-host Ambrosia PoS
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">Connect Ambrosia to Alby Hub</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                In Ambrosia setup, you'll see the{" "}
+                <span className="font-medium text-foreground">
+                  Lightning Backend
+                </span>{" "}
+                step
+              </li>
+              <li>
+                Click on{" "}
+                <span className="font-medium text-foreground">
+                  Nostr Wallet Connect
+                </span>{" "}
+                to select it as your backend
+              </li>
+              <li>
+                Paste your Alby Hub connection secret in the{" "}
+                <span className="font-medium text-foreground">NWC URI</span>{" "}
+                field
+              </li>
+              <li>
+                Click <span className="font-medium text-foreground">Next</span>{" "}
+                to complete the setup and start accepting Lightning payments
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
     },
     {
       id: "castamatic",
