@@ -204,7 +204,6 @@ export const appStoreApps: AppStoreApp[] = (
       extendedDescription:
         "Local-first, subscription-free POS system for merchants. Accept Lightning payments via NWC, manage tables, orders, inventory with recipes, and control user permissions (admin, supervisor, waiter).",
       categories: ["merchant-tools"],
-      readonly: true,
       addedDate: "2026-11-22",
       installGuide: (
         <>
@@ -247,6 +246,12 @@ export const appStoreApps: AppStoreApp[] = (
               <li>
                 Click <span className="font-medium text-foreground">Next</span>{" "}
                 to complete the setup and start accepting Lightning payments
+              </li>
+              <li>
+                Ambrosia sends payments for refunds, so it is recommended to
+                create the connection as an{" "}
+                <span className="font-medium text-foreground">Isolated</span>{" "}
+                app and allocate only the funds you want it to be able to spend
               </li>
             </ul>
           </div>
