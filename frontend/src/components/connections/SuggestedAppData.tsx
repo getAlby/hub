@@ -217,6 +217,12 @@ export const appStoreApps: AppStoreApp[] = (
             </ExternalLink>{" "}
             to download and self-host Ambrosia PoS
           </p>
+          <p className="text-muted-foreground">
+            Ambrosia sends payments for refunds, so create the connection as an{" "}
+            <span className="font-medium text-foreground">Isolated</span> app.
+            It can then only spend the funds you allocate to it plus the
+            payments it receives
+          </p>
         </>
       ),
       finalizeGuide: (
@@ -246,12 +252,6 @@ export const appStoreApps: AppStoreApp[] = (
               <li>
                 Click <span className="font-medium text-foreground">Next</span>{" "}
                 to complete the setup and start accepting Lightning payments
-              </li>
-              <li>
-                Ambrosia sends payments for refunds, so it is recommended to
-                create the connection as an{" "}
-                <span className="font-medium text-foreground">Isolated</span>{" "}
-                app and allocate only the funds you want it to be able to spend
               </li>
             </ul>
           </div>
