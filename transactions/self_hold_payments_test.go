@@ -16,6 +16,21 @@ import (
 	"github.com/getAlby/hub/tests"
 )
 
+// waitForHoldInvoiceAccepted blocks until the self payment running in another
+// goroutine has marked the hold invoice as accepted.
+func waitForHoldInvoiceAccepted(t *testing.T, svc *tests.TestService, paymentHash string) {
+	t.Helper()
+	require.Eventually(t, func() bool {
+		var count int64
+		err := svc.DB.Model(&db.Transaction{}).Where(&db.Transaction{
+			Type:        constants.TRANSACTION_TYPE_INCOMING,
+			State:       constants.TRANSACTION_STATE_ACCEPTED,
+			PaymentHash: paymentHash,
+		}).Count(&count).Error
+		return err == nil && count == 1
+	}, 10*time.Second, 5*time.Millisecond, "hold invoice was not accepted")
+}
+
 func TestSelfHoldPaymentSettled(t *testing.T) {
 	ctx := context.TODO()
 
@@ -48,8 +63,7 @@ func TestSelfHoldPaymentSettled(t *testing.T) {
 		assert.Equal(t, false, result.Hold)
 	}()
 
-	// wait for payment to be accepted
-	time.Sleep(10 * time.Millisecond)
+	waitForHoldInvoiceAccepted(t, svc, paymentHash)
 	settledTransaction, err := transactionsService.SettleHoldInvoice(ctx, preimage, svc.LNClient, app.ID)
 	assert.NoError(t, err)
 	require.NotNil(t, settledTransaction)
@@ -94,8 +108,7 @@ func TestSelfHoldPaymentCanceled(t *testing.T) {
 		assert.Equal(t, false, failedOutgoingTransaction.Hold)
 	}()
 
-	// wait for payment to be accepted
-	time.Sleep(10 * time.Millisecond)
+	waitForHoldInvoiceAccepted(t, svc, paymentHash)
 	err = transactionsService.CancelHoldInvoice(ctx, paymentHash, svc.LNClient, app.ID)
 	assert.NoError(t, err)
 
@@ -134,8 +147,7 @@ func TestSelfHoldPaymentCanceledBeforeSettleCommits(t *testing.T) {
 		_, _ = transactionsService.SendPaymentSync(transaction.PaymentRequest, nil, nil, svc.LNClient, nil, nil)
 	}()
 
-	// wait for payment to be accepted
-	time.Sleep(10 * time.Millisecond)
+	waitForHoldInvoiceAccepted(t, svc, paymentHash)
 
 	// settle reads the invoice while it is still accepted...
 	var acceptedTransaction db.Transaction
@@ -191,8 +203,7 @@ func TestSelfHoldPaymentCanceledCannotBePaidAgain(t *testing.T) {
 		_, _ = transactionsService.SendPaymentSync(transaction.PaymentRequest, nil, nil, svc.LNClient, nil, nil)
 	}()
 
-	// wait for payment to be accepted
-	time.Sleep(10 * time.Millisecond)
+	waitForHoldInvoiceAccepted(t, svc, paymentHash)
 	err = transactionsService.CancelHoldInvoice(ctx, paymentHash, svc.LNClient, app.ID)
 	require.NoError(t, err)
 	wg.Wait()
@@ -367,9 +378,8 @@ func TestWrappedInvoice(t *testing.T) {
 		assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, result.State)
 	}()
 
-	// TODO: rather than wait, listen for the event
 	// Wait for Alice's payment to be accepted
-	time.Sleep(10 * time.Millisecond)
+	waitForHoldInvoiceAccepted(t, svc, mockBobHoldInvoice.PaymentHash)
 
 	// Bob pays Charlie's invoice to get the preimage
 	result, err := transactionsService.SendPaymentSync(charlieInvoice.PaymentRequest, nil, nil, svc.LNClient, &bobApp.ID, nil)
