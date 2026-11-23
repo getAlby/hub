@@ -27,7 +27,7 @@
     "@getalby/sdk": "^8.1.1",
     "@scure/bip39": "^2.4.0",
     "@stepperize/react": "^6.1.0",
-    "bitcoin-address-validation": "^3.0.0",
+    "bitcoin-address-validation": "^4.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

@@ -3024,7 +3024,7 @@ balanced-match@^4.0.2:
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-4.0.4.tgz#bfb10662feed8196a2c62e7c68e17720c274179a"
   integrity sha512-BLrgEcRTwX2o6gGxGOCNyMvGSp35YofuYzw9h1IMTRmKqttAZZVU67bdb9Pr2vUHA8+j3i2tJfjO6C6+4myGTA==
 
-base58-js@^3.0.2:
+base58-js@^3.0.3:
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/base58-js/-/base58-js-3.0.3.tgz#a753af5e0c484f1c73906e3883baa34805bf0e10"
   integrity sha512-3hf42BysHnUqmZO7mK6e5X/hs1AvyEJIhdVLbG/Mxn/fhFnhGxOO37mWbMHg1RT4TxqcPKXgqj9/bp1YG0GBXA==
@@ -3034,14 +3034,14 @@ bech32@^2.0.0:
   resolved "https://registry.yarnpkg.com/bech32/-/bech32-2.0.0.tgz#078d3686535075c8c79709f054b1b226a133b355"
   integrity sha512-LcknSilhIGatDAsY1ak2I8VtGaHNhgMSYVxFrGLXv+xLHytaKZKcaUJJUE7qmBr7h33o5YQwP55pMI0xmkpJwg==
 
-bitcoin-address-validation@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/bitcoin-address-validation/-/bitcoin-address-validation-3.0.0.tgz#a94ce7c73f9122d6849db992a180dba54227019a"
-  integrity sha512-R1X1c9EdgjgjTpjshjk5e16TbgF7HYasxBcu7l5ScWMxVs53845vMUg5PvnQ/R/3h8Grly6Y52DgH6/77gazLQ==
+bitcoin-address-validation@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/bitcoin-address-validation/-/bitcoin-address-validation-4.0.0.tgz#2d71fd50246e6638d05b94a76c04e747daf94e8f"
+  integrity sha512-NtStXFPBDbWxYTHAQKi4so3Tp514RASX/KvWGRU42yUgClUmdHCfGaPvLcaYT5L5DHgF1REBXwwrhZT83b9sxg==
   dependencies:
-    base58-js "^3.0.2"
+    base58-js "^3.0.3"
     bech32 "^2.0.0"
-    sha256-uint8array "^0.10.3"
+    sha256-uint8array "^0.12.1"
 
 brace-expansion@^1.1.7:
   version "1.1.18"
@@ -5335,10 +5335,10 @@ set-proto@^1.0.0:
     es-errors "^1.3.0"
     es-object-atoms "^1.0.0"
 
-sha256-uint8array@^0.10.3:
-  version "0.10.7"
-  resolved "https://registry.yarnpkg.com/sha256-uint8array/-/sha256-uint8array-0.10.7.tgz#c751fc914f4227b26d996980562065fa4eadcf99"
-  integrity sha512-1Q6JQU4tX9NqsDGodej6pkrUVQVNapLZnvkwIhddH/JqzBZF1fSaxSWNY6sziXBE8aEa2twtGkXUrwzGeZCMpQ==
+sha256-uint8array@^0.12.1:
+  version "0.12.2"
+  resolved "https://registry.yarnpkg.com/sha256-uint8array/-/sha256-uint8array-0.12.2.tgz#55e752002353388f6045489d311112eb480ddd65"
+  integrity sha512-rrJlCT3+PDbiluzB+sMs49ETXCuWW7Uk1LdA7lhr1c+UQaWIGjnDGSqhuHbhcUs7TD6lZVk0Zk1KYanEJDyZFw==
 
 shebang-command@^1.2.0:
   version "1.2.0"
