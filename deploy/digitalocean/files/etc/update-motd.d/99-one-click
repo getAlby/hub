@@ -1,0 +1,39 @@
+#!/bin/sh
+
+myip=$(hostname -I | awk '{print$1}')
+cat <<EOF
+********************************************************************************
+
+Welcome to DigitalOcean's 1-Click Alby Hub Droplet.
+To keep this Droplet secure, the UFW firewall is enabled.
+SSH access is rate-limited. Public HTTP/HTTPS access is not enabled.
+Alby Hub listens only on the Droplet's loopback interface.
+
+Access Alby Hub
+  On your own computer, run:
+    ssh -N -L 8080:127.0.0.1:80 root@${myip}
+  Keep the tunnel running and open http://localhost:8080 in your browser.
+  SSH access is required for setup and later browser access.
+  No separate setup code is configured by this deployment.
+  Press Ctrl+C to close the tunnel; run the command again to reconnect.
+  Alby Hub keeps running on the Droplet when the tunnel is closed.
+
+In a web browser, you can view:
+ * The Alby Hub instance through the tunnel: http://localhost:8080
+ * The Alby Hub GitHub repository for issues/feature requests: https://github.com/getAlby/hub
+
+On the server:
+  * Alby Hub is served from Docker Compose in /opt/albyhub
+  * Alby Hub data is stored in /opt/albyhub/data
+  * The app is started automatically on first boot
+  * To inspect the service, run:
+      cd /opt/albyhub && docker compose ps
+      cd /opt/albyhub && docker compose logs -f
+
+If the app is still starting, refresh http://localhost:8080 after a moment.
+
+For help and more information, visit https://getalby.com
+
+********************************************************************************
+To delete this message of the day: rm -rf $(readlink -f ${0})
+EOF
