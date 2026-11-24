@@ -84,6 +84,7 @@ function AppDetails() {
 
   return (
     <AppInternal
+      key={app.id}
       app={app}
       refetchApp={refetchApp}
       capabilities={capabilities}
@@ -94,7 +95,7 @@ function AppDetails() {
 type AppInternalProps = {
   app: App;
   capabilities: WalletCapabilities;
-  refetchApp: () => void;
+  refetchApp: () => Promise<unknown>;
 };
 
 function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
@@ -114,16 +115,25 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
     setIsEditingPermissions(editMode);
   }, [location.search]);
 
+  const savedPermissions = React.useMemo<AppPermissions>(
+    () => ({
+      scopes: app.scopes,
+      maxAmountSat: app.maxAmountSat,
+      budgetRenewal: app.budgetRenewal,
+      expiresAt: app.expiresAt ? new Date(app.expiresAt) : undefined,
+      isolated: app.isolated,
+    }),
+    [app]
+  );
   const [name, setName] = React.useState(app.name);
-  const [permissions, setPermissions] = React.useState<AppPermissions>({
-    scopes: app.scopes,
-    maxAmountSat: app.maxAmountSat,
-    budgetRenewal: app.budgetRenewal,
-    expiresAt: app.expiresAt ? new Date(app.expiresAt) : undefined,
-    isolated: app.isolated,
-  });
-  const [savedPermissions, setSavedPermissions] =
-    React.useState<AppPermissions>(permissions);
+  const [permissions, setPermissions] = React.useState(savedPermissions);
+
+  React.useEffect(() => {
+    if (!isEditingPermissions) {
+      setName(app.name);
+      setPermissions(savedPermissions);
+    }
+  }, [isEditingPermissions, app.name, savedPermissions]);
 
   const handleSave = async () => {
     try {
@@ -145,9 +155,8 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
         body: JSON.stringify(updateAppRequest),
       });
 
-      refetchApp();
+      await refetchApp();
       setIsEditingPermissions(false);
-      setSavedPermissions(permissions);
       toast("Successfully updated connection");
     } catch (error) {
       handleRequestError("Failed to update connection", error);
