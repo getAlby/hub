@@ -63,23 +63,29 @@ func ParseCommandLine(s string) ([]string, error) {
 	var currentArg strings.Builder
 	inQuotes := false
 	escaped := false
+	argStarted := false
 
 	for _, r := range s {
 		switch {
 		case escaped:
 			currentArg.WriteRune(r)
+			argStarted = true
 			escaped = false
 		case r == '\\':
 			escaped = true
+			argStarted = true
 		case r == '"':
 			inQuotes = !inQuotes
+			argStarted = true
 		case unicode.IsSpace(r) && !inQuotes:
-			if currentArg.Len() > 0 {
+			if argStarted {
 				args = append(args, currentArg.String())
 				currentArg.Reset()
+				argStarted = false
 			}
 		default:
 			currentArg.WriteRune(r)
+			argStarted = true
 		}
 	}
 
@@ -87,7 +93,7 @@ func ParseCommandLine(s string) ([]string, error) {
 		return nil, fmt.Errorf("unexpected end of string")
 	}
 
-	if currentArg.Len() > 0 {
+	if argStarted {
 		args = append(args, currentArg.String())
 	}
 
