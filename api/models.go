@@ -349,6 +349,21 @@ type InfoResponse struct {
 	HideUpdateBanner            bool                `json:"hideUpdateBanner"`
 	SupportsBolt12              bool                `json:"supportsBolt12"`
 	NodeMigrationFileCreated    bool                `json:"nodeMigrationFileCreated"`
+
+	// privateCashuMintUrl is the configured mint URL with userinfo removed.
+	// It is never serialized. IncludeAuthenticatedCashuMintUrl copies it into
+	// CashuMintUrl for authenticated callers (the About page).
+	privateCashuMintUrl string
+}
+
+// IncludeAuthenticatedCashuMintUrl replaces the public origin-only mint URL
+// with the full configured URL (still without userinfo). /api/info is public,
+// so GetInfo leaves CashuMintUrl as an origin until a handler calls this.
+func (info *InfoResponse) IncludeAuthenticatedCashuMintUrl() {
+	if info == nil || info.privateCashuMintUrl == "" {
+		return
+	}
+	info.CashuMintUrl = info.privateCashuMintUrl
 }
 
 type JitChannelsInfoResponse struct {

@@ -732,6 +732,8 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		infoResponse.Unlocked = infoResponse.Running
+		// The desktop app is a local, unlocked session; show the full mint URL.
+		infoResponse.IncludeAuthenticatedCashuMintUrl()
 		res := WailsRequestRouterResponse{Body: *infoResponse, Error: ""}
 		return res
 	case "GET /api/jit-channels/info":

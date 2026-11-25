@@ -240,6 +240,9 @@ func (httpSvc *HttpService) infoHandler(c echo.Context) error {
 			responseBody.Unlocked = err == nil && token != nil && token.Valid
 		}
 	}
+	if responseBody.Unlocked {
+		responseBody.IncludeAuthenticatedCashuMintUrl()
+	}
 
 	return c.JSON(http.StatusOK, responseBody)
 }

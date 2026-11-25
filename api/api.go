@@ -1561,7 +1561,9 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 				GetMintUrl() string
 			}
 			if cashuService, ok := lnClient.(mintUrlProvider); ok {
-				info.CashuMintUrl = publicMintUrl(cashuService.GetMintUrl())
+				mintUrl := cashuService.GetMintUrl()
+				info.CashuMintUrl = publicMintUrl(mintUrl)
+				info.privateCashuMintUrl = authenticatedMintUrl(mintUrl)
 			}
 		}
 	}
@@ -1573,14 +1575,37 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	return &info, nil
 }
 
-// publicMintUrl drops any username or password. /api/info is not authenticated.
+// publicMintUrl returns only the origin (scheme://host[:port]). /api/info is
+// not authenticated, and a mint can put an access token in the path.
 func publicMintUrl(raw string) string {
-	parsed, err := url.Parse(raw)
+	parsed, err := parseAbsoluteURL(raw)
+	if err != nil {
+		return ""
+	}
+	return (&url.URL{Scheme: parsed.Scheme, Host: parsed.Host}).String()
+}
+
+// authenticatedMintUrl strips userinfo but keeps the path and query, so a
+// logged-in user can still open the configured mint from the About page.
+// Gonuts keeps using the original URL for mint access.
+func authenticatedMintUrl(raw string) string {
+	parsed, err := parseAbsoluteURL(raw)
 	if err != nil {
 		return ""
 	}
 	parsed.User = nil
 	return parsed.String()
+}
+
+func parseAbsoluteURL(raw string) (*url.URL, error) {
+	parsed, err := url.Parse(raw)
+	if err != nil {
+		return nil, err
+	}
+	if parsed.Scheme == "" || parsed.Host == "" {
+		return nil, fmt.Errorf("not an absolute URL")
+	}
+	return parsed, nil
 }
 
 func (api *api) GetJitChannelsInfo() (*JitChannelsInfoResponse, error) {
