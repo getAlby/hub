@@ -214,9 +214,53 @@ func (cfg *config) GetNetwork() string {
 	return cfg.GetEnv().Network
 }
 
+// defaultMempoolAPI is the AppConfig MEMPOOL_API default. When a hub is on
+// testnet or signet and this value was left unchanged, fee requests and
+// explorer links would otherwise point at mainnet.
+const defaultMempoolAPI = "https://mempool.space/api"
+
 func (cfg *config) GetMempoolUrl() string {
-	mempoolApiUrl := cfg.GetEnv().MempoolApi
-	return strings.TrimSuffix(mempoolApiUrl, "/api")
+	return strings.TrimSuffix(MempoolApi(cfg.GetEnv()), "/api")
+}
+
+// MempoolApi returns the mempool API base to use for fee and explorer data.
+// An explicit MEMPOOL_API is always kept. The default mainnet URL is replaced
+// when NETWORK is testnet or signet, so RequestMempoolApi and GetMempoolUrl
+// stay on the same network. Signet uses the standard signet explorer unless
+// an existing chain source (esplora, electrum, or LDK gossip) is Mutinynet.
+func MempoolApi(env *AppConfig) string {
+	if env == nil {
+		return ""
+	}
+	if env.MempoolApi != defaultMempoolAPI {
+		return env.MempoolApi
+	}
+	switch env.Network {
+	case "testnet":
+		return "https://mempool.space/testnet/api"
+	case "signet":
+		if usesMutinynet(env) {
+			return "https://mutinynet.com/api"
+		}
+		return "https://mempool.space/signet/api"
+	default:
+		return env.MempoolApi
+	}
+}
+
+func usesMutinynet(env *AppConfig) bool {
+	for _, value := range []string{
+		env.EsploraServer,
+		env.ElectrumServer,
+		env.LDKGossipSource,
+		env.LDKEsploraServer,
+		env.LDKElectrumServer,
+	} {
+		if strings.Contains(strings.ToLower(value), "mutinynet.com") {
+			return true
+		}
+	}
+	return false
 }
 
 func (cfg *config) getEncryptionKeyHash(encryptionKey string) string {

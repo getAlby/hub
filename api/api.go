@@ -1409,7 +1409,7 @@ func toApiPendingBalanceDetails(details []lnclient.PendingBalanceDetails) []Pend
 
 // TODO: remove dependency on this endpoint
 func (api *api) RequestMempoolApi(ctx context.Context, endpoint string) (interface{}, error) {
-	url := api.cfg.GetEnv().MempoolApi + endpoint
+	url := config.MempoolApi(api.cfg.GetEnv()) + endpoint
 
 	client := http.Client{
 		Timeout: time.Second * 10,
