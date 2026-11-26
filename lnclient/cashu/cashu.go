@@ -3,8 +3,11 @@ package cashu
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
+	"sort"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/elnosh/gonuts/cashu/nuts/nut04"
@@ -23,10 +26,33 @@ const nodeCommandRestore = "restore"
 const nodeCommandCheckMnemonic = "checkmnemonic"
 const nodeCommandResetWallet = "reset"
 
+const nodeCommandRecover = "recover"
+
+// how long SendPaymentSync waits for a PENDING melt before giving up
+const meltPendingTimeout = 60 * time.Second
+const meltPendingPollInterval = 2 * time.Second
+
+// how often the background loop claims paid mint quotes and settles
+// in-flight melts
+const reconcileInterval = 30 * time.Second
+const maxMintQuotesPerReconcile = 25
+
 type CashuService struct {
 	wallet               *wallet.Wallet
 	workDir              string
 	hasDifferentMnemonic bool
+
+	// mu serializes every operation that selects proofs or derives
+	// outputs. gonuts is not safe for concurrent use: two requests at once
+	// (UI polling plus a payment, or two lookups) derived the same NUT-13
+	// outputs and the mint rejected the second with "outputs are pending"
+	// or "outputs already signed".
+	mu sync.Mutex
+
+	stopReconcile chan struct{}
+	stopOnce      sync.Once
+	// closed after the startup reconcile finished
+	startupReconciled chan struct{}
 }
 
 func NewCashuService(cfg config.Config, workDir, mnemonic, mintUrl string) (result lnclient.LNClient, err error) {
@@ -64,11 +90,118 @@ func NewCashuService(cfg config.Config, workDir, mnemonic, mintUrl string) (resu
 		cs.hasDifferentMnemonic = true
 	}
 
+	cs.stopReconcile = make(chan struct{})
+	cs.startupReconciled = make(chan struct{})
+	go cs.reconcileLoop()
+
 	return &cs, nil
 }
 
 func (cs *CashuService) Shutdown() error {
+	cs.stopOnce.Do(func() { close(cs.stopReconcile) })
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
 	return cs.wallet.Shutdown()
+}
+
+// reconcileLoop recovers state left by a crash, a timeout or an older build
+// right after startup, then keeps claiming paid invoices so incoming
+// payments are credited even when nothing polls the hub.
+func (cs *CashuService) reconcileLoop() {
+	cs.reconcile()
+	close(cs.startupReconciled)
+	ticker := time.NewTicker(reconcileInterval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-cs.stopReconcile:
+			return
+		case <-ticker.C:
+			cs.reconcile()
+		}
+	}
+}
+
+type reconcileResult struct {
+	MeltQuotesResolved int    `json:"meltQuotesResolved"`
+	MintQuotesClaimed  int    `json:"mintQuotesClaimed"`
+	AmountClaimedSat   uint64 `json:"amountClaimedSat"`
+	PendingBalanceSat  uint64 `json:"pendingBalanceSat"`
+	BalanceSat         uint64 `json:"balanceSat"`
+}
+
+func (cs *CashuService) reconcile() reconcileResult {
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
+
+	var result reconcileResult
+	resolved, err := cs.wallet.ReconcileMeltQuotes()
+	if err != nil {
+		logger.Logger.WithError(err).Warn("cashu: failed to check some in-flight melt quotes")
+	}
+	result.MeltQuotesResolved = resolved
+
+	now := uint64(time.Now().Unix())
+	quotes := cs.wallet.MintQuotesToClaim()
+	// newest first, and a bounded number per pass, so a hub with many open
+	// invoices does not hit the mint's rate limit
+	sort.Slice(quotes, func(i, j int) bool { return quotes[i].CreatedAt > quotes[j].CreatedAt })
+	checked := 0
+	for _, q := range quotes {
+		// the mint refuses to issue an expired quote, even a paid one, so
+		// only active quotes are worth a request
+		if q.QuoteExpiry != 0 && q.QuoteExpiry < now {
+			continue
+		}
+		if checked >= maxMintQuotesPerReconcile {
+			break
+		}
+		checked++
+		minted := cs.claimMintQuote(q.QuoteId)
+		if minted > 0 {
+			result.MintQuotesClaimed++
+			result.AmountClaimedSat += minted
+		}
+	}
+	result.PendingBalanceSat = cs.wallet.PendingBalance()
+	result.BalanceSat = cs.wallet.GetBalance()
+	if result.MeltQuotesResolved > 0 || result.MintQuotesClaimed > 0 {
+		logger.Logger.WithField("result", result).Info("cashu: reconciled wallet state")
+	}
+	return result
+}
+
+// claimMintQuote checks a mint quote and mints its ecash if the invoice is
+// paid but not issued. Callers must hold cs.mu.
+func (cs *CashuService) claimMintQuote(quoteId string) uint64 {
+	quote := cs.wallet.GetMintQuoteById(quoteId)
+	if quote == nil || quote.State == nut04.Issued {
+		return 0
+	}
+	fields := logrus.Fields{"quoteId": quoteId}
+	if bolt11, err := decodepay.Decodepay(quote.PaymentRequest); err == nil {
+		fields["paymentHash"] = bolt11.PaymentHash
+	}
+
+	state, err := cs.wallet.MintQuoteState(quoteId)
+	if err != nil {
+		logger.Logger.WithFields(fields).WithError(err).Warn("failed to check invoice state")
+		return 0
+	}
+	// The previous check skipped quotes stored as PAID. When minting a paid
+	// quote failed once, the quote stayed PAID forever and the payment was
+	// never credited. Retry until the mint says ISSUED.
+	if state.State != nut04.Paid {
+		return 0
+	}
+	amountMinted, err := cs.wallet.MintTokens(quoteId)
+	if err != nil {
+		logger.Logger.WithFields(fields).WithError(err).Warn("failed to mint")
+		return 0
+	}
+	fields["amount"] = amountMinted
+	logger.Logger.WithFields(fields).Info("sats successfully minted")
+	return amountMinted
 }
 
 func (cs *CashuService) SendPaymentSync(invoice string, amountMsat *uint64) (response *lnclient.PayInvoiceResponse, err error) {
@@ -77,26 +210,105 @@ func (cs *CashuService) SendPaymentSync(invoice string, amountMsat *uint64) (res
 		return nil, errors.New("0-amount invoices not supported")
 	}
 
+	paymentRequest, err := decodepay.Decodepay(invoice)
+	if err != nil {
+		return nil, fmt.Errorf("invalid invoice: %w", err)
+	}
+
+	cs.mu.Lock()
+	balanceBefore := cs.wallet.GetBalance()
+
 	meltQuoteResponse, err := cs.wallet.RequestMeltQuote(invoice, cs.wallet.CurrentMint())
 	if err != nil {
+		cs.mu.Unlock()
 		logger.Logger.WithError(err).Error("Failed to request melt quote")
 		return nil, err
 	}
+	quoteId := meltQuoteResponse.Quote
 
-	meltResponse, err := cs.wallet.Melt(meltQuoteResponse.Quote)
-	if err != nil {
+	meltResponse, err := cs.wallet.Melt(quoteId)
+	if err != nil && !errors.Is(err, wallet.ErrMeltOutcomeUnknown) {
+		cs.mu.Unlock()
 		logger.Logger.WithError(err).Error("Failed to melt invoice")
 		return nil, err
 	}
-
-	if meltResponse == nil || meltResponse.Preimage == "" {
-		return nil, errors.New("no preimage in melt response")
+	state := nut05.Pending
+	if meltResponse != nil {
+		state = meltResponse.State
 	}
-	fee := meltResponse.FeeReserve - meltResponse.Change.Amount()
+	// read the balance before releasing the lock, so a concurrent incoming
+	// mint cannot skew the fee computed below
+	balanceAfter := cs.wallet.GetBalance()
+	cs.mu.Unlock()
+
+	// PENDING, or a request that failed without proving the payment failed:
+	// poll the quote instead of reporting a failure that may not be true.
+	deadline := time.Now().Add(meltPendingTimeout)
+	for state == nut05.Pending && time.Now().Before(deadline) {
+		time.Sleep(meltPendingPollInterval)
+		cs.mu.Lock()
+		resp, checkErr := cs.wallet.CheckMeltQuoteState(quoteId)
+		cs.mu.Unlock()
+		if checkErr != nil {
+			logger.Logger.WithError(checkErr).Warn("failed to check melt quote state")
+			continue
+		}
+		state = resp.State
+		if state != nut05.Pending {
+			cs.mu.Lock()
+			balanceAfter = cs.wallet.GetBalance()
+			cs.mu.Unlock()
+		}
+	}
+
+	switch state {
+	case nut05.Paid:
+	case nut05.Unpaid:
+		return nil, errors.New("payment failed: the mint reports the invoice unpaid")
+	default:
+		// Still in flight. The proofs stay pending and the background
+		// reconcile settles them, but the hub has no pending result for
+		// SendPaymentSync.
+		return nil, errors.New("payment still pending at the mint; the hub will settle it when the mint resolves it")
+	}
+
+	quote := cs.wallet.GetMeltQuoteById(quoteId)
+	if quote == nil {
+		return nil, errors.New("melt quote disappeared after payment")
+	}
+
+	preimage := quote.Preimage
+	if preimage == "" {
+		// NUT-05 allows a PAID melt without a preimage. Nutshell does that
+		// when payer and payee use the same mint, because it settles the
+		// payment internally and no lightning payment happens. The old
+		// code reported these as failed although the ecash was spent and
+		// the payee was paid. The hub needs a non-empty preimage to record
+		// a settled payment, so use the payment hash. That is the same
+		// placeholder this backend already uses for incoming payments. It
+		// is not a proof of payment.
+		logger.Logger.WithFields(logrus.Fields{
+			"paymentHash": paymentRequest.PaymentHash,
+			"quoteId":     quoteId,
+		}).Warn("cashu: melt PAID without preimage (internal settlement on the mint); recording payment hash as placeholder")
+		preimage = paymentRequest.PaymentHash
+	}
+
+	// Fee = everything that left the wallet beyond the invoice amount:
+	// lightning fee (reserve minus change) plus the keyset input fees
+	// (input_fee_ppk) on the melt and on any swap that prepared the
+	// inputs. The old code ignored input fees.
+	var feeSat uint64
+	amountSat := uint64(paymentRequest.MSatoshi / 1000)
+	if balanceBefore >= balanceAfter+amountSat {
+		feeSat = balanceBefore - balanceAfter - amountSat
+	} else if quote.FeeReserve >= quote.ChangeAmount {
+		feeSat = quote.FeeReserve - quote.ChangeAmount
+	}
 
 	return &lnclient.PayInvoiceResponse{
-		Preimage: meltResponse.Preimage,
-		FeeMsat:  fee * 1000,
+		Preimage: preimage,
+		FeeMsat:  feeSat * 1000,
 	}, nil
 }
 
@@ -109,6 +321,8 @@ func (cs *CashuService) MakeInvoice(ctx context.Context, amountMsat int64, descr
 	if expiry == 0 {
 		expiry = lnclient.DEFAULT_INVOICE_EXPIRY
 	}
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
 	mintResponse, err := cs.wallet.RequestMint(uint64(amountMsat/1000), cs.wallet.CurrentMint())
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to mint")
@@ -133,9 +347,17 @@ func (cs *CashuService) CancelHoldInvoice(ctx context.Context, paymentHash strin
 }
 
 func (cs *CashuService) LookupInvoice(ctx context.Context, paymentHash string) (transaction *lnclient.Transaction, err error) {
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
+
 	mintQuote := cs.getMintQuoteByPaymentHash(paymentHash)
 	if mintQuote != nil {
-		cs.checkIncomingPayment(mintQuote)
+		cs.claimMintQuote(mintQuote.QuoteId)
+		// re-read: the copy above predates the mint, so the old code
+		// reported a just-credited invoice as unsettled until the next poll
+		if refreshed := cs.wallet.GetMintQuoteById(mintQuote.QuoteId); refreshed != nil {
+			mintQuote = refreshed
+		}
 		transaction = cs.cashuMintQuoteToTransaction(mintQuote)
 		return transaction, nil
 	}
@@ -143,6 +365,9 @@ func (cs *CashuService) LookupInvoice(ctx context.Context, paymentHash string) (
 	meltQuote := cs.getMeltQuoteByPaymentHash(paymentHash)
 	if meltQuote != nil {
 		cs.checkOutgoingPayment(meltQuote)
+		if refreshed := cs.wallet.GetMeltQuoteById(meltQuote.QuoteId); refreshed != nil {
+			meltQuote = refreshed
+		}
 		transaction = cs.cashuMeltQuoteToTransaction(meltQuote)
 		return transaction, nil
 	}
@@ -199,6 +424,8 @@ func (cs *CashuService) RedeemOnchainFunds(ctx context.Context, toAddress string
 }
 
 func (cs *CashuService) ResetRouter(key string) error {
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
 	mnemonic := cs.wallet.Mnemonic()
 	currentMint := cs.wallet.CurrentMint()
 
@@ -255,7 +482,9 @@ func (cs *CashuService) UpdateChannel(ctx context.Context, updateChannelRequest 
 }
 
 func (cs *CashuService) GetBalances(ctx context.Context, includeInactiveChannels bool) (*lnclient.BalancesResponse, error) {
+	cs.mu.Lock()
 	cashuBalance := cs.wallet.GetBalance()
+	cs.mu.Unlock()
 	balance := int64(cashuBalance * 1000)
 
 	return &lnclient.BalancesResponse{
@@ -316,6 +545,16 @@ func (cs *CashuService) cashuMeltQuoteToTransaction(meltQuote *storage.MeltQuote
 	description := paymentRequest.Description
 	descriptionHash := paymentRequest.DescriptionHash
 
+	preimage := meltQuote.Preimage
+	if preimage == "" && meltQuote.State == nut05.Paid {
+		// internal settlement: see SendPaymentSync
+		preimage = paymentRequest.PaymentHash
+	}
+	var fee uint64
+	if meltQuote.FeeReserve >= meltQuote.ChangeAmount {
+		fee = meltQuote.FeeReserve - meltQuote.ChangeAmount
+	}
+
 	return &lnclient.Transaction{
 		Type:            constants.TRANSACTION_TYPE_OUTGOING,
 		Invoice:         meltQuote.PaymentRequest,
@@ -325,9 +564,9 @@ func (cs *CashuService) cashuMeltQuoteToTransaction(meltQuote *storage.MeltQuote
 		ExpiresAt:       expiresAt,
 		Description:     description,
 		DescriptionHash: descriptionHash,
-		Preimage:        meltQuote.Preimage,
+		Preimage:        preimage,
 		SettledAt:       settledAt,
-		FeesPaidMsat:    int64(meltQuote.FeeReserve * 1000),
+		FeesPaidMsat:    int64(fee * 1000),
 	}
 }
 
@@ -337,7 +576,8 @@ func (cs *CashuService) getMintQuoteByPaymentHash(paymentHash string) *storage.M
 	for _, mintQuote := range mintQuotes {
 		bolt11, err := decodepay.Decodepay(mintQuote.PaymentRequest)
 		if err != nil {
-			return nil
+			// one undecodable quote must not hide every other quote
+			continue
 		}
 		if bolt11.PaymentHash == paymentHash {
 			return &mintQuote
@@ -353,7 +593,8 @@ func (cs *CashuService) getMeltQuoteByPaymentHash(paymentHash string) *storage.M
 	for _, meltQuote := range meltQuotes {
 		bolt11, err := decodepay.Decodepay(meltQuote.PaymentRequest)
 		if err != nil {
-			return nil
+			// one undecodable quote must not hide every other quote
+			continue
 		}
 		if bolt11.PaymentHash == paymentHash {
 			return &meltQuote
@@ -361,39 +602,6 @@ func (cs *CashuService) getMeltQuoteByPaymentHash(paymentHash string) *storage.M
 	}
 
 	return nil
-}
-
-func (cs *CashuService) checkIncomingPayment(mintQuote *storage.MintQuote) {
-	bolt11, _ := decodepay.Decodepay(mintQuote.PaymentRequest)
-
-	if mintQuote.State != nut04.Paid {
-		logger.Logger.WithFields(logrus.Fields{
-			"paymentHash": bolt11.PaymentHash,
-		}).Debug("Checking unpaid invoice")
-
-		mintQuoteState, err := cs.wallet.MintQuoteState(mintQuote.QuoteId)
-		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"paymentHash": bolt11.PaymentHash,
-			}).WithError(err).Warn("failed to check invoice state")
-			return
-		}
-
-		if mintQuoteState.State == nut04.Paid {
-			amountMinted, err := cs.wallet.MintTokens(mintQuote.QuoteId)
-			if err != nil {
-				logger.Logger.WithFields(logrus.Fields{
-					"paymentHash": bolt11.PaymentHash,
-				}).WithError(err).Warn("failed to mint")
-			}
-			if amountMinted > 0 {
-				logger.Logger.WithFields(logrus.Fields{
-					"paymentHash": bolt11.PaymentHash,
-					"amount":      amountMinted,
-				}).Info("sats successfully minted")
-			}
-		}
-	}
 }
 
 func (cs *CashuService) checkOutgoingPayment(meltQuote *storage.MeltQuote) {
@@ -431,6 +639,11 @@ func (cs *CashuService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeC
 			Args:        nil,
 		},
 		{
+			Name:        nodeCommandRecover,
+			Description: "Settle stuck payments: check in-flight payments with the mint, release proofs of failed ones and claim paid invoices. Safe to run any time; does not touch the wallet directory.",
+			Args:        nil,
+		},
+		{
 			Name:        nodeCommandCheckMnemonic,
 			Description: "Check if your cashu wallet uses the same mnemonic as Alby Hub.",
 			Args:        nil,
@@ -447,6 +660,11 @@ func (cs *CashuService) ExecuteCustomNodeCommand(ctx context.Context, command *l
 	switch command.Name {
 	case nodeCommandRestore:
 		return cs.executeCommandRestore()
+	case nodeCommandRecover:
+		result := cs.reconcile()
+		return &lnclient.CustomNodeCommandResponse{
+			Response: result,
+		}, nil
 	case nodeCommandResetWallet:
 		return cs.executeCommandResetWallet()
 	case nodeCommandCheckMnemonic:
@@ -461,6 +679,8 @@ func (cs *CashuService) ExecuteCustomNodeCommand(ctx context.Context, command *l
 }
 
 func (cs *CashuService) executeCommandRestore() (*lnclient.CustomNodeCommandResponse, error) {
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
 	mnemonic := cs.wallet.Mnemonic()
 	currentMintUrl := cs.wallet.CurrentMint()
 
@@ -499,6 +719,9 @@ func (cs *CashuService) executeCommandRestore() (*lnclient.CustomNodeCommandResp
 }
 
 func (cs *CashuService) executeCommandResetWallet() (*lnclient.CustomNodeCommandResponse, error) {
+	cs.stopOnce.Do(func() { close(cs.stopReconcile) })
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
 	if err := cs.wallet.Shutdown(); err != nil {
 		return nil, err
 	}
