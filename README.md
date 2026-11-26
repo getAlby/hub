@@ -187,7 +187,7 @@ Wait until bitcoind has finished its initial sync before starting Alby Hub. If a
 
 If you import a seed, on-chain funds received before the import are not found: with bitcoind the on-chain wallet starts at the current block and does not scan older ones.
 
-A full (non-pruned) bitcoind is required for now. With a pruned bitcoind, Alby Hub cannot verify lightning gossip and will not be able to find routes for outgoing payments.
+With the LDK backend, a full (non-pruned) bitcoind is required for now. With a pruned bitcoind, the LDK node cannot verify lightning gossip and will not be able to find routes for outgoing payments.
 
 ### Boltz Regtest Setup
 
