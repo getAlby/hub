@@ -141,8 +141,6 @@ github.com/dustin/go-humanize v1.0.1/go.mod h1:Mu1zIs6XwVuF/gI1OepvI0qD18qycQx+m
 github.com/dvyukov/go-fuzz v0.0.0-20200318091601-be3528f3a813/go.mod h1:11Gm+ccJnvAhCNLlf5+cS9KjtbaD5I5zaZpFMsTHWTw=
 github.com/elnosh/btc-docker-test v0.0.0-20241223164556-146e52a0433b h1:JbZVAqKBVRkvHuZZJsf8MvO+I7HGaVNCMQvp7WMFGqs=
 github.com/elnosh/btc-docker-test v0.0.0-20241223164556-146e52a0433b/go.mod h1:4PlP53czOHN+XvjyQZh+zgrzkI7BYFvJajxKK2zquyE=
-github.com/elnosh/gonuts v0.4.2 h1:/WubPAWGxTE+okJ0WPvmtEzTzpi04RGxiTHAF1FYU+M=
-github.com/elnosh/gonuts v0.4.2/go.mod h1:vgZomh4YQk7R3w4ltZc0sHwCmndfHkuX6V4sga/8oNs=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1mIlRU8Am5FuJP05cCM98=
@@ -566,6 +564,8 @@ github.com/wailsapp/go-webview2 v1.0.22 h1:YT61F5lj+GGaat5OB96Aa3b4QA+mybD0Ggq6N
 github.com/wailsapp/go-webview2 v1.0.22/go.mod h1:qJmWAmAmaniuKGZPWwne+uor3AHMB5PFhqiK0Bbj8kc=
 github.com/wailsapp/wails/v2 v2.17.1 h1:RyswsftvVwjBcZy/ccfM2FuSeWRH/2WTTJUet4jlKUU=
 github.com/wailsapp/wails/v2 v2.17.1/go.mod h1:oj2ZhYZ3ob7KKOtmYtfm6v5pmacg8IKdA+qY2J1/iWQ=
+github.com/welliv/gonuts v0.4.3-0.20261126081948-73aff4b16bcc h1:oJ7JzeqnMWZvXQa0ENjwtVg55/huoyG6stRFrl9ALeY=
+github.com/welliv/gonuts v0.4.3-0.20261126081948-73aff4b16bcc/go.mod h1:vgZomh4YQk7R3w4ltZc0sHwCmndfHkuX6V4sga/8oNs=
 github.com/x448/float16 v0.8.4 h1:qLwI1I70+NjRFUR3zs1JPUCgaCXSh3SW62uAKT1mSBM=
 github.com/x448/float16 v0.8.4/go.mod h1:14CWIYCyZA/cWjXOioeEpHeN/83MdbZDRQHoFcYsOfg=
 github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f/go.mod h1:N2zxlSyiKSe5eX1tZViRH5QA0qijqEDrYZiPEAiq3wU=

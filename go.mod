@@ -269,3 +269,5 @@ require (
 // We want to format raw bytes as hex instead of base64. The forked version
 // allows us to specify that as an option.
 replace google.golang.org/protobuf => github.com/lightninglabs/protobuf-go-hex-display v1.33.0-hex-display
+
+replace github.com/elnosh/gonuts => github.com/welliv/gonuts v0.4.3-0.20261126081948-73aff4b16bcc
