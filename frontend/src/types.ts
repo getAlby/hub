@@ -179,6 +179,7 @@ export interface InfoResponse {
   currency: string;
   nodeAlias: string;
   mempoolUrl: string;
+  cashuMintUrl?: string;
   bitcoinDisplayFormat: BitcoinDisplayFormat;
   chainDataSourceType?: string;
   chainDataSourceAddress?: string;

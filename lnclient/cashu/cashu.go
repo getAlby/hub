@@ -24,6 +24,7 @@ const nodeCommandCheckMnemonic = "checkmnemonic"
 const nodeCommandResetWallet = "reset"
 
 type CashuService struct {
+	cfg                  config.Config
 	wallet               *wallet.Wallet
 	workDir              string
 	hasDifferentMnemonic bool
@@ -55,6 +56,7 @@ func NewCashuService(cfg config.Config, workDir, mnemonic, mintUrl string) (resu
 	}
 
 	cs := CashuService{
+		cfg:     cfg,
 		wallet:  cashuWallet,
 		workDir: workDir,
 	}
@@ -156,10 +158,14 @@ func (cs *CashuService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, e
 		Alias:       "NWC (Cashu)",
 		Color:       "#897FFF",
 		Pubkey:      "",
-		Network:     "bitcoin",
+		Network:     cs.cfg.GetNetwork(),
 		BlockHeight: 0,
 		BlockHash:   "",
 	}, nil
+}
+
+func (cs *CashuService) GetMintUrl() string {
+	return cs.wallet.CurrentMint()
 }
 
 func (cs *CashuService) ListChannels(ctx context.Context) ([]lnclient.Channel, error) {
@@ -237,7 +243,7 @@ func (cs *CashuService) GetLogOutput(ctx context.Context, maxLen int) ([]byte, e
 }
 
 func (cs *CashuService) GetStorageDir() (string, error) {
-	return "", nil
+	return cs.workDir, nil
 }
 func (cs *CashuService) GetNetworkGraph(ctx context.Context, nodeIds []string) (lnclient.NetworkGraphResponse, error) {
 	return nil, nil

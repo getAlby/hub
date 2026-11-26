@@ -1409,7 +1409,7 @@ func toApiPendingBalanceDetails(details []lnclient.PendingBalanceDetails) []Pend
 
 // TODO: remove dependency on this endpoint
 func (api *api) RequestMempoolApi(ctx context.Context, endpoint string) (interface{}, error) {
-	url := api.cfg.GetEnv().MempoolApi + endpoint
+	url := config.MempoolApi(api.cfg.GetEnv()) + endpoint
 
 	client := http.Client{
 		Timeout: time.Second * 10,
@@ -1556,6 +1556,16 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 				info.JitChannelsLiquiditySource = ldkService.GetLiquiditySourceLsps2()
 			}
 		}
+		if backendType == config.CashuBackendType {
+			type mintUrlProvider interface {
+				GetMintUrl() string
+			}
+			if cashuService, ok := lnClient.(mintUrlProvider); ok {
+				mintUrl := cashuService.GetMintUrl()
+				info.CashuMintUrl = publicMintUrl(mintUrl)
+				info.privateCashuMintUrl = authenticatedMintUrl(mintUrl)
+			}
+		}
 	}
 
 	info.NextBackupReminder, _ = api.cfg.Get("NextBackupReminder", "")
@@ -1563,6 +1573,39 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.NodeAlias, _ = api.cfg.Get("NodeAlias", "")
 
 	return &info, nil
+}
+
+// publicMintUrl returns only the origin (scheme://host[:port]). /api/info is
+// not authenticated, and a mint can put an access token in the path.
+func publicMintUrl(raw string) string {
+	parsed, err := parseAbsoluteURL(raw)
+	if err != nil {
+		return ""
+	}
+	return (&url.URL{Scheme: parsed.Scheme, Host: parsed.Host}).String()
+}
+
+// authenticatedMintUrl strips userinfo but keeps the path and query, so a
+// logged-in user can still open the configured mint from the About page.
+// Gonuts keeps using the original URL for mint access.
+func authenticatedMintUrl(raw string) string {
+	parsed, err := parseAbsoluteURL(raw)
+	if err != nil {
+		return ""
+	}
+	parsed.User = nil
+	return parsed.String()
+}
+
+func parseAbsoluteURL(raw string) (*url.URL, error) {
+	parsed, err := url.Parse(raw)
+	if err != nil {
+		return nil, err
+	}
+	if parsed.Scheme == "" || parsed.Host == "" {
+		return nil, fmt.Errorf("not an absolute URL")
+	}
+	return parsed, nil
 }
 
 func (api *api) GetJitChannelsInfo() (*JitChannelsInfoResponse, error) {

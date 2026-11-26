@@ -214,9 +214,64 @@ func (cfg *config) GetNetwork() string {
 	return cfg.GetEnv().Network
 }
 
+// defaultMempoolAPI is the AppConfig MEMPOOL_API default. When a hub is on
+// testnet or signet and this value was left unchanged, fee requests and
+// explorer links would otherwise point at mainnet.
+const defaultMempoolAPI = "https://mempool.space/api"
+
 func (cfg *config) GetMempoolUrl() string {
-	mempoolApiUrl := cfg.GetEnv().MempoolApi
-	return strings.TrimSuffix(mempoolApiUrl, "/api")
+	return strings.TrimSuffix(MempoolApi(cfg.GetEnv()), "/api")
+}
+
+// MempoolApi returns the mempool API base to use for fee and explorer data.
+// An explicit MEMPOOL_API is always kept. The default mainnet URL is replaced
+// when NETWORK is testnet or signet, so RequestMempoolApi and GetMempoolUrl
+// stay on the same network. Signet uses the standard signet explorer unless
+// an existing chain source (esplora, electrum, or LDK gossip) is Mutinynet.
+func MempoolApi(env *AppConfig) string {
+	if env == nil {
+		return ""
+	}
+	if env.MempoolApi != defaultMempoolAPI {
+		return env.MempoolApi
+	}
+	switch env.Network {
+	case "testnet":
+		return "https://mempool.space/testnet/api"
+	case "signet":
+		if usesMutinynet(env) {
+			return "https://mutinynet.com/api"
+		}
+		return "https://mempool.space/signet/api"
+	default:
+		return env.MempoolApi
+	}
+}
+
+// usesMutinynet reports whether a chain source the node actually uses points
+// at Mutinynet. It follows the chain backend's precedence: an esplora server
+// is used whenever one is set, and the electrum server only when no esplora
+// server is. A gossip source is used whenever it is set. Deprecated LDK_
+// variables take priority over their replacements, as in applyDeprecatedEnv.
+func usesMutinynet(env *AppConfig) bool {
+	isMutinynet := func(value string) bool {
+		return strings.Contains(strings.ToLower(value), "mutinynet.com")
+	}
+	if isMutinynet(env.LDKGossipSource) {
+		return true
+	}
+	esplora := env.EsploraServer
+	if env.LDKEsploraServer != "" {
+		esplora = env.LDKEsploraServer
+	}
+	if esplora != "" {
+		return isMutinynet(esplora)
+	}
+	electrum := env.ElectrumServer
+	if env.LDKElectrumServer != "" {
+		electrum = env.LDKElectrumServer
+	}
+	return isMutinynet(electrum)
 }
 
 func (cfg *config) getEncryptionKeyHash(encryptionKey string) string {
