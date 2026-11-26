@@ -81,6 +81,39 @@ func TestMempoolApiAndUrl(t *testing.T) {
 			wantURL: mutinynetURL,
 		},
 		{
+			name: "signet esplora takes precedence over a leftover Mutinynet electrum",
+			env: AppConfig{
+				Network:        "signet",
+				MempoolApi:     defaultAPI,
+				EsploraServer:  "https://mempool.space/signet/api",
+				ElectrumServer: "electrum.mutinynet.com:50001",
+			},
+			wantAPI: signetAPI,
+			wantURL: signetURL,
+		},
+		{
+			name: "deprecated LDK esplora takes precedence over a Mutinynet esplora",
+			env: AppConfig{
+				Network:          "signet",
+				MempoolApi:       defaultAPI,
+				EsploraServer:    "https://mutinynet.com/api",
+				LDKEsploraServer: "https://mempool.space/signet/api",
+			},
+			wantAPI: signetAPI,
+			wantURL: signetURL,
+		},
+		{
+			name: "Mutinynet gossip source counts even with a standard signet esplora",
+			env: AppConfig{
+				Network:         "signet",
+				MempoolApi:      defaultAPI,
+				EsploraServer:   "https://mempool.space/signet/api",
+				LDKGossipSource: "https://rgs.mutinynet.com/snapshot",
+			},
+			wantAPI: mutinynetAPI,
+			wantURL: mutinynetURL,
+		},
+		{
 			name: "explicit Mutinynet MEMPOOL_API is kept",
 			env: AppConfig{
 				Network:    "signet",

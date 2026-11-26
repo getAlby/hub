@@ -248,19 +248,30 @@ func MempoolApi(env *AppConfig) string {
 	}
 }
 
+// usesMutinynet reports whether a chain source the node actually uses points
+// at Mutinynet. It follows the chain backend's precedence: an esplora server
+// is used whenever one is set, and the electrum server only when no esplora
+// server is. A gossip source is used whenever it is set. Deprecated LDK_
+// variables take priority over their replacements, as in applyDeprecatedEnv.
 func usesMutinynet(env *AppConfig) bool {
-	for _, value := range []string{
-		env.EsploraServer,
-		env.ElectrumServer,
-		env.LDKGossipSource,
-		env.LDKEsploraServer,
-		env.LDKElectrumServer,
-	} {
-		if strings.Contains(strings.ToLower(value), "mutinynet.com") {
-			return true
-		}
+	isMutinynet := func(value string) bool {
+		return strings.Contains(strings.ToLower(value), "mutinynet.com")
 	}
-	return false
+	if isMutinynet(env.LDKGossipSource) {
+		return true
+	}
+	esplora := env.EsploraServer
+	if env.LDKEsploraServer != "" {
+		esplora = env.LDKEsploraServer
+	}
+	if esplora != "" {
+		return isMutinynet(esplora)
+	}
+	electrum := env.ElectrumServer
+	if env.LDKElectrumServer != "" {
+		electrum = env.LDKElectrumServer
+	}
+	return isMutinynet(electrum)
 }
 
 func (cfg *config) getEncryptionKeyHash(encryptionKey string) string {
