@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strconv"
 	"time"
 
 	"github.com/getAlby/go-nostr"
@@ -45,6 +46,18 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, pool nostrmodels.Simpl
 			"eventKind":           event.Kind,
 		}).Error("invalid event signature")
 		return
+	}
+
+	if expirationTag := event.Tags.Find("expiration"); expirationTag != nil && len(expirationTag) > 1 {
+		expiresAt, err := strconv.ParseInt(expirationTag[1], 10, 64)
+		if err == nil && time.Now().Unix() > expiresAt {
+			logger.Logger.WithFields(logrus.Fields{
+				"requestEventNostrId": event.ID,
+				"eventKind":           event.Kind,
+				"expiration":          expiresAt,
+			}).Warn("Ignoring expired request event")
+			return
+		}
 	}
 
 	if lnClient == nil {

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"slices"
+	"strconv"
 	"testing"
 	"time"
 
@@ -818,4 +819,124 @@ func TestHandleResponse_PublishFailed(t *testing.T) {
 	responseEvent := db.ResponseEvent{}
 	require.NoError(t, svc.DB.First(&responseEvent, &db.ResponseEvent{RequestId: requestEvent.ID}).Error)
 	assert.Equal(t, db.RESPONSE_EVENT_STATE_PUBLISH_FAILED, responseEvent.State)
+}
+
+func TestHandleResponse_ExpiredRequest(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	albyOAuthSvc := alby.NewAlbyOAuthService(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
+	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher, albyOAuthSvc)
+
+	reqPrivateKey := nostr.GeneratePrivateKey()
+	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
+	require.NoError(t, err)
+
+	_, cipher, err := tests.CreateAppWithPrivateKey(svc, reqPrivateKey, constants.ENCRYPTION_TYPE_NIP44_V2)
+	require.NoError(t, err)
+
+	payloadBytes, err := json.Marshal(map[string]interface{}{"method": models.GET_INFO_METHOD})
+	require.NoError(t, err)
+	msg, err := cipher.Encrypt(string(payloadBytes))
+	require.NoError(t, err)
+
+	reqEvent := &nostr.Event{
+		Kind:      models.REQUEST_KIND,
+		PubKey:    reqPubkey,
+		CreatedAt: nostr.Now(),
+		Tags: nostr.Tags{
+			[]string{"encryption", constants.ENCRYPTION_TYPE_NIP44_V2},
+			[]string{"expiration", strconv.FormatInt(time.Now().Add(-60*time.Second).Unix(), 10)},
+		},
+		Content: msg,
+	}
+	require.NoError(t, reqEvent.Sign(reqPrivateKey))
+
+	pool := tests.NewMockSimplePool()
+	nip47svc.HandleEvent(context.TODO(), pool, reqEvent, svc.LNClient)
+
+	assert.Empty(t, pool.PublishedEvents)
+
+	var count int64
+	require.NoError(t, svc.DB.Model(&db.RequestEvent{}).Where("nostr_id = ?", reqEvent.ID).Count(&count).Error)
+	assert.Zero(t, count)
+}
+
+func TestHandleResponse_UnexpiredRequest(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	albyOAuthSvc := alby.NewAlbyOAuthService(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
+	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher, albyOAuthSvc)
+
+	reqPrivateKey := nostr.GeneratePrivateKey()
+	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
+	require.NoError(t, err)
+
+	_, cipher, err := tests.CreateAppWithPrivateKey(svc, reqPrivateKey, constants.ENCRYPTION_TYPE_NIP44_V2)
+	require.NoError(t, err)
+
+	payloadBytes, err := json.Marshal(map[string]interface{}{"method": models.GET_INFO_METHOD})
+	require.NoError(t, err)
+	msg, err := cipher.Encrypt(string(payloadBytes))
+	require.NoError(t, err)
+
+	reqEvent := &nostr.Event{
+		Kind:      models.REQUEST_KIND,
+		PubKey:    reqPubkey,
+		CreatedAt: nostr.Now(),
+		Tags: nostr.Tags{
+			[]string{"encryption", constants.ENCRYPTION_TYPE_NIP44_V2},
+			[]string{"expiration", strconv.FormatInt(time.Now().Add(60*time.Second).Unix(), 10)},
+		},
+		Content: msg,
+	}
+	require.NoError(t, reqEvent.Sign(reqPrivateKey))
+
+	pool := tests.NewMockSimplePool()
+	nip47svc.HandleEvent(context.TODO(), pool, reqEvent, svc.LNClient)
+
+	assert.Len(t, pool.PublishedEvents, 1)
+}
+
+func TestHandleResponse_MalformedExpirationTag(t *testing.T) {
+	for _, expirationTag := range [][]string{{"expiration"}, {"expiration", "not-a-timestamp"}} {
+		svc, err := tests.CreateTestService(t)
+		require.NoError(t, err)
+
+		albyOAuthSvc := alby.NewAlbyOAuthService(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
+		nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher, albyOAuthSvc)
+
+		reqPrivateKey := nostr.GeneratePrivateKey()
+		reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
+		require.NoError(t, err)
+
+		_, cipher, err := tests.CreateAppWithPrivateKey(svc, reqPrivateKey, constants.ENCRYPTION_TYPE_NIP44_V2)
+		require.NoError(t, err)
+
+		payloadBytes, err := json.Marshal(map[string]interface{}{"method": models.GET_INFO_METHOD})
+		require.NoError(t, err)
+		msg, err := cipher.Encrypt(string(payloadBytes))
+		require.NoError(t, err)
+
+		reqEvent := &nostr.Event{
+			Kind:      models.REQUEST_KIND,
+			PubKey:    reqPubkey,
+			CreatedAt: nostr.Now(),
+			Tags: nostr.Tags{
+				[]string{"encryption", constants.ENCRYPTION_TYPE_NIP44_V2},
+				expirationTag,
+			},
+			Content: msg,
+		}
+		require.NoError(t, reqEvent.Sign(reqPrivateKey))
+
+		pool := tests.NewMockSimplePool()
+		nip47svc.HandleEvent(context.TODO(), pool, reqEvent, svc.LNClient)
+
+		assert.Len(t, pool.PublishedEvents, 1)
+		svc.Remove()
+	}
 }
