@@ -111,7 +111,7 @@ func (controller *nip47Controller) HandleCreateConnectionEvent(ctx context.Conte
 		return
 	}
 
-	scopes, err := permissions.RequestMethodsToScopes(params.RequestMethods)
+	scopes, err := permissions.RequestMethodsToScopesExact(params.RequestMethods)
 
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{

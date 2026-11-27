@@ -42,7 +42,8 @@ const (
 	PAY_INVOICE_SCOPE       = "pay_invoice" // also covers pay_keysend and multi_* payment methods
 	GET_BALANCE_SCOPE       = "get_balance"
 	GET_INFO_SCOPE          = "get_info"
-	MAKE_INVOICE_SCOPE      = "make_invoice"
+	MAKE_INVOICE_SCOPE      = "make_invoice"      // also covers make_hold_invoice, settle_hold_invoice and cancel_hold_invoice
+	MAKE_INVOICE_ONLY_SCOPE = "make_invoice_only" // covers make_invoice only (no hold invoice methods)
 	LOOKUP_INVOICE_SCOPE    = "lookup_invoice"
 	LIST_TRANSACTIONS_SCOPE = "list_transactions"
 	SIGN_MESSAGE_SCOPE      = "sign_message"

@@ -115,6 +115,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   }, [location.search]);
 
   const [name, setName] = React.useState(app.name);
+  const [savedName, setSavedName] = React.useState(app.name);
   const [permissions, setPermissions] = React.useState<AppPermissions>({
     scopes: app.scopes,
     maxAmountSat: app.maxAmountSat,
@@ -124,8 +125,10 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   });
   const [savedPermissions, setSavedPermissions] =
     React.useState<AppPermissions>(permissions);
+  const [isSaving, setIsSaving] = React.useState(false);
 
   const handleSave = async () => {
+    setIsSaving(true);
     try {
       const updateAppRequest: UpdateAppRequest = {
         name,
@@ -147,10 +150,15 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
 
       refetchApp();
       setIsEditingPermissions(false);
+      setSavedName(name);
+      setName(name);
       setSavedPermissions(permissions);
+      setPermissions(permissions);
       toast("Successfully updated connection");
     } catch (error) {
       handleRequestError("Failed to update connection", error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -319,6 +327,9 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                           type="button"
                           variant="outline"
                           onClick={() => {
+                            // discard unsaved changes
+                            setName(savedName);
+                            setPermissions(savedPermissions);
                             setIsEditingPermissions(false);
                           }}
                         >
@@ -330,7 +341,11 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                             open={showConfirmDialog}
                             onOpenChange={setShowConfirmDialog}
                           >
-                            <Button type="submit" form="app-details">
+                            <Button
+                              type="submit"
+                              form="app-details"
+                              disabled={isSaving}
+                            >
                               Save
                             </Button>
                             <AlertDialogContent>
@@ -373,12 +388,21 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                               </AlertDialogDescription>
                               <AlertDialogFooter className="mt-5">
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <Button onClick={handleSave}>Save</Button>
+                                <Button
+                                  onClick={handleSave}
+                                  disabled={isSaving}
+                                >
+                                  Save
+                                </Button>
                               </AlertDialogFooter>
                             </AlertDialogContent>
                           </AlertDialog>
                         ) : (
-                          <Button type="submit" form="app-details">
+                          <Button
+                            type="submit"
+                            form="app-details"
+                            disabled={isSaving}
+                          >
                             Save
                           </Button>
                         )}
@@ -414,43 +438,45 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                 handleSave();
               }}
             >
-              {app.name !== ALBY_ACCOUNT_APP_NAME && (
+              <fieldset disabled={isSaving} className="contents">
+                {app.name !== ALBY_ACCOUNT_APP_NAME && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>App Name</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex flex-row gap-2 items-center">
+                        <Input
+                          autoFocus
+                          type="text"
+                          name="name"
+                          value={name}
+                          id="name"
+                          onChange={(e) => setName(e.target.value)}
+                          required
+                          autoComplete="off"
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
                 <Card>
                   <CardHeader>
-                    <CardTitle>App Name</CardTitle>
+                    <CardTitle>
+                      <div className="flex flex-row justify-between items-center">
+                        Permissions
+                      </div>
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex flex-row gap-2 items-center">
-                      <Input
-                        autoFocus
-                        type="text"
-                        name="name"
-                        value={name}
-                        id="name"
-                        onChange={(e) => setName(e.target.value)}
-                        required
-                        autoComplete="off"
-                      />
-                    </div>
+                    <Permissions
+                      capabilities={capabilities}
+                      permissions={permissions}
+                      setPermissions={setPermissions}
+                    />
                   </CardContent>
                 </Card>
-              )}
-              <Card>
-                <CardHeader>
-                  <CardTitle>
-                    <div className="flex flex-row justify-between items-center">
-                      Permissions
-                    </div>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Permissions
-                    capabilities={capabilities}
-                    permissions={permissions}
-                    setPermissions={setPermissions}
-                  />
-                </CardContent>
-              </Card>
+              </fieldset>
             </form>
           ) : (
             <Card>

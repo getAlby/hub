@@ -819,3 +819,221 @@ func TestHandleResponse_PublishFailed(t *testing.T) {
 	require.NoError(t, svc.DB.First(&responseEvent, &db.ResponseEvent{RequestId: requestEvent.ID}).Error)
 	assert.Equal(t, db.RESPONSE_EVENT_STATE_PUBLISH_FAILED, responseEvent.State)
 }
+
+type invoiceScopeTestPermission struct {
+	scope     string
+	expiresAt *time.Time
+}
+
+// sendInvoiceScopeTestRequest creates an app with the given permissions, sends it a
+// NIP-47 request and returns the decrypted response (nil if no response was published)
+func sendInvoiceScopeTestRequest(t *testing.T, svc *tests.TestService, appPermissions []invoiceScopeTestPermission, method string, params map[string]interface{}, createdAt nostr.Timestamp) *models.Response {
+	albyOAuthSvc := alby.NewAlbyOAuthService(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher)
+	nip47svc := NewNip47Service(svc.DB, svc.Cfg, svc.Keys, svc.EventPublisher, albyOAuthSvc)
+
+	reqPrivateKey := nostr.GeneratePrivateKey()
+	reqPubkey, err := nostr.GetPublicKey(reqPrivateKey)
+	require.NoError(t, err)
+
+	app, cipher, err := tests.CreateAppWithPrivateKey(svc, reqPrivateKey, constants.ENCRYPTION_TYPE_NIP44_V2)
+	require.NoError(t, err)
+
+	for _, appPermission := range appPermissions {
+		err = svc.DB.Create(&db.AppPermission{
+			AppId:     app.ID,
+			App:       *app,
+			Scope:     appPermission.scope,
+			ExpiresAt: appPermission.expiresAt,
+		}).Error
+		require.NoError(t, err)
+	}
+
+	payloadBytes, err := json.Marshal(map[string]interface{}{
+		"method": method,
+		"params": params,
+	})
+	require.NoError(t, err)
+
+	msg, err := cipher.Encrypt(string(payloadBytes))
+	require.NoError(t, err)
+
+	reqEvent := &nostr.Event{
+		Kind:      models.REQUEST_KIND,
+		PubKey:    reqPubkey,
+		CreatedAt: createdAt,
+		Tags:      nostr.Tags{[]string{"encryption", constants.ENCRYPTION_TYPE_NIP44_V2}},
+		Content:   msg,
+	}
+	err = reqEvent.Sign(reqPrivateKey)
+	require.NoError(t, err)
+
+	pool := tests.NewMockSimplePool()
+	nip47svc.HandleEvent(context.TODO(), pool, reqEvent, svc.LNClient)
+
+	if len(pool.PublishedEvents) == 0 {
+		return nil
+	}
+
+	decrypted, err := cipher.Decrypt(pool.PublishedEvents[0].Content)
+	require.NoError(t, err)
+
+	response := models.Response{}
+	err = json.Unmarshal([]byte(decrypted), &response)
+	require.NoError(t, err)
+	return &response
+}
+
+func invoiceScopeTestParams(method string) map[string]interface{} {
+	switch method {
+	case models.MAKE_HOLD_INVOICE_METHOD:
+		return map[string]interface{}{"amount": 1000, "payment_hash": "0000000000000000000000000000000000000000000000000000000000000001"}
+	case models.SETTLE_HOLD_INVOICE_METHOD:
+		return map[string]interface{}{"preimage": "0000000000000000000000000000000000000000000000000000000000000001"}
+	case models.CANCEL_HOLD_INVOICE_METHOD:
+		return map[string]interface{}{"payment_hash": "0000000000000000000000000000000000000000000000000000000000000001"}
+	}
+	return map[string]interface{}{"amount": 1000, "description": "test"}
+}
+
+var holdInvoiceMethods = []string{models.MAKE_HOLD_INVOICE_METHOD, models.SETTLE_HOLD_INVOICE_METHOD, models.CANCEL_HOLD_INVOICE_METHOD}
+
+// assertPassedPermissionCheck asserts the request was not rejected by the permission check
+func assertPassedPermissionCheck(t *testing.T, response *models.Response, method string) {
+	require.NotNil(t, response, method)
+	assert.Equal(t, method, response.ResultType)
+	if response.Error != nil {
+		assert.NotEqual(t, constants.ERROR_RESTRICTED, response.Error.Code, method)
+		assert.NotEqual(t, constants.ERROR_EXPIRED, response.Error.Code, method)
+	}
+}
+
+func TestHandleResponse_MakeInvoiceOnlyScope_AllowsMakeInvoice(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	response := sendInvoiceScopeTestRequest(t, svc, []invoiceScopeTestPermission{
+		{scope: constants.MAKE_INVOICE_ONLY_SCOPE},
+	}, models.MAKE_INVOICE_METHOD, invoiceScopeTestParams(models.MAKE_INVOICE_METHOD), nostr.Now())
+
+	require.NotNil(t, response)
+	assert.Equal(t, models.MAKE_INVOICE_METHOD, response.ResultType)
+	assert.Nil(t, response.Error)
+	assert.NotNil(t, response.Result)
+}
+
+func TestHandleResponse_MakeInvoiceOnlyScope_RestrictsHoldInvoiceMethods(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	for _, method := range holdInvoiceMethods {
+		response := sendInvoiceScopeTestRequest(t, svc, []invoiceScopeTestPermission{
+			{scope: constants.MAKE_INVOICE_ONLY_SCOPE},
+			{scope: constants.LOOKUP_INVOICE_SCOPE},
+		}, method, invoiceScopeTestParams(method), nostr.Now())
+
+		require.NotNil(t, response, method)
+		assert.Equal(t, method, response.ResultType)
+		assert.Nil(t, response.Result, method)
+		require.NotNil(t, response.Error, method)
+		assert.Equal(t, constants.ERROR_RESTRICTED, response.Error.Code, method)
+		assert.Equal(t, "This app does not have the make_invoice scope", response.Error.Message, method)
+	}
+}
+
+func TestHandleResponse_MakeInvoiceScope_AllowsHoldInvoiceMethods(t *testing.T) {
+	// regression: the bundled make_invoice scope keeps granting all invoice methods
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	for _, method := range append([]string{models.MAKE_INVOICE_METHOD}, holdInvoiceMethods...) {
+		response := sendInvoiceScopeTestRequest(t, svc, []invoiceScopeTestPermission{
+			{scope: constants.MAKE_INVOICE_SCOPE},
+		}, method, invoiceScopeTestParams(method), nostr.Now())
+
+		assertPassedPermissionCheck(t, response, method)
+	}
+}
+
+func TestHandleResponse_MakeInvoiceOnlyScope_NoInvoiceScope(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	response := sendInvoiceScopeTestRequest(t, svc, []invoiceScopeTestPermission{
+		{scope: constants.LOOKUP_INVOICE_SCOPE},
+	}, models.MAKE_INVOICE_METHOD, invoiceScopeTestParams(models.MAKE_INVOICE_METHOD), nostr.Now())
+
+	require.NotNil(t, response)
+	require.NotNil(t, response.Error)
+	assert.Equal(t, constants.ERROR_RESTRICTED, response.Error.Code)
+	assert.Equal(t, "This app does not have the make_invoice scope", response.Error.Message)
+}
+
+func TestHandleResponse_MakeInvoiceOnlyScope_Expired(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	expiredAt := time.Now().Add(-time.Hour)
+	response := sendInvoiceScopeTestRequest(t, svc, []invoiceScopeTestPermission{
+		{scope: constants.MAKE_INVOICE_ONLY_SCOPE, expiresAt: &expiredAt},
+	}, models.MAKE_INVOICE_METHOD, invoiceScopeTestParams(models.MAKE_INVOICE_METHOD), nostr.Now())
+
+	require.NotNil(t, response)
+	require.NotNil(t, response.Error)
+	assert.Equal(t, constants.ERROR_EXPIRED, response.Error.Code)
+}
+
+func TestHandleResponse_MakeInvoiceOnlyScope_EitherScopeGrantsMakeInvoice(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	expiredAt := time.Now().Add(-time.Hour)
+	validUntil := time.Now().Add(time.Hour)
+
+	// expired make_invoice, valid make_invoice_only
+	appPermissions := []invoiceScopeTestPermission{
+		{scope: constants.MAKE_INVOICE_SCOPE, expiresAt: &expiredAt},
+		{scope: constants.MAKE_INVOICE_ONLY_SCOPE, expiresAt: &validUntil},
+	}
+	response := sendInvoiceScopeTestRequest(t, svc, appPermissions, models.MAKE_INVOICE_METHOD, invoiceScopeTestParams(models.MAKE_INVOICE_METHOD), nostr.Now())
+	require.NotNil(t, response)
+	assert.Nil(t, response.Error)
+	for _, method := range holdInvoiceMethods {
+		// hold invoice methods follow the make_invoice scope only
+		response = sendInvoiceScopeTestRequest(t, svc, appPermissions, method, invoiceScopeTestParams(method), nostr.Now())
+		require.NotNil(t, response, method)
+		require.NotNil(t, response.Error, method)
+		assert.Equal(t, constants.ERROR_EXPIRED, response.Error.Code, method)
+	}
+
+	// valid make_invoice, expired make_invoice_only
+	appPermissions = []invoiceScopeTestPermission{
+		{scope: constants.MAKE_INVOICE_SCOPE, expiresAt: &validUntil},
+		{scope: constants.MAKE_INVOICE_ONLY_SCOPE, expiresAt: &expiredAt},
+	}
+	for _, method := range append([]string{models.MAKE_INVOICE_METHOD}, holdInvoiceMethods...) {
+		response = sendInvoiceScopeTestRequest(t, svc, appPermissions, method, invoiceScopeTestParams(method), nostr.Now())
+		assertPassedPermissionCheck(t, response, method)
+	}
+}
+
+func TestHandleResponse_MakeInvoiceOnlyScope_OldRequestIgnored(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	appPermissions := []invoiceScopeTestPermission{{scope: constants.MAKE_INVOICE_ONLY_SCOPE}}
+
+	// invoice creation requests older than 6 hours are ignored
+	response := sendInvoiceScopeTestRequest(t, svc, appPermissions, models.MAKE_INVOICE_METHOD, invoiceScopeTestParams(models.MAKE_INVOICE_METHOD), nostr.Timestamp(time.Now().Add(-7*time.Hour).Unix()))
+	assert.Nil(t, response)
+
+	response = sendInvoiceScopeTestRequest(t, svc, appPermissions, models.MAKE_INVOICE_METHOD, invoiceScopeTestParams(models.MAKE_INVOICE_METHOD), nostr.Now())
+	require.NotNil(t, response)
+	assert.Nil(t, response.Error)
+}

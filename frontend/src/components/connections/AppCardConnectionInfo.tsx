@@ -129,7 +129,8 @@ export function AppCardConnectionInfo({
               <CircleCheckIcon className="size-4" />
               Share wallet information
             </div>
-            {connection.scopes.indexOf("make_invoice") > -1 && (
+            {(connection.scopes.indexOf("make_invoice") > -1 ||
+              connection.scopes.indexOf("make_invoice_only") > -1) && (
               <div className="flex flex-row items-center gap-2">
                 <CircleCheckIcon className="size-4" />
                 Receive payments

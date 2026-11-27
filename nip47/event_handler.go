@@ -380,6 +380,14 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, pool nostrmodels.Simpl
 		}
 
 		hasPermission, code, message := svc.permissionsService.HasPermission(&app, scope)
+		// make_invoice (but not the hold invoice methods) is also granted by the restricted make_invoice_only scope
+		if !hasPermission && nip47Request.Method == models.MAKE_INVOICE_METHOD {
+			onlyHasPermission, onlyCode, onlyMessage := svc.permissionsService.HasPermission(&app, constants.MAKE_INVOICE_ONLY_SCOPE)
+			// keep the original error unless the app has the restricted scope
+			if onlyHasPermission || onlyCode != constants.ERROR_RESTRICTED {
+				hasPermission, code, message = onlyHasPermission, onlyCode, onlyMessage
+			}
+		}
 		if !hasPermission {
 			logger.Logger.WithFields(logrus.Fields{
 				"request_event_id": requestEvent.ID,
