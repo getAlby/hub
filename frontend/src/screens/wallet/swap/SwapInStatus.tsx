@@ -67,7 +67,9 @@ export default function SwapInStatus() {
     FAILED: "Swap Failed",
     REFUNDED: "Swap Refunded",
     PENDING: swap.lockupTxId
-      ? "Waiting for confirmation"
+      ? swap.lockupConfirmed
+        ? "Waiting for lightning payment"
+        : "Waiting for confirmation"
       : isInternalSwap
         ? "Depositing on-chain funds"
         : "Waiting for deposit",
@@ -192,7 +194,44 @@ export default function SwapInStatus() {
                     <Divider color="border-green-600 dark:border-emerald-500" />
                   </>
                 )}
-                {swapStatus === "PENDING" && (
+                {swapStatus === "PENDING" && swap.lockupConfirmed && (
+                  <>
+                    <div className="flex items-center text-muted-foreground text-sm">
+                      <Loading className="w-5 h-5 mr-2" />
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <div className="flex items-center gap-2">
+                              <p>Waiting for lightning payment...</p>
+                              <CircleHelpIcon className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            If this takes a while, check that you have enough
+                            receiving capacity and your channels are online. If
+                            they are, contact the swap provider with your swap
+                            ID. If the swap expires, your deposit is refunded.
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    <Divider color="border-green-600 dark:border-emerald-500" />
+                    <div className="flex items-center text-muted-foreground text-sm">
+                      <CircleCheckIcon className="w-5 h-5 mr-2 text-green-600 dark:text-emerald-500" />
+                      <div className="flex items-center gap-2">
+                        <p>On-chain deposit confirmed</p>
+                        <ExternalLink
+                          to={`${info?.mempoolUrl}/tx/${swap.lockupTxId}`}
+                          className="flex items-center underline text-foreground"
+                        >
+                          View
+                        </ExternalLink>
+                      </div>
+                    </div>
+                    <Divider color="border-green-600 dark:border-emerald-500" />
+                  </>
+                )}
+                {swapStatus === "PENDING" && !swap.lockupConfirmed && (
                   <>
                     <div className="flex items-center text-muted-foreground text-sm">
                       <Loading className="w-5 h-5 mr-2" />

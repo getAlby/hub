@@ -238,6 +238,7 @@ type Swap struct {
 	RefundAddress      string `json:"refundAddress"`
 	LockupAddress      string `json:"lockupAddress"`
 	LockupTxId         string `json:"lockupTxId"`
+	LockupConfirmed    bool   `json:"lockupConfirmed"`
 	DepositTxId        string `json:"depositTxId"`
 	ClaimTxId          string `json:"claimTxId"`
 	AutoSwap           bool   `json:"autoSwap"`

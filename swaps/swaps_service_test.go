@@ -210,6 +210,36 @@ func TestFundInternalSwapInSavesDepositTxId(t *testing.T) {
 	assert.Empty(t, swap.LockupTxId)
 }
 
+func TestMarkLockupConfirmed(t *testing.T) {
+	logger.Init("4")
+	gormDB, err := testsdb.NewDB(t)
+	require.NoError(t, err)
+	defer testsdb.CloseDB(gormDB)
+
+	dbSwap := db.Swap{
+		SwapId:     "swap-in",
+		Type:       "in",
+		State:      "PENDING",
+		LockupTxId: "lockup-tx-id",
+	}
+	require.NoError(t, gormDB.Create(&dbSwap).Error)
+
+	svc := &swapsService{db: gormDB}
+
+	swap, err := svc.GetSwap("swap-in")
+	require.NoError(t, err)
+	assert.False(t, swap.LockupConfirmed)
+
+	svc.markLockupConfirmed(&dbSwap)
+
+	swap, err = svc.GetSwap("swap-in")
+	require.NoError(t, err)
+	assert.True(t, swap.LockupConfirmed)
+	// the swap stays pending until the lightning payment is received
+	assert.Equal(t, "PENDING", swap.State)
+	assert.Equal(t, "lockup-tx-id", swap.LockupTxId)
+}
+
 func TestRefundSwapRejectsInvalidAddress(t *testing.T) {
 	svc := &swapsService{
 		cfg: &testConfig{network: "bitcoin"},

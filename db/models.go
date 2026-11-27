@@ -105,6 +105,7 @@ type Swap struct {
 	RefundAddress      string
 	LockupAddress      string
 	LockupTxId         string
+	LockupConfirmed    bool
 	DepositTxId        string
 	ClaimTxId          string
 	AutoSwap           bool
