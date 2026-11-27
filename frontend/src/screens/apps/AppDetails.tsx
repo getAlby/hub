@@ -115,6 +115,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   }, [location.search]);
 
   const [name, setName] = React.useState(app.name);
+  const [savedName, setSavedName] = React.useState(app.name);
   const [permissions, setPermissions] = React.useState<AppPermissions>({
     scopes: app.scopes,
     maxAmountSat: app.maxAmountSat,
@@ -147,6 +148,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
 
       refetchApp();
       setIsEditingPermissions(false);
+      setSavedName(name);
       setSavedPermissions(permissions);
       toast("Successfully updated connection");
     } catch (error) {
@@ -319,6 +321,9 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                           type="button"
                           variant="outline"
                           onClick={() => {
+                            // discard unsaved changes
+                            setName(savedName);
+                            setPermissions(savedPermissions);
                             setIsEditingPermissions(false);
                           }}
                         >

@@ -361,3 +361,95 @@ func TestHandleCreateConnectionEvent_DoNotAllowCreateConnectionMethod(t *testing
 	assert.Equal(t, models.CREATE_CONNECTION_METHOD, publishedResponse.ResultType)
 	assert.Nil(t, publishedResponse.Result)
 }
+
+func createConnectionWithRequestMethods(t *testing.T, svc *tests.TestService, requestMethods []string) (*models.Response, []db.AppPermission) {
+	pairingSecretKey := nostr.GeneratePrivateKey()
+	pairingPublicKey, err := nostr.GetPublicKey(pairingSecretKey)
+	require.NoError(t, err)
+
+	requestMethodsJson, err := json.Marshal(requestMethods)
+	require.NoError(t, err)
+
+	nip47CreateConnectionJson := fmt.Sprintf(`
+{
+	"method": "create_connection",
+	"params": {
+		"pubkey": "%s",
+		"name": "Test 123",
+		"request_methods": %s
+	}
+}
+`, pairingPublicKey, requestMethodsJson)
+
+	nip47Request := &models.Request{}
+	err = json.Unmarshal([]byte(nip47CreateConnectionJson), nip47Request)
+	require.NoError(t, err)
+
+	dbRequestEvent := &db.RequestEvent{}
+	err = svc.DB.Create(&dbRequestEvent).Error
+	require.NoError(t, err)
+
+	var publishedResponse *models.Response
+	publishResponse := func(response *models.Response, tags nostr.Tags) {
+		publishedResponse = response
+	}
+
+	NewTestNip47Controller(svc).
+		HandleCreateConnectionEvent(context.TODO(), nip47Request, dbRequestEvent.ID, publishResponse)
+
+	permissions := []db.AppPermission{}
+	err = svc.DB.Find(&permissions).Error
+	require.NoError(t, err)
+	return publishedResponse, permissions
+}
+
+func TestHandleCreateConnectionEvent_MakeInvoiceWithoutHoldInvoiceMethods(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	publishedResponse, permissions := createConnectionWithRequestMethods(t, svc, []string{models.MAKE_INVOICE_METHOD, models.LOOKUP_INVOICE_METHOD})
+
+	require.NotNil(t, publishedResponse)
+	assert.Nil(t, publishedResponse.Error)
+	require.Equal(t, 2, len(permissions))
+	assert.Equal(t, constants.MAKE_INVOICE_ONLY_SCOPE, permissions[0].Scope)
+	assert.Equal(t, constants.LOOKUP_INVOICE_SCOPE, permissions[1].Scope)
+}
+
+func TestHandleCreateConnectionEvent_HoldInvoiceMethods(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	// a wallet backend that supports hold invoices
+	svc.LNClient.(*tests.MockLn).SupportedMethods = &[]string{
+		models.GET_INFO_METHOD, models.MAKE_INVOICE_METHOD, models.LOOKUP_INVOICE_METHOD,
+		models.MAKE_HOLD_INVOICE_METHOD, models.SETTLE_HOLD_INVOICE_METHOD, models.CANCEL_HOLD_INVOICE_METHOD,
+	}
+
+	publishedResponse, permissions := createConnectionWithRequestMethods(t, svc, []string{
+		models.MAKE_INVOICE_METHOD, models.MAKE_HOLD_INVOICE_METHOD, models.SETTLE_HOLD_INVOICE_METHOD, models.CANCEL_HOLD_INVOICE_METHOD, models.LOOKUP_INVOICE_METHOD,
+	})
+
+	require.NotNil(t, publishedResponse)
+	assert.Nil(t, publishedResponse.Error)
+	require.Equal(t, 2, len(permissions))
+	assert.Equal(t, constants.MAKE_INVOICE_SCOPE, permissions[0].Scope)
+	assert.Equal(t, constants.LOOKUP_INVOICE_SCOPE, permissions[1].Scope)
+}
+
+func TestHandleCreateConnectionEvent_HoldInvoiceMethodsUnsupported(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	// the default mock wallet backend does not support hold invoices
+	publishedResponse, permissions := createConnectionWithRequestMethods(t, svc, []string{models.MAKE_INVOICE_METHOD, models.MAKE_HOLD_INVOICE_METHOD})
+
+	require.NotNil(t, publishedResponse)
+	require.NotNil(t, publishedResponse.Error)
+	assert.Equal(t, constants.ERROR_BAD_REQUEST, publishedResponse.Error.Code)
+	assert.Equal(t, "Methods not supported by the current LNClient: make_hold_invoice", publishedResponse.Error.Message)
+	assert.Equal(t, 0, len(permissions))
+}

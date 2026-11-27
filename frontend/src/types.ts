@@ -41,7 +41,8 @@ export type Scope =
   | "pay_invoice" // also used for pay_keysend, multi_pay_invoice, multi_pay_keysend
   | "get_balance"
   | "get_info"
-  | "make_invoice"
+  | "make_invoice" // also used for make_hold_invoice, settle_hold_invoice, cancel_hold_invoice
+  | "make_invoice_only" // make_invoice without hold invoices
   | "lookup_invoice"
   | "list_transactions"
   | "sign_message"
@@ -60,6 +61,7 @@ export const scopeIconMap: ScopeIconMap = {
   list_transactions: NotebookTabsIcon,
   lookup_invoice: SearchIcon,
   make_invoice: CirclePlusIcon,
+  make_invoice_only: CirclePlusIcon,
   pay_invoice: HandCoinsIcon,
   sign_message: PenLineIcon,
   notifications: BellIcon,
@@ -97,10 +99,30 @@ export const scopeDescriptions: Record<Scope, string> = {
   list_transactions: "Read transaction history",
   lookup_invoice: "Lookup status of invoices",
   make_invoice: "Create invoices",
+  make_invoice_only: "Create invoices",
   pay_invoice: "Send payments",
   sign_message: "Sign messages",
   notifications: "Receive wallet notifications",
   superuser: "Create other app connections",
+};
+
+export const supportsHoldInvoices = (capabilities: WalletCapabilities) =>
+  capabilities.methods.includes("make_hold_invoice");
+
+// make_invoice also allows hold invoices, make_invoice_only does not
+export const getScopeDescription = (
+  scope: Scope,
+  capabilities: WalletCapabilities
+) => {
+  if (supportsHoldInvoices(capabilities)) {
+    if (scope === "make_invoice") {
+      return "Create invoices and hold invoices";
+    }
+    if (scope === "make_invoice_only") {
+      return "Create invoices (no hold invoices)";
+    }
+  }
+  return scopeDescriptions[scope];
 };
 
 export const expiryOptions: Record<string, number> = {

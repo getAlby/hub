@@ -16,7 +16,7 @@ import {
   BudgetRenewalType,
   Scope,
   WalletCapabilities,
-  scopeDescriptions,
+  getScopeDescription,
   scopeIconMap,
 } from "src/types";
 
@@ -102,7 +102,9 @@ const Permissions: React.FC<PermissionsProps> = ({
                   )}
                 >
                   <PermissionIcon className="mr-1 size-4" />
-                  <p className="text-sm">{scopeDescriptions[scope]}</p>
+                  <p className="text-sm">
+                    {getScopeDescription(scope, capabilities)}
+                  </p>
                 </Badge>
               );
             })}

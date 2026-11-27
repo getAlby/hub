@@ -24,6 +24,7 @@ import {
   Scope,
   WalletCapabilities,
   scopeDescriptions,
+  supportsHoldInvoices,
 } from "src/types";
 
 const scopeGroups = ["full_access", "read_only", "isolated", "custom"] as const;
@@ -51,6 +52,16 @@ const scopeGroupDescriptions: Record<ScopeGroup, string> = {
   custom: "Define specific permissions",
 };
 
+type InvoiceScope = "make_invoice" | "make_invoice_only";
+
+// hold invoice authority shown for a set of scopes (when the wallet supports hold invoices)
+const holdInvoicesNote = (scopes: Scope[]) =>
+  scopes.includes("make_invoice")
+    ? "Includes hold invoices"
+    : scopes.includes("make_invoice_only")
+      ? "Hold invoices not included"
+      : undefined;
+
 interface ScopesProps {
   capabilities: WalletCapabilities;
   scopes: Scope[];
@@ -65,15 +76,32 @@ const Scopes: React.FC<ScopesProps> = ({
   onScopesChanged,
 }) => {
   const [isSheetOpen, setSheetOpen] = React.useState(false);
+  const holdInvoicesSupported = supportsHoldInvoices(capabilities);
+  // Hold invoice authority (make_invoice) is never granted by ticking "Create
+  // invoices" (make_invoice_only); it needs the separate hold invoices option.
+  // Presets only keep it if the connection already had it when the editor was
+  // opened and it was not removed since.
+  const [presetInvoiceScope, setPresetInvoiceScope] =
+    React.useState<InvoiceScope>(() =>
+      scopes.includes("make_invoice") ? "make_invoice" : "make_invoice_only"
+    );
+  const withPresetInvoiceScope = React.useCallback(
+    (presetScopes: Scope[]): Scope[] =>
+      presetScopes.map((scope) =>
+        scope === "make_invoice" ? presetInvoiceScope : scope
+      ),
+    [presetInvoiceScope]
+  );
+
   const fullAccessScopes: Scope[] = React.useMemo(() => {
-    return [...capabilities.scopes];
-  }, [capabilities.scopes]);
+    return withPresetInvoiceScope([...capabilities.scopes]);
+  }, [capabilities.scopes, withPresetInvoiceScope]);
 
   const readOnlyScopes: Scope[] = React.useMemo(() => {
-    return capabilities.scopes.filter((scope) =>
-      READ_ONLY_SCOPES.includes(scope)
+    return withPresetInvoiceScope(
+      capabilities.scopes.filter((scope) => READ_ONLY_SCOPES.includes(scope))
     );
-  }, [capabilities.scopes]);
+  }, [capabilities.scopes, withPresetInvoiceScope]);
 
   const isolatedScopes: Scope[] = React.useMemo(() => {
     const isolatedScopes: Scope[] = [
@@ -86,10 +114,17 @@ const Scopes: React.FC<ScopesProps> = ({
       "notifications",
     ];
 
-    return capabilities.scopes.filter((scope) =>
-      isolatedScopes.includes(scope)
+    return withPresetInvoiceScope(
+      capabilities.scopes.filter((scope) => isolatedScopes.includes(scope))
     );
-  }, [capabilities.scopes]);
+  }, [capabilities.scopes, withPresetInvoiceScope]);
+
+  const presetScopes: Record<ScopeGroup, Scope[]> = {
+    full_access: fullAccessScopes,
+    read_only: readOnlyScopes,
+    isolated: isolatedScopes,
+    custom: [],
+  };
 
   const [scopeGroup, setScopeGroup] = React.useState<ScopeGroup>(() => {
     if (
@@ -134,9 +169,21 @@ const Scopes: React.FC<ScopesProps> = ({
     }
   };
 
+  const isInvoiceScope = (scope: Scope) =>
+    scope === "make_invoice" || scope === "make_invoice_only";
+  const canCreateInvoices = scopes.some(isInvoiceScope);
+
   const handleScopeChange = (scope: Scope) => {
     let newScopes = [...scopes];
-    if (newScopes.includes(scope)) {
+    if (scope === "make_invoice") {
+      // "Create invoices": make_invoice_only; unticking also removes hold invoices
+      if (canCreateInvoices) {
+        newScopes = newScopes.filter((existing) => !isInvoiceScope(existing));
+        setPresetInvoiceScope("make_invoice_only");
+      } else {
+        newScopes.push("make_invoice_only");
+      }
+    } else if (newScopes.includes(scope)) {
       newScopes = newScopes.filter((existing) => existing !== scope);
     } else {
       newScopes.push(scope);
@@ -145,7 +192,22 @@ const Scopes: React.FC<ScopesProps> = ({
     onScopesChanged(newScopes, isolated);
   };
 
+  const handleHoldInvoicesChange = () => {
+    const invoiceScope: InvoiceScope = scopes.includes("make_invoice")
+      ? "make_invoice_only"
+      : "make_invoice";
+    setPresetInvoiceScope(invoiceScope);
+    onScopesChanged(
+      [...scopes.filter((existing) => !isInvoiceScope(existing)), invoiceScope],
+      isolated
+    );
+  };
+
   const ActiveScopeGroupIcon = scopeGroupIconMap[scopeGroup];
+  const activeHoldInvoicesNote =
+    holdInvoicesSupported && scopeGroup !== "custom"
+      ? holdInvoicesNote(scopes)
+      : undefined;
 
   return (
     <>
@@ -157,6 +219,9 @@ const Scopes: React.FC<ScopesProps> = ({
           <div className="flex flex-col gap-4 px-6">
             {scopeGroups.map((sg, index) => {
               const ScopeGroupIcon = scopeGroupIconMap[sg];
+              const holdNote = holdInvoicesSupported
+                ? holdInvoicesNote(presetScopes[sg])
+                : undefined;
               return (
                 <button
                   type="button"
@@ -176,6 +241,11 @@ const Scopes: React.FC<ScopesProps> = ({
                     <span className="text-xs text-muted-foreground">
                       {scopeGroupDescriptions[sg]}
                     </span>
+                    {holdNote && (
+                      <span className="text-xs text-muted-foreground">
+                        {holdNote}
+                      </span>
+                    )}
                   </div>
                 </button>
               );
@@ -202,6 +272,11 @@ const Scopes: React.FC<ScopesProps> = ({
           <span className="text-xs text-muted-foreground">
             {scopeGroupDescriptions[scopeGroup]}
           </span>
+          {activeHoldInvoicesNote && (
+            <span className="text-xs text-muted-foreground">
+              {activeHoldInvoicesNote}
+            </span>
+          )}
         </div>
         <ChevronsUpDownIcon className="ml-auto shrink-0 size-4 text-muted-foreground" />
       </button>
@@ -236,12 +311,36 @@ const Scopes: React.FC<ScopesProps> = ({
                       id={scope}
                       className="mr-2"
                       onCheckedChange={() => handleScopeChange(scope)}
-                      checked={scopes.includes(scope)}
+                      checked={
+                        scope === "make_invoice"
+                          ? canCreateInvoices
+                          : scopes.includes(scope)
+                      }
                     />
                     <Label htmlFor={scope} className="cursor-pointer">
-                      {scopeDescriptions[scope]}
+                      {scope === "make_invoice"
+                        ? scopeDescriptions.make_invoice_only
+                        : scopeDescriptions[scope]}
                     </Label>
                   </div>
+                  {scope === "make_invoice" &&
+                    holdInvoicesSupported &&
+                    canCreateInvoices && (
+                      <div className="flex items-center mb-2 ml-6">
+                        <Checkbox
+                          id="hold_invoices"
+                          className="mr-2"
+                          onCheckedChange={handleHoldInvoicesChange}
+                          checked={scopes.includes("make_invoice")}
+                        />
+                        <Label
+                          htmlFor="hold_invoices"
+                          className="cursor-pointer"
+                        >
+                          Also allow hold invoices
+                        </Label>
+                      </div>
+                    )}
                 </li>
               );
             })}

@@ -109,8 +109,11 @@ func scopesToRequestMethods(scopes []string) []string {
 	requestMethods := []string{}
 
 	for _, scope := range scopes {
-		scopeRequestMethods := scopeToRequestMethods(scope)
-		requestMethods = append(requestMethods, scopeRequestMethods...)
+		for _, requestMethod := range scopeToRequestMethods(scope) {
+			if !slices.Contains(requestMethods, requestMethod) {
+				requestMethods = append(requestMethods, requestMethod)
+			}
+		}
 	}
 	return requestMethods
 }
@@ -125,6 +128,8 @@ func scopeToRequestMethods(scope string) []string {
 		return []string{models.GET_INFO_METHOD}
 	case constants.MAKE_INVOICE_SCOPE:
 		return []string{models.MAKE_INVOICE_METHOD, models.MAKE_HOLD_INVOICE_METHOD, models.SETTLE_HOLD_INVOICE_METHOD, models.CANCEL_HOLD_INVOICE_METHOD}
+	case constants.MAKE_INVOICE_ONLY_SCOPE:
+		return []string{models.MAKE_INVOICE_METHOD}
 	case constants.LOOKUP_INVOICE_SCOPE:
 		return []string{models.LOOKUP_INVOICE_METHOD}
 	case constants.LIST_TRANSACTIONS_SCOPE:
@@ -150,6 +155,32 @@ func RequestMethodsToScopes(requestMethods []string) ([]string, error) {
 		}
 	}
 	return scopes, nil
+}
+
+// RequestMethodsToScopesExact maps explicitly requested methods to scopes
+// (e.g. via create_connection). Unlike RequestMethodsToScopes, if make_invoice is
+// requested without any hold invoice method, the restricted make_invoice_only scope
+// is granted instead of make_invoice, which would also allow hold invoices.
+func RequestMethodsToScopesExact(requestMethods []string) ([]string, error) {
+	scopes, err := RequestMethodsToScopes(requestMethods)
+	if err != nil {
+		return nil, err
+	}
+	if !slices.Contains(requestMethods, models.MAKE_INVOICE_METHOD) || slices.ContainsFunc(requestMethods, isHoldInvoiceMethod) {
+		return scopes, nil
+	}
+	for i, scope := range scopes {
+		if scope == constants.MAKE_INVOICE_SCOPE {
+			scopes[i] = constants.MAKE_INVOICE_ONLY_SCOPE
+		}
+	}
+	return scopes, nil
+}
+
+func isHoldInvoiceMethod(requestMethod string) bool {
+	return requestMethod == models.MAKE_HOLD_INVOICE_METHOD ||
+		requestMethod == models.SETTLE_HOLD_INVOICE_METHOD ||
+		requestMethod == models.CANCEL_HOLD_INVOICE_METHOD
 }
 
 var ErrUnsupportedMethod = errors.New("unsupported request method")
@@ -187,6 +218,7 @@ func AllScopes() []string {
 		constants.GET_BALANCE_SCOPE,
 		constants.GET_INFO_SCOPE,
 		constants.MAKE_INVOICE_SCOPE,
+		constants.MAKE_INVOICE_ONLY_SCOPE,
 		constants.LOOKUP_INVOICE_SCOPE,
 		constants.LIST_TRANSACTIONS_SCOPE,
 		constants.SIGN_MESSAGE_SCOPE,

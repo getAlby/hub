@@ -32,6 +32,7 @@ import {
   Nip47NotificationType,
   Nip47RequestMethod,
   READ_ONLY_SCOPES,
+  supportsHoldInvoices,
   Scope,
   WalletCapabilities,
   validBudgetRenewals,
@@ -103,14 +104,22 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
   const reqMethodsParam = queryParams.get("request_methods") ?? "";
   const notificationTypesParam = queryParams.get("notification_types") ?? "";
 
+  // Without hold invoice support, new connections get make_invoice_only, so they
+  // cannot gain hold invoice authority if the wallet later supports it.
+  const holdInvoicesSupported = supportsHoldInvoices(capabilities);
+
   /* eslint-disable react-hooks/preserve-manual-memoization */
   const initialScopes: Scope[] = React.useMemo(() => {
     // Receive-only app store apps (e.g. merchant payment receivers) default to
     // read-only permissions, unless the deep link explicitly requests methods.
     if (appStoreApp?.readonly && !reqMethodsParam) {
-      return capabilities.scopes.filter((scope) =>
-        READ_ONLY_SCOPES.includes(scope)
-      );
+      return capabilities.scopes
+        .filter((scope) => READ_ONLY_SCOPES.includes(scope))
+        .map((scope) =>
+          scope === "make_invoice" && !holdInvoicesSupported
+            ? "make_invoice_only"
+            : scope
+        );
     }
 
     const methods = reqMethodsParam
@@ -171,12 +180,19 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
       scopes.push("get_balance");
     }
     if (
-      requestMethodsSet.has("make_invoice") ||
       requestMethodsSet.has("make_hold_invoice") ||
       requestMethodsSet.has("settle_hold_invoice") ||
       requestMethodsSet.has("cancel_hold_invoice")
     ) {
       scopes.push("make_invoice");
+    } else if (requestMethodsSet.has("make_invoice")) {
+      // apps that explicitly request make_invoice without hold invoice methods
+      // get the restricted scope, which does not allow hold invoices
+      scopes.push(
+        reqMethodsParam || !holdInvoicesSupported
+          ? "make_invoice_only"
+          : "make_invoice"
+      );
     }
     if (requestMethodsSet.has("lookup_invoice")) {
       scopes.push("lookup_invoice");
@@ -197,6 +213,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
     capabilities.methods,
     capabilities.notificationTypes,
     capabilities.scopes,
+    holdInvoicesSupported,
     isolatedParam,
     notificationTypesParam,
     reqMethodsParam,
