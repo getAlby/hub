@@ -182,6 +182,7 @@ const Scopes: React.FC<ScopesProps> = ({
         setPresetInvoiceScope("make_invoice_only");
       } else {
         newScopes.push("make_invoice_only");
+        setPresetInvoiceScope("make_invoice_only");
       }
     } else if (newScopes.includes(scope)) {
       newScopes = newScopes.filter((existing) => existing !== scope);
