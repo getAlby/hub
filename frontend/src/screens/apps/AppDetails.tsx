@@ -149,7 +149,9 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
       refetchApp();
       setIsEditingPermissions(false);
       setSavedName(name);
+      setName(name);
       setSavedPermissions(permissions);
+      setPermissions(permissions);
       toast("Successfully updated connection");
     } catch (error) {
       handleRequestError("Failed to update connection", error);
