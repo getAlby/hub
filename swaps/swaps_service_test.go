@@ -217,7 +217,7 @@ func TestMarkLockupConfirmed(t *testing.T) {
 		eventLockupTxId    string
 		expectedLockupTxId string
 	}{
-		{"keeps the saved lockup transaction ID", "lockup-tx-id", "other-tx-id", "lockup-tx-id"},
+		{"saves the confirmed lockup transaction ID if it was replaced", "lockup-tx-id", "replacement-tx-id", "replacement-tx-id"},
 		{"saves the lockup transaction ID if the mempool update was missed", "", "lockup-tx-id", "lockup-tx-id"},
 		{"never clears the saved lockup transaction ID", "lockup-tx-id", "", "lockup-tx-id"},
 	}

@@ -789,15 +789,13 @@ func (svc *swapsService) markSwapState(dbSwap *db.Swap, state string) {
 // confirmed. It is only used to show the swap progress, so a failure is logged
 // rather than failing the swap.
 func (svc *swapsService) markLockupConfirmed(dbSwap *db.Swap, lockupTxId string) {
-	update := &db.Swap{
+	// the lockup transaction ID is also saved here because the mempool update
+	// can be missed, for example if the hub was restarted. An empty ID is
+	// ignored, so a saved ID is never cleared.
+	dbErr := svc.db.Model(dbSwap).Updates(&db.Swap{
 		LockupConfirmed: true,
-	}
-	// the lockup transaction ID is normally saved from the mempool update,
-	// which can be missed, for example if the hub was restarted
-	if dbSwap.LockupTxId == "" {
-		update.LockupTxId = lockupTxId
-	}
-	dbErr := svc.db.Model(dbSwap).Updates(update).Error
+		LockupTxId:      lockupTxId,
+	}).Error
 	if dbErr != nil {
 		logger.Logger.WithError(dbErr).WithField("swapId", dbSwap.SwapId).Error("Failed to mark lockup transaction as confirmed")
 	}
