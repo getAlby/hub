@@ -954,6 +954,7 @@ func toApiSwap(swap *swaps.Swap) *Swap {
 		RefundAddress:      swap.RefundAddress,
 		LockupAddress:      swap.LockupAddress,
 		LockupTxId:         swap.LockupTxId,
+		LockupConfirmed:    swap.LockupConfirmed,
 		DepositTxId:        swap.DepositTxId,
 		ClaimTxId:          swap.ClaimTxId,
 		AutoSwap:           swap.AutoSwap,

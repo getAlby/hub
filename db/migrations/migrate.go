@@ -41,6 +41,7 @@ func Migrate(gormDB *gorm.DB) error {
 		_202604081200_app_last_settled_transaction,
 		_202610131900_swap_api_url,
 		_202611191200_swap_deposit_tx_id,
+		_202611271200_swap_lockup_confirmed,
 	})
 
 	return m.Migrate()

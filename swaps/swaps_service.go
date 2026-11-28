@@ -785,6 +785,22 @@ func (svc *swapsService) markSwapState(dbSwap *db.Swap, state string) {
 	}
 }
 
+// markLockupConfirmed records that the lockup transaction of a swap in has
+// confirmed. It is only used to show the swap progress, so a failure is logged
+// rather than failing the swap.
+func (svc *swapsService) markLockupConfirmed(dbSwap *db.Swap, lockupTxId string) {
+	// the lockup transaction ID is also saved here because the mempool update
+	// can be missed, for example if the hub was restarted. An empty ID is
+	// ignored, so a saved ID is never cleared.
+	dbErr := svc.db.Model(dbSwap).Updates(&db.Swap{
+		LockupConfirmed: true,
+		LockupTxId:      lockupTxId,
+	}).Error
+	if dbErr != nil {
+		logger.Logger.WithError(dbErr).WithField("swapId", dbSwap.SwapId).Error("Failed to mark lockup transaction as confirmed")
+	}
+}
+
 func (svc *swapsService) RefundSwap(swapId, address string, enableRetries bool) error {
 	if address != "" {
 		if err := svc.ValidateAddress(address); err != nil {
@@ -1202,6 +1218,7 @@ func (svc *swapsService) startSwapInListener(swap *db.Swap) {
 					"swapId":     swap.SwapId,
 					"lockupTxId": swap.LockupTxId,
 				}).Info("Lockup transaction confirmed in mempool")
+				svc.markLockupConfirmed(swap, update.Transaction.Id)
 			case boltz.InvoicePaid:
 				svc.markSwapState(swap, constants.SWAP_STATE_SUCCESS)
 				err = svc.db.Model(swap).Updates(&db.Swap{
